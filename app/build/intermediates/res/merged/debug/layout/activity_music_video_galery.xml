@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/theme"
+    android:baselineAligned="false"
+    android:orientation="horizontal" >
+
+    <ListView
+        android:id="@+id/list_music_video_galery"
+        android:layout_width="0dp"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:scrollbars="vertical" />
+
+</LinearLayout><!-- From: file:/home/dinu/AndroidStudio_projects/MediaStock/app/src/main/res/layout/activity_music_video_galery.xml -->

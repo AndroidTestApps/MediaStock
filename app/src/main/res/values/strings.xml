@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">MediaStock</string>
+    <string name="action_settings">Settings</string>
+    <color name="black">#000000</color>
+    <string name="music_home">Recent music</string>
+    <string name="image_home">Recent images</string>
+    <string name="video_home">Recent videos</string>
+    <string name="home">Home</string>
+    <string name="search">Search</string>
+    <color name="white">#FFFFFF</color>
+    <string name="no_internet">There is no internet connection!</string>
+    <string name="similar">Similar images</string>
+    <string name="image_gallery">Image gallery</string>
+    <string name="music_gallery">Music gallery</string>
+    <string name="video_gallery">Video gallery</string>
+    <string name="play">&gt;</string>
+    <string name="back_f">&lt;&lt;</string>
+    <string name="forward">&gt;&gt;</string>
+    <string name="pause">| |</string>
+    <string name="filter">Filter</string>
+
+</resources>

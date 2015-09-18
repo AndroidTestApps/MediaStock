@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/theme"
+    android:focusable="true"
+    android:focusableInTouchMode="true" >
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="600dp"
+        android:layout_gravity="center|top"
+        android:focusable="true" >
+
+        <LinearLayout
+            android:id="@+id/linearLayoutFilterVideo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/filterVideo"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="30dp"
+                android:background="@drawable/shape"
+                android:gravity="center"
+                android:paddingBottom="4dp"
+                android:paddingTop="4dp"
+                android:text="Video search"
+                android:textColor="@color/black" />
+  
+            <TextView
+                android:id="@+id/filterVideo_category"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="40dp"
+                android:background="@drawable/shape"
+                android:gravity="center"
+                android:padding="4dp"
+                android:text="Category"
+                android:textColor="@color/black" />
+
+            <Spinner
+                android:id="@+id/spinnerVideo_category"
+                android:layout_width="250dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:gravity="center"
+                  />
+
+            <TextView
+                android:id="@+id/filterVideo_word"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="40dp"
+                android:background="@drawable/shape"
+                android:gravity="center"
+                android:padding="4dp"
+                android:text="Keyword"
+                android:textColor="@color/black" />
+            
+            <EditText
+                android:id="@+id/editTextVideo_word"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:hint="Keyword"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:id="@+id/filterVideo_sort"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="40dp"
+                android:background="@drawable/shape"
+                android:gravity="center"
+                android:padding="4dp"
+                android:text="Sort by"
+                android:textColor="@color/black" />
+
+            <Spinner
+                android:id="@+id/spinnerVideo_sort"
+                android:layout_width="250dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center" />
+
+            <TextView
+                android:id="@+id/filterVideo_per_page"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="40dp"
+                android:background="@drawable/shape"
+                android:gravity="center"
+                android:padding="4dp"
+                android:text="Number of videos"
+                android:textColor="@color/black" />
+
+            <Spinner
+                android:id="@+id/spinnerVideo_per_page"
+                android:layout_width="250dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center" />
+
+            <Button
+                android:id="@+id/filterVideo_button"
+                android:layout_width="200dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center|bottom"
+                android:layout_marginTop="30dp"
+                android:background="@drawable/shape"
+                android:gravity="center"
+                android:text="Search"
+                android:textColor="@color/color_change" />
+        </LinearLayout>
+    </RelativeLayout>
+
+</ScrollView><!-- From: file:/home/dinu/AndroidStudio_projects/MediaStock/app/src/main/res/layout/activity_filter_video.xml -->

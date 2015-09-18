@@ -1,0 +1,179 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:2:1-70:12
+	package
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:3:5-37
+		INJECTED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml
+		INJECTED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml
+	android:versionName
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:5:5-30
+	android:versionCode
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:4:5-28
+		INJECTED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml
+		INJECTED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:2:11-69
+uses-sdk
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:7:5-9:41
+MERGED from [com.android.support:appcompat-v7:22.2.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.1/AndroidManifest.xml:20:5-43
+MERGED from [com.android.support:support-v4:22.2.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.1/AndroidManifest.xml:20:5-43
+MERGED from [com.android.support:support-v4:22.2.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.1/AndroidManifest.xml:20:5-43
+MERGED from [com.squareup.leakcanary:leakcanary-android:1.3.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3.1/AndroidManifest.xml:20:5-22:41
+	android:targetSdkVersion
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:9:9-38
+		INJECTED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml
+		INJECTED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:8:9-35
+		INJECTED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml
+		INJECTED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml
+uses-permission#android.permission.INTERNET
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:11:5-67
+	android:name
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:11:22-64
+uses-permission#android.permission.ACCESS_NETWORK_STATE
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:12:5-79
+	android:name
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:12:22-76
+application
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:14:5-68:19
+MERGED from [com.android.support:appcompat-v7:22.2.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.1/AndroidManifest.xml:22:5-20
+MERGED from [com.android.support:support-v4:22.2.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.1/AndroidManifest.xml:22:5-20
+MERGED from [com.android.support:support-v4:22.2.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.1/AndroidManifest.xml:22:5-20
+MERGED from [com.squareup.leakcanary:leakcanary-android:1.3.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3.1/AndroidManifest.xml:27:5-49:19
+	android:label
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:17:9-41
+	android:allowBackup
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:15:9-35
+	android:icon
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:16:9-42
+	android:largeHeap
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:18:9-33
+	android:theme
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:19:9-40
+activity#com.example.mediastock.activities.MainActivity
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:20:9-30:20
+	android:label
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:23:13-45
+	android:configChanges
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:22:13-74
+	android:uiOptions
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:24:13-57
+	android:name
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:21:13-52
+intent-filter#android.intent.action.MAIN+android.intent.category.LAUNCHER
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:25:13-29:29
+action#android.intent.action.MAIN
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:26:17-69
+	android:name
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:26:25-66
+category#android.intent.category.LAUNCHER
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:28:17-77
+	android:name
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:28:27-74
+activity#com.example.mediastock.activities.FilterImageActivity
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:31:9-33:77
+	android:configChanges
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:33:13-74
+	android:name
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:32:13-81
+activity#com.example.mediastock.activities.DisplayImageActivity
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:34:9-37:60
+	android:configChanges
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:36:13-74
+	android:uiOptions
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:37:13-57
+	android:name
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:35:13-82
+activity#com.example.mediastock.activities.ImageGaleryActivity
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:38:9-41:60
+	android:configChanges
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:40:13-74
+	android:uiOptions
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:41:13-57
+	android:name
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:39:13-81
+activity#com.example.mediastock.activities.MusicGaleryActivity
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:42:9-45:60
+	android:configChanges
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:44:13-74
+	android:uiOptions
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:45:13-57
+	android:name
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:43:13-81
+activity#com.example.mediastock.activities.VideoGaleryActivity
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:46:9-49:60
+	android:configChanges
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:48:13-74
+	android:uiOptions
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:49:13-57
+	android:name
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:47:13-81
+activity#com.example.mediastock.activities.MusicPlayerActivity
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:50:9-52:77
+	android:configChanges
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:52:13-74
+	android:name
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:51:13-81
+activity#com.example.mediastock.activities.VideoPlayerActivity
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:53:9-55:77
+	android:configChanges
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:55:13-74
+	android:name
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:54:13-81
+activity#com.example.mediastock.activities.FilterMusicActivity
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:56:9-58:77
+	android:configChanges
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:58:13-74
+	android:name
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:57:13-81
+activity#com.example.mediastock.activities.FilterActivity
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:59:9-61:77
+	android:configChanges
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:61:13-74
+	android:name
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:60:13-76
+activity#com.example.mediastock.activities.FilterVideoActivity
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:62:9-64:77
+	android:configChanges
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:64:13-74
+	android:name
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:63:13-81
+service#com.example.mediastock.util.DownloadService
+ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:66:9-67:19
+	android:name
+		ADDED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:66:18-76
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from [com.squareup.leakcanary:leakcanary-android:1.3.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3.1/AndroidManifest.xml:25:5-81
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android:1.3.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3.1/AndroidManifest.xml:25:22-78
+service#com.squareup.leakcanary.internal.HeapAnalyzerService
+ADDED from [com.squareup.leakcanary:leakcanary-android:1.3.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3.1/AndroidManifest.xml:28:9-31:45
+	android:enabled
+		ADDED from [com.squareup.leakcanary:leakcanary-android:1.3.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3.1/AndroidManifest.xml:30:13-36
+	android:process
+		ADDED from [com.squareup.leakcanary:leakcanary-android:1.3.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3.1/AndroidManifest.xml:31:13-42
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android:1.3.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3.1/AndroidManifest.xml:29:13-80
+service#com.squareup.leakcanary.DisplayLeakService
+ADDED from [com.squareup.leakcanary:leakcanary-android:1.3.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3.1/AndroidManifest.xml:32:9-34:39
+	android:enabled
+		ADDED from [com.squareup.leakcanary:leakcanary-android:1.3.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3.1/AndroidManifest.xml:34:13-36
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android:1.3.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3.1/AndroidManifest.xml:33:13-70
+activity#com.squareup.leakcanary.internal.DisplayLeakActivity
+ADDED from [com.squareup.leakcanary:leakcanary-android:1.3.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3.1/AndroidManifest.xml:36:9-48:20
+	android:enabled
+		ADDED from [com.squareup.leakcanary:leakcanary-android:1.3.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3.1/AndroidManifest.xml:38:13-36
+	android:label
+		ADDED from [com.squareup.leakcanary:leakcanary-android:1.3.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3.1/AndroidManifest.xml:40:13-73
+	android:icon
+		ADDED from [com.squareup.leakcanary:leakcanary-android:1.3.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3.1/AndroidManifest.xml:39:13-56
+	android:theme
+		ADDED from [com.squareup.leakcanary:leakcanary-android:1.3.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3.1/AndroidManifest.xml:42:13-53
+	android:taskAffinity
+		ADDED from [com.squareup.leakcanary:leakcanary-android:1.3.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3.1/AndroidManifest.xml:41:13-59
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android:1.3.1] /home/dinu/AndroidStudio_projects/MediaStock/app/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3.1/AndroidManifest.xml:37:13-80
+android:uses-permission#android.permission.READ_EXTERNAL_STORAGE
+IMPLIED from /home/dinu/AndroidStudio_projects/MediaStock/app/src/main/AndroidManifest.xml:2:1-70:12 reason: com.squareup.leakcanary requested WRITE_EXTERNAL_STORAGE

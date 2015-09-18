@@ -1,0 +1,165 @@
+<ScrollView xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/theme"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+   android:isScrollContainer="false" >
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center|top"
+        android:focusable="true" >
+
+     
+        <HorizontalScrollView
+            android:id="@+id/image_main_ScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@+id/home_image_text"
+            android:fastScrollEnabled="true"
+            android:paddingLeft="3dp"
+            android:paddingRight="3dp"
+            android:isScrollContainer="false" >
+
+            <LinearLayout
+                android:id="@+id/scroll_main_linearLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" >
+            </LinearLayout>
+        </HorizontalScrollView>
+        
+
+
+        <TextView
+            android:id="@+id/home_image_text"
+            android:layout_width="fill_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="90dp"
+            android:background="@drawable/shape"
+            android:gravity="start|center"
+            android:text="@string/image_home"
+            android:textColor="@color/black"
+            android:textSize="15sp" />
+
+        <LinearLayout
+            android:id="@+id/linearLayout1"
+            android:layout_width="fill_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/shape"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:id="@+id/TextView_imageGalery"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginLeft="25dp"
+                android:layout_weight="0.40"
+                android:clickable="true"
+                android:text="@string/image_gallery"
+                android:textColor="@color/color_change"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/TextView_musicGalery"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginLeft="25dp"
+                android:layout_weight="0.40"
+                android:clickable="true"
+                android:text="@string/music_gallery"
+                android:textColor="@color/color_change"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/TextView_videoGalery"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginLeft="25dp"
+                android:layout_weight="0.40"
+                android:clickable="true"
+                android:text="@string/video_gallery"
+                android:textColor="@color/color_change"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/home_video_text"
+            android:layout_width="fill_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@+id/image_main_ScrollView"
+            android:background="@drawable/shape"
+            android:gravity="start|center"
+            android:text="@string/video_home"
+            android:textColor="@color/black"
+            android:textSize="15sp" />
+
+        <LinearLayout
+            android:id="@+id/scroll_video_linearLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_below="@+id/home_video_text"
+            android:baselineAligned="false"
+            android:orientation="horizontal" >
+
+            <ListView
+                android:id="@+id/list_video"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:scrollbars="vertical"
+                android:smoothScrollbar="true" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/home_music_text"
+            android:layout_width="fill_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/scroll_video_linearLayout"
+            android:background="@drawable/shape"
+            android:gravity="start|center"
+            android:text="@string/music_home"
+            android:textColor="@color/black"
+            android:textSize="15sp" />
+
+        <LinearLayout
+            android:id="@+id/scroll_music_linearLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_below="@+id/home_music_text"
+            android:baselineAligned="false"
+            android:orientation="horizontal" >
+
+            <ListView
+                android:id="@+id/list_music"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:scrollbars="vertical"
+                android:smoothScrollbar="true" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/home_video_texxt"
+            android:layout_width="fill_parent"
+            android:layout_height="60dp"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/scroll_music_linearLayout"
+            android:background="@drawable/shape"
+            android:textColor="@color/black"
+            android:textSize="15sp" />
+    </RelativeLayout>
+
+</ScrollView>

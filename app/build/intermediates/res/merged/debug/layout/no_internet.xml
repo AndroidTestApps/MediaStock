@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center_vertical"
+    android:background="#000000"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="146dp"
+        android:text="@string/no_internet"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp" />
+
+</RelativeLayout>
+<!-- From: file:/home/dinu/AndroidStudio_projects/MediaStock/app/src/main/res/layout/no_internet.xml -->

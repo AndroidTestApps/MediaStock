@@ -1,0 +1,22 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.mediastock.MainActivity" >
+
+    <item
+        android:id="@+id/item_home"
+        android:icon="@drawable/home"
+        android:showAsAction="ifRoom"
+        android:title="@string/home"/>
+    <item
+        android:id="@+id/item_search"
+        android:icon="@drawable/ic_action_search"
+        android:showAsAction="ifRoom"
+        android:title="@string/search"/>
+    <item
+        android:id="@+id/item_filter"
+        android:icon="@drawable/ic_action_view_as_list"
+        android:showAsAction="ifRoom"
+        android:title="@string/filter"/>
+
+</menu>
