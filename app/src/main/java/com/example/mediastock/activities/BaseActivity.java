@@ -1,11 +1,8 @@
 package com.example.mediastock.activities;
 
 
-import java.util.ArrayList;
-
-import com.example.mediastock.R;
-
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -27,12 +24,17 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.example.mediastock.R;
+
+import java.util.ArrayList;
+
 /**
  * Parent activity. All the children activities share the same actionBar and consequently the search and filter.
  * 
  * @author Dinu
  */
 public abstract class BaseActivity extends Activity{
+    private ProgressDialog pDialog;
 	private String search_type;
 	private static String key1;
 	private static String key2;
@@ -40,6 +42,10 @@ public abstract class BaseActivity extends Activity{
 	@Override
 	protected void onCreate(Bundle bundle){
 		super.onCreate(bundle);
+
+        pDialog = new ProgressDialog(this);
+        pDialog.setMessage("Loading...");
+        pDialog.setCancelable(false);
 	}
 
 	@Override
@@ -72,6 +78,17 @@ public abstract class BaseActivity extends Activity{
 		return true;
 	}
 
+    public void showProgressDialog(){
+        pDialog.show();
+    }
+
+    public void dismissProgressDialog(){
+        pDialog.dismiss();
+    }
+
+    public boolean isProgressDilaogOn(){
+        return pDialog.isShowing();
+    }
 
 	/**
 	 * Search button.

@@ -1,4 +1,26 @@
 package com.example.mediastock.activities;
+import android.app.LoaderManager.LoaderCallbacks;
+import android.content.AsyncTaskLoader;
+import android.content.Intent;
+import android.content.Loader;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.example.mediastock.R;
+import com.example.mediastock.beans.Bean;
+import com.example.mediastock.beans.VideoBean;
+import com.example.mediastock.util.Adapter;
+import com.example.mediastock.util.Utilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,29 +34,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 
-import com.example.mediastock.R;
-import com.example.mediastock.beans.Bean;
-import com.example.mediastock.beans.VideoBean;
-import com.example.mediastock.util.Adapter;
-import com.example.mediastock.util.Utilities;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import android.app.ProgressDialog;
-import android.app.LoaderManager.LoaderCallbacks;
-import android.content.AsyncTaskLoader;
-import android.content.Intent;
-import android.content.Loader;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.AdapterView.OnItemClickListener;
-
 /**
  * Activity which displays a listView with videos.
  * 
@@ -42,7 +41,6 @@ import android.widget.AdapterView.OnItemClickListener;
  */
 public class VideoGaleryActivity extends BaseActivity implements LoaderCallbacks<Void>, OnItemClickListener{
 	private int counter = 0;
-	private ProgressDialog progressDialog;
 	private Adapter videoAdapter;
 	private ArrayList<Bean> videos = new ArrayList<>();
 
@@ -60,9 +58,7 @@ public class VideoGaleryActivity extends BaseActivity implements LoaderCallbacks
 
 			setContentView(R.layout.activity_music_video_galery);
 
-			progressDialog = new ProgressDialog(this);
-			progressDialog.setMessage("Loading...");
-			progressDialog.show();
+            showProgressDialog();
 
 			// video list
 			videoAdapter = new Adapter(this, videos, 2);
@@ -244,7 +240,7 @@ public class VideoGaleryActivity extends BaseActivity implements LoaderCallbacks
 			try {
 				URL url = new URL(urlStr);
 				URLConnection conn = url.openConnection();
-				conn.setRequestProperty("Authorization", "Basic " + Utilities.getKeyLicense());
+				conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 				is = conn.getInputStream();
 	
 				String temp = "";
@@ -324,7 +320,7 @@ public class VideoGaleryActivity extends BaseActivity implements LoaderCallbacks
 			try {
 				URL url = new URL(urlStr);
 				URLConnection conn = url.openConnection();
-				conn.setRequestProperty("Authorization", "Basic " + Utilities.getKeyLicense());
+				conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 				is = conn.getInputStream();
 
 				String temp = "";
@@ -409,7 +405,7 @@ public class VideoGaleryActivity extends BaseActivity implements LoaderCallbacks
 			try {
 				URL url = new URL(urlStr);
 				URLConnection conn = url.openConnection();
-				conn.setRequestProperty("Authorization", "Basic " + Utilities.getKeyLicense());
+				conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 				is = conn.getInputStream();
 	
 				String temp = "";
@@ -490,8 +486,8 @@ public class VideoGaleryActivity extends BaseActivity implements LoaderCallbacks
 
 					@Override
 					public void run() {
-						if(activity.get().progressDialog.isShowing())
-							activity.get().progressDialog.dismiss();
+                        if(activity.get().isProgressDilaogOn())
+                            activity.get().dismissProgressDialog();
 
 						if(bean != null){
 							activity.get().videoAdapter.notifyDataSetChanged();

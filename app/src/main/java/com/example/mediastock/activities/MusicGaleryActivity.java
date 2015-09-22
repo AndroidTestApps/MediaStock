@@ -1,17 +1,5 @@
 package com.example.mediastock.activities;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.ref.WeakReference;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Iterator;
-
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -35,6 +23,17 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.ref.WeakReference;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Iterator;
+
 /**
  * Activity which displays a listView with music.
  * 
@@ -42,7 +41,7 @@ import com.google.gson.JsonParser;
  */
 public class MusicGaleryActivity extends BaseActivity implements DownloadResultReceiver.Receiver, OnItemClickListener {
 	public static final String MUSIC_RECEIVER = "mreceiver";
-	private ProgressDialog progressDialog;
+	//private ProgressDialog progressDialog;
 	private Adapter musicAdapter;
 	private ArrayList<Bean> music = new ArrayList<Bean>();
 	private DownloadResultReceiver resultReceiver;
@@ -60,10 +59,7 @@ public class MusicGaleryActivity extends BaseActivity implements DownloadResultR
 		}else{
 
 			setContentView(R.layout.activity_music_video_galery);
-
-			progressDialog = new ProgressDialog(this);
-			progressDialog.setMessage("Loading...");
-			progressDialog.show();
+            showProgressDialog();
 
 			// music list
 			musicAdapter = new Adapter(this, music, 1);
@@ -91,7 +87,7 @@ public class MusicGaleryActivity extends BaseActivity implements DownloadResultR
 	 * We pass all the info to DownloadService service to start to download the images. 
 	 */
 	private void startFilterSearch() {
-		progressDialog.dismiss();
+		this.dismissProgressDialog();
 
 		Bundle bundle = getIntent().getExtras();
 
@@ -205,7 +201,7 @@ public class MusicGaleryActivity extends BaseActivity implements DownloadResultR
 			try {
 				URL url = new URL(urlStr);
 				URLConnection conn = url.openConnection();
-				conn.setRequestProperty("Authorization", "Basic " + Utilities.getKeyLicense());
+				conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 				is = conn.getInputStream();
 
 				BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
@@ -264,7 +260,7 @@ public class MusicGaleryActivity extends BaseActivity implements DownloadResultR
 			try {
 				URL url = new URL(urlStr);
 				URLConnection conn = url.openConnection();
-				conn.setRequestProperty("Authorization", "Basic " + Utilities.getKeyLicense());
+				conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 				is = conn.getInputStream();
 
 				BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
@@ -316,8 +312,8 @@ public class MusicGaleryActivity extends BaseActivity implements DownloadResultR
 		 */
 		@Override
 		protected void onProgressUpdate(Bean...bean) {
-			if(activity.get().progressDialog.isShowing())
-				activity.get().progressDialog.dismiss();
+            if(activity.get().isProgressDilaogOn())
+                activity.get().dismissProgressDialog();
 				
 			if(bean[0] == null)
 				Toast.makeText(activity.get(), "No music was found",Toast.LENGTH_SHORT).show();
@@ -330,8 +326,8 @@ public class MusicGaleryActivity extends BaseActivity implements DownloadResultR
 
 		@Override
 		protected void onPostExecute(String result){
-			if(activity.get().progressDialog.isShowing())
-				activity.get().progressDialog.dismiss();
+            if(activity.get().isProgressDilaogOn())
+                activity.get().dismissProgressDialog();
 
 			if(!searchSuccess)
 				Toast.makeText(activity.get(), "Sorry, no music with " + result + " was found!", Toast.LENGTH_LONG).show();
@@ -348,7 +344,7 @@ public class MusicGaleryActivity extends BaseActivity implements DownloadResultR
 	public void onReceiveResult(int resultCode, Bundle resultData) {
 		switch(resultCode){
 		case 1:
-			progressDialog.dismiss();
+			this.dismissProgressDialog();
 			MusicBean bean = (MusicBean) resultData.getParcelable(DownloadService.MUSIC_BEAN);
 
 			// update UI with the music
@@ -357,7 +353,7 @@ public class MusicGaleryActivity extends BaseActivity implements DownloadResultR
 			break;
 
 		case 2:
-			progressDialog.show();
+			this.showProgressDialog();
 			break;
 
 		default:

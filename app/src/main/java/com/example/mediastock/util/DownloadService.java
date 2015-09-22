@@ -1,13 +1,10 @@
 package com.example.mediastock.util;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.Charset;
-import java.util.Iterator;
+import android.app.IntentService;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.ResultReceiver;
 
 import com.example.mediastock.activities.FilterImageActivity;
 import com.example.mediastock.activities.FilterMusicActivity;
@@ -19,14 +16,15 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.squareup.picasso.Picasso;
 
-import android.app.IntentService;
-import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Bundle;
-import android.os.ResultReceiver;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.Charset;
+import java.util.Iterator;
 
 /**
  * Class to fetch the data from the server.
@@ -144,7 +142,7 @@ public class DownloadService extends IntentService {
 		try {
 			URL url = new URL(urlStr);
 			URLConnection conn = url.openConnection();
-			conn.setRequestProperty("Authorization", "Basic " + Utilities.getKeyLicense());
+			conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 			is = conn.getInputStream();
 
 			BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
@@ -170,7 +168,7 @@ public class DownloadService extends IntentService {
 				assets = json2.getAsJsonObject().get("assets").getAsJsonObject();
 				preview = assets.get("preview").getAsJsonObject();
 
-				ib.setImage(Picasso.with(context).load(Uri.parse(preview.get("url").getAsString())).resize(100,100).get());
+				//ib.setImage(Picasso.with(context).load(Uri.parse(preview.get("url").getAsString())).resize(100,100).get());
 				//ib.setImage(Utilities.decodeBitmapFromUrl(preview.get("url").getAsString(), 100 ,100));
 				ib.setDescription(json2.getAsJsonObject().get("description").getAsString());
 				ib.setId(json2.getAsJsonObject().get("id").getAsInt());
@@ -207,7 +205,7 @@ public class DownloadService extends IntentService {
 		try {
 			URL url = new URL(urlStr);
 			URLConnection conn = url.openConnection();
-			conn.setRequestProperty("Authorization", "Basic " + Utilities.getKeyLicense());
+			conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 			is = conn.getInputStream();
 	
 			BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));

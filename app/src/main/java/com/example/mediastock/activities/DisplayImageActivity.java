@@ -1,26 +1,5 @@
 package com.example.mediastock.activities;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.ref.WeakReference;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.Charset;
-import java.util.Iterator;
-
-import com.example.mediastock.R;
-import com.example.mediastock.beans.*;
-import com.example.mediastock.util.Utilities;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.squareup.picasso.Picasso;
-
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -38,6 +17,25 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.mediastock.R;
+import com.example.mediastock.beans.ImageBean;
+import com.example.mediastock.util.Utilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.squareup.picasso.Picasso;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.ref.WeakReference;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.Charset;
+import java.util.Iterator;
+
 /**
  * Activity which displays the image that the user clicked. It displays all the informations about that image
  * and the similar images.
@@ -45,13 +43,15 @@ import android.widget.Toast;
  * @author Dinu
  */
 public class DisplayImageActivity extends BaseActivity {
+    private ScrollView sw;
+    private HorizontalScrollView hs;
 	private static Handler handler;
 	private LinearLayout layout;
-	private ProgressDialog progressDialog;
+	//private ProgressDialog progressDialog;
 	private boolean newImage = false;
 	private ImageBean imgBean;
 	private ImageView imageView;
-
+    private TextView description, contributorsName;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -68,61 +68,24 @@ public class DisplayImageActivity extends BaseActivity {
 			StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 			StrictMode.setThreadPolicy(policy);
 
+            /*
 			progressDialog = new ProgressDialog(this);
 			progressDialog.setMessage("Loading...");
 			progressDialog.show();
+            */
+
+            this.showProgressDialog();
 
 			layout = (LinearLayout) this.findViewById(R.id.image_home_ScrollView).findViewById(R.id.scroll_image_linearLayout);
-			final HorizontalScrollView hs = (HorizontalScrollView) this.findViewById(R.id.image_home_ScrollView);
+            sw = ((ScrollView) findViewById(R.id.scrollViewDisplayImage));
+            hs = (HorizontalScrollView) this.findViewById(R.id.image_home_ScrollView);
 
 			imageView = (ImageView) this.findViewById(R.id.imageView_displayImage);
-			final TextView description = (TextView) this.findViewById(R.id.textView_description_displayImage);
-			final TextView contributorsName = (TextView) this.findViewById(R.id.TextView_contributor_displayImage);
-			final ScrollView sw = ((ScrollView) findViewById(R.id.scrollViewDisplayImage));
+			description = (TextView) this.findViewById(R.id.textView_description_displayImage);
+            contributorsName = (TextView) this.findViewById(R.id.TextView_contributor_displayImage);
 
-			// to handle the UI updates
-			handler = new Handler(){
-
-				@Override
-				public void handleMessage(Message msg) {
-
-					switch(msg.what){
-
-					// update the UI with the image
-					case 0:
-						progressDialog.dismiss();
-						sw.fullScroll(View.FOCUS_UP);
-
-						imageView.setImageBitmap((Bitmap) msg.getData().getParcelable("image"));
-
-						if(!newImage)
-							description.setText("Description: " + getDescription());		
-						else	
-							description.setText("Description: " + imgBean.getDescription());
-
-						break;
-
-						// update the UI with the authors name
-					case 1:
-						contributorsName.setText("Author: " +  msg.getData().getString("name"));
-						break;
-
-						// update the UI with the similar images
-					case 2:												
-						displayImg((ImageBean) msg.getData().getParcelable("bean"));								
-						break;
-
-						// remove the old similar images
-					case 3:			
-						ViewGroup v = (ViewGroup)hs.getChildAt(0);
-						v.removeAllViews();
-						break;
-
-					default: break;
-					}
-
-				}
-			};
+            // to handle the UI updates
+            handler = new MyHandler(this);
 
 			// get the image
 			DownloadThread thread1 = new DownloadThread(1, this);
@@ -141,6 +104,53 @@ public class DisplayImageActivity extends BaseActivity {
 		}
 	}
 
+    private static class MyHandler extends Handler{
+        private static WeakReference<DisplayImageActivity> activity;
+
+        public MyHandler(DisplayImageActivity context){
+            activity = new WeakReference<>(context);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            DisplayImageActivity context = activity.get();
+
+            switch(msg.what){
+
+                // update the UI with the image
+                case 0:
+                    context.dismissProgressDialog();
+                    context.sw.fullScroll(View.FOCUS_UP);
+
+                    context.imageView.setImageBitmap((Bitmap) msg.getData().getParcelable("image"));
+
+                    if(!context.newImage)
+                        context.description.setText("Description: " + context.getDescription());
+                    else
+                        context.description.setText("Description: " + context.imgBean.getDescription());
+
+                    break;
+
+                // update the UI with the authors name
+                case 1:
+                    context.contributorsName.setText("Author: " +  msg.getData().getString("name"));
+                    break;
+
+                // update the UI with the similar images
+                case 2:
+                    context.displayImg((ImageBean) msg.getData().getParcelable("bean"));
+                    break;
+
+                // remove the old similar images
+                case 3:
+                    ViewGroup v = (ViewGroup)context.hs.getChildAt(0);
+                    v.removeAllViews();
+                    break;
+
+                default: break;
+            }
+        }
+    }
 
 	@Override
 	public void onDestroy() {
@@ -235,9 +245,9 @@ public class DisplayImageActivity extends BaseActivity {
 		 * The constructor.
 		 * @param type 1-get image, 2-get authors name, 3-get similar images
 		 */
-		public DownloadThread(int type, Context context){
+		public DownloadThread(int type, DisplayImageActivity context){
 			this.type = type;
-			activity = new WeakReference<DisplayImageActivity>((DisplayImageActivity) context);
+			activity = new WeakReference<>(context);
 		}
 
 
@@ -308,7 +318,7 @@ public class DisplayImageActivity extends BaseActivity {
 			try {
 				URL url = new URL(urlStr);
 				URLConnection conn = url.openConnection();
-				conn.setRequestProperty("Authorization", "Basic " + Utilities.getKeyLicense());
+				conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 				is = conn.getInputStream();
 
 				BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
@@ -365,7 +375,7 @@ public class DisplayImageActivity extends BaseActivity {
 			try {
 				URL url = new URL(urlStr);
 				URLConnection conn = url.openConnection();
-				conn.setRequestProperty("Authorization", "Basic " + Utilities.getKeyLicense());
+				conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 				is = conn.getInputStream();
 
 				BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));

@@ -33,7 +33,7 @@ public class Utilities {
 	}
 
 
-	public static String getKeyLicense(){
+	public static String getLicenseKey(){
 		String authString = "3bcee2a0f5bc8879f49f:3a24e63a54e171fe231ea2c777ea2dd21884c072";
 		byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
 		String authStringEnc = new String(authEncBytes);

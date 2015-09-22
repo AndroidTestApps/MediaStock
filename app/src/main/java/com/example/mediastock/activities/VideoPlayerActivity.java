@@ -1,11 +1,5 @@
 package com.example.mediastock.activities;
 
-import java.io.IOException;
-import java.lang.ref.WeakReference;
-import java.util.concurrent.TimeUnit;
-
-import com.example.mediastock.R;
-
 import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
@@ -19,9 +13,15 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.SeekBar.OnSeekBarChangeListener;
+
+import com.example.mediastock.R;
+
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A simple media player for videos.
@@ -30,8 +30,7 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
  */
 public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callback, OnSeekBarChangeListener{
 	private MediaPlayer mediaPlayer;
-	private static SurfaceView surfaceView;
-	private static SurfaceHolder surfaceHolder;
+	private SurfaceView surfaceView;
 	private Button play,pause,back,forward;
 	private double startTime = 0;
 	private double finalTime = 0;
@@ -60,7 +59,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 		
 		getWindow().setFormat(PixelFormat.UNKNOWN);
 		surfaceView = (SurfaceView)findViewById(R.id.surfaceview);
-		surfaceHolder = surfaceView.getHolder();
+        final SurfaceHolder surfaceHolder = surfaceView.getHolder();
 		surfaceHolder.addCallback(this);
 		surfaceHolder.setFixedSize(176, 144);
 
@@ -70,14 +69,13 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
 		mediaPlayer = MediaPlayer.create(this.getApplicationContext(), Uri.parse(url));
 
-		
 		play.setOnClickListener(new View.OnClickListener(){
 
 			@Override
 			public void onClick(View v) {
 				pause.setTextColor(Color.BLACK);
 				play.setTextColor(Color.WHITE);
-				playVideo();
+				playVideo(surfaceHolder);
 			}		
 		});
 
@@ -134,7 +132,9 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		surfaceView = null;
+        surfaceView.getHolder().getSurface().release();
+        surfaceView.destroyDrawingCache();
+        surfaceView = null;
 	}
 	
 	@Override
@@ -142,12 +142,11 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 		mediaPlayer.stop();
 		mediaPlayer.release();
 		mediaPlayer = null;
-		surfaceView.destroyDrawingCache();
-		surfaceView = null;
-		this.finish();
+
+		finish();
 	}
 
-	private void playVideo(){
+	private void playVideo(SurfaceHolder holder){
 		play.setTextColor(Color.WHITE);
 		
 		if(mediaPlayer.isPlaying()){
@@ -155,7 +154,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 		}
 
 		mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-		mediaPlayer.setDisplay(surfaceHolder);
+		mediaPlayer.setDisplay(holder);
 
 		try {
 
@@ -199,15 +198,15 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		playVideo();
-	}
+        playVideo(holder);
+    }
 
 
 	private static class UpdateTime implements Runnable{
 		private static WeakReference<VideoPlayerActivity> activity;
 
 		public UpdateTime(VideoPlayerActivity context){
-			activity = new WeakReference<VideoPlayerActivity>(context);
+			activity = new WeakReference<>(context);
 		}
 
 		public void run() {
@@ -239,9 +238,10 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 	public void onStartTrackingTouch(SeekBar seekBar){}
 	@Override
 	public void onStopTrackingTouch(SeekBar seekBar) {}
-	
+
+
 	@Override
-	public void surfaceDestroyed(SurfaceHolder holder) {}
+	public void surfaceDestroyed(SurfaceHolder holder) { holder.getSurface().release();}
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,	int height) {}
 

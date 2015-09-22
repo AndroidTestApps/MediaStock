@@ -1,21 +1,6 @@
 package com.example.mediastock.activities;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.ref.WeakReference;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.Charset;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-
-import android.app.ProgressDialog;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -35,7 +20,19 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.squareup.picasso.Picasso;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.ref.WeakReference;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
 
 
 /**
@@ -46,7 +43,6 @@ import com.squareup.picasso.Picasso;
 public class ImageGaleryActivity extends BaseActivity implements DownloadResultReceiver.Receiver {
 	private int counter = 0;
 	public static final String IMG_RECEIVER = "ireceiver";
-	private ProgressDialog progressDialog; 
 	private ImageAdapter imgAdapter;
 	private ArrayList<ImageBean> images = new ArrayList<>();
 	private DownloadResultReceiver resultReceiver;
@@ -63,9 +59,7 @@ public class ImageGaleryActivity extends BaseActivity implements DownloadResultR
 
 			setContentView(R.layout.activity_image_galery);
 
-			progressDialog = new ProgressDialog(this);
-			progressDialog.setMessage("Loading...");
-			progressDialog.show();
+            showProgressDialog();
 
 			GridView grid = (GridView) this.findViewById(R.id.gridView_displayImage);
 			imgAdapter = new ImageAdapter(getApplicationContext(), images);
@@ -96,7 +90,7 @@ public class ImageGaleryActivity extends BaseActivity implements DownloadResultR
 	 * We pass all the info to DownloadService service to start to download the images. 
 	 */
 	public void startFilterSearch() {
-		progressDialog.dismiss();
+		this.dismissProgressDialog();
 
 		Bundle bundle = getIntent().getExtras();
 
@@ -214,7 +208,7 @@ public class ImageGaleryActivity extends BaseActivity implements DownloadResultR
 			try {
 				URL url = new URL(urlStr);
 				URLConnection conn = url.openConnection();
-				conn.setRequestProperty("Authorization", "Basic " + Utilities.getKeyLicense());
+				conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 				is = conn.getInputStream();
 
 				BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
@@ -240,7 +234,7 @@ public class ImageGaleryActivity extends BaseActivity implements DownloadResultR
 					assets = json2.getAsJsonObject().get("assets").getAsJsonObject();
 					preview = assets.get("preview").getAsJsonObject();
 
-					ib.setImage(Picasso.with(activity.get()).load(Uri.parse(preview.get("url").getAsString())).resize(100,100).get());
+					//ib.setImage(Picasso.with(activity.get()).load(Uri.parse(preview.get("url").getAsString())).resize(100,100).get());
 					//ib.setImage(Utilities.decodeBitmapFromUrl(preview.get("url".getAsString(), 100 ,100));
 					ib.setDescription(json2.getAsJsonObject().get("description").getAsString());
 					ib.setId(json2.getAsJsonObject().get("id").getAsInt());
@@ -283,7 +277,7 @@ public class ImageGaleryActivity extends BaseActivity implements DownloadResultR
 			try {
 				URL url = new URL(urlStr);
 				URLConnection conn = url.openConnection();
-				conn.setRequestProperty("Authorization", "Basic " + Utilities.getKeyLicense());
+				conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 				is = conn.getInputStream();
 
 				BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
@@ -309,7 +303,7 @@ public class ImageGaleryActivity extends BaseActivity implements DownloadResultR
 					assets = json2.getAsJsonObject().get("assets").getAsJsonObject();
 					preview = assets.get("preview").getAsJsonObject();
 
-					ib.setImage(Picasso.with(activity.get()).load(Uri.parse(preview.get("url").getAsString())).resize(100,100).get());					
+					//ib.setImage(Picasso.with(activity.get()).load(Uri.parse(preview.get("url").getAsString())).resize(100,100).get());
 					//ib.setImage(Utilities.decodeBitmapFromUrl(preview.get("url").getAsString(), 100 ,100));
 					ib.setId(json2.getAsJsonObject().get("id").getAsInt());
 					ib.setDescription(json2.getAsJsonObject().get("description").getAsString());
@@ -338,8 +332,8 @@ public class ImageGaleryActivity extends BaseActivity implements DownloadResultR
 		 */
 		@Override
 		protected void onProgressUpdate(ImageBean...bean) {
-			if(activity.get().progressDialog.isShowing())
-				activity.get().progressDialog.dismiss();
+			if(activity.get().isProgressDilaogOn())
+				activity.get().dismissProgressDialog();
 		
 			if(bean[0] == null)
 				Toast.makeText(activity.get(), "No image was found",Toast.LENGTH_SHORT).show();
@@ -352,8 +346,8 @@ public class ImageGaleryActivity extends BaseActivity implements DownloadResultR
 
 		@Override
 		protected void onPostExecute(String result){
-			if(activity.get().progressDialog.isShowing())
-				activity.get().progressDialog.dismiss();
+            if(activity.get().isProgressDilaogOn())
+                activity.get().dismissProgressDialog();
 
 			if(!searchSuccess)
 				Toast.makeText(activity.get(), "Sorry, no image with " + result + " was found!", Toast.LENGTH_LONG).show();
@@ -370,7 +364,7 @@ public class ImageGaleryActivity extends BaseActivity implements DownloadResultR
 	public void onReceiveResult(int resultCode, Bundle resultData) {
 		switch(resultCode){
 		case 1:
-			progressDialog.dismiss();
+			this.dismissProgressDialog();
 			ImageBean bean = (ImageBean) resultData.getParcelable(DownloadService.IMG_BEAN);
 
 			// update UI with the image
@@ -379,7 +373,7 @@ public class ImageGaleryActivity extends BaseActivity implements DownloadResultR
 			break;
 
 		case 2:
-			progressDialog.show();
+			this.showProgressDialog();
 			break;
 
 		default:
