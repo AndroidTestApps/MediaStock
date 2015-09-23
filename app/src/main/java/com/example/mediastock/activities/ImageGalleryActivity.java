@@ -40,7 +40,7 @@ import java.util.Iterator;
  * 
  * @author Dinu
  */
-public class ImageGaleryActivity extends BaseActivity implements DownloadResultReceiver.Receiver {
+public class ImageGalleryActivity extends BaseActivity implements DownloadResultReceiver.Receiver {
 	private int counter = 0;
 	public static final String IMG_RECEIVER = "ireceiver";
 	private ImageAdapter imgAdapter;
@@ -97,7 +97,6 @@ public class ImageGaleryActivity extends BaseActivity implements DownloadResultR
 		resultReceiver = new DownloadResultReceiver(new Handler());
 		resultReceiver.setReceiver(this);
 		Intent intent = new Intent(Intent.ACTION_SYNC, null, getApplicationContext(), DownloadService.class);
-		DownloadService.context = getApplicationContext();
 
 		// query info
 		intent.putExtra(IMG_RECEIVER, resultReceiver);	
@@ -175,10 +174,10 @@ public class ImageGaleryActivity extends BaseActivity implements DownloadResultR
 	 * @author Dinu
 	 */
 	private static class WebRequest extends AsyncTask<String, ImageBean, String>{
-		private static WeakReference<ImageGaleryActivity> activity;
+		private static WeakReference<ImageGalleryActivity> activity;
 		private boolean searchSuccess = true;
 
-		public WebRequest(ImageGaleryActivity activity){
+		public WebRequest(ImageGalleryActivity activity){
 			WebRequest.activity = new WeakReference<>(activity);
 		}
 
@@ -234,8 +233,6 @@ public class ImageGaleryActivity extends BaseActivity implements DownloadResultR
 					assets = json2.getAsJsonObject().get("assets").getAsJsonObject();
 					preview = assets.get("preview").getAsJsonObject();
 
-					//ib.setImage(Picasso.with(activity.get()).load(Uri.parse(preview.get("url").getAsString())).resize(100,100).get());
-					//ib.setImage(Utilities.decodeBitmapFromUrl(preview.get("url".getAsString(), 100 ,100));
 					ib.setDescription(json2.getAsJsonObject().get("description").getAsString());
 					ib.setId(json2.getAsJsonObject().get("id").getAsInt());
 					ib.setIdContributor(json2.getAsJsonObject().get("contributor").getAsJsonObject().get("id").getAsInt());
@@ -303,8 +300,6 @@ public class ImageGaleryActivity extends BaseActivity implements DownloadResultR
 					assets = json2.getAsJsonObject().get("assets").getAsJsonObject();
 					preview = assets.get("preview").getAsJsonObject();
 
-					//ib.setImage(Picasso.with(activity.get()).load(Uri.parse(preview.get("url").getAsString())).resize(100,100).get());
-					//ib.setImage(Utilities.decodeBitmapFromUrl(preview.get("url").getAsString(), 100 ,100));
 					ib.setId(json2.getAsJsonObject().get("id").getAsInt());
 					ib.setDescription(json2.getAsJsonObject().get("description").getAsString());
 					ib.setIdContributor( json2.getAsJsonObject().get("contributor").getAsJsonObject().get("id").getAsInt());
@@ -365,7 +360,7 @@ public class ImageGaleryActivity extends BaseActivity implements DownloadResultR
 		switch(resultCode){
 		case 1:
 			this.dismissProgressDialog();
-			ImageBean bean = (ImageBean) resultData.getParcelable(DownloadService.IMG_BEAN);
+			ImageBean bean = resultData.getParcelable(DownloadService.IMG_BEAN);
 
 			// update UI with the image
 			images.add(bean);

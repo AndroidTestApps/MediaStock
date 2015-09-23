@@ -102,16 +102,16 @@ public class MainActivity extends BaseActivity implements ListView.OnTouchListen
 
 
 			// image gallery button
-			final TextView imageGalery = (TextView) this.findViewById(R.id.TextView_imageGalery);
-			imageGalery.setOnClickListener(this);
+			final TextView imageGallery = (TextView) this.findViewById(R.id.TextView_imageGalery);
+			imageGallery.setOnClickListener(this);
 
 			// music gallery button
-			final TextView musicGalery = (TextView) this.findViewById(R.id.TextView_musicGalery);
-			musicGalery.setOnClickListener(this);
+			final TextView musicGallery = (TextView) this.findViewById(R.id.TextView_musicGalery);
+			musicGallery.setOnClickListener(this);
 
 			// video gallery button
-			final TextView videoGalery = (TextView) this.findViewById(R.id.TextView_videoGalery);
-			videoGalery.setOnClickListener(this);
+			final TextView videoGallery = (TextView) this.findViewById(R.id.TextView_videoGalery);
+			videoGallery.setOnClickListener(this);
 		}
 	}
 
@@ -123,12 +123,7 @@ public class MainActivity extends BaseActivity implements ListView.OnTouchListen
 	 */
 	private void displayImg(final ImageBean bean){	
 		ImageView iv = new ImageView(getApplicationContext());
-
 		iv.setLayoutParams(new LayoutParams(180, 180));
-
-        /*
-		if(bean.getImage() != null)
-			iv.setImageBitmap(bean.getImage()); */
 
         Picasso.with(this.getApplicationContext()).load(bean.getUrl()).resize(100,100).into(iv);
 		iv.setBackgroundResource(R.drawable.border);
@@ -230,17 +225,17 @@ public class MainActivity extends BaseActivity implements ListView.OnTouchListen
 
 		switch(id){
 		case R.id.TextView_imageGalery:
-			Intent intent_i = new Intent(getApplicationContext(), ImageGaleryActivity.class);
+			Intent intent_i = new Intent(getApplicationContext(), ImageGalleryActivity.class);
 			startActivity(intent_i);
 			break;
 
 		case R.id.TextView_videoGalery:
-			Intent intent_v = new Intent(getApplicationContext(), VideoGaleryActivity.class);
+			Intent intent_v = new Intent(getApplicationContext(), VideoGalleryActivity.class);
 			startActivity(intent_v);
 			break;
 
 		case R.id.TextView_musicGalery:
-			Intent intent_m = new Intent(getApplicationContext(), MusicGaleryActivity.class);
+			Intent intent_m = new Intent(getApplicationContext(), MusicGalleryActivity.class);
 			startActivity(intent_m);
 			break;
 		}
@@ -327,8 +322,6 @@ public class MainActivity extends BaseActivity implements ListView.OnTouchListen
 					assets = json2.getAsJsonObject().get("assets").getAsJsonObject();
 					preview = assets.get("preview").getAsJsonObject();
 
-					//ib.setImage(Picasso.with(activity.get()).load(preview.get("url").getAsString()).resize(100,100).get());
-					//ib.setImage(Utilities.decodeBitmapFromUrl(preview.get("url").getAsString(), 100, 100));	
 					ib.setDescription(json2.getAsJsonObject().get("description").getAsString());
 					ib.setId(json2.getAsJsonObject().get("id").getAsInt());
 					ib.setIdContributor(json2.getAsJsonObject().get("contributor").getAsJsonObject().get("id").getAsInt());		

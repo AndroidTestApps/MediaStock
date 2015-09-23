@@ -1,15 +1,14 @@
 package com.example.mediastock.util;
 
 import android.app.IntentService;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.ResultReceiver;
 
 import com.example.mediastock.activities.FilterImageActivity;
 import com.example.mediastock.activities.FilterMusicActivity;
-import com.example.mediastock.activities.ImageGaleryActivity;
-import com.example.mediastock.activities.MusicGaleryActivity;
+import com.example.mediastock.activities.ImageGalleryActivity;
+import com.example.mediastock.activities.MusicGalleryActivity;
 import com.example.mediastock.beans.ImageBean;
 import com.example.mediastock.beans.MusicBean;
 import com.google.gson.JsonArray;
@@ -35,7 +34,6 @@ public class DownloadService extends IntentService {
 	public static final String IMG_BEAN = "ibean";
 	public static final String MUSIC_BEAN = "mbean";
 	private ResultReceiver receiver;
-	public static Context context;
 	private int type;
 
 	public DownloadService() {
@@ -80,12 +78,12 @@ public class DownloadService extends IntentService {
 	 */
 	private ResultReceiver getReceiver(Intent intent){
 
-		if(intent.getParcelableExtra(ImageGaleryActivity.IMG_RECEIVER) != null){
+		if(intent.getParcelableExtra(ImageGalleryActivity.IMG_RECEIVER) != null){
 			type = 1;
-			return intent.getParcelableExtra(ImageGaleryActivity.IMG_RECEIVER);
-		}else if(intent.getParcelableExtra(MusicGaleryActivity.MUSIC_RECEIVER) != null){
+			return intent.getParcelableExtra(ImageGalleryActivity.IMG_RECEIVER);
+		}else if(intent.getParcelableExtra(MusicGalleryActivity.MUSIC_RECEIVER) != null){
 			type = 2;
-			return intent.getParcelableExtra(MusicGaleryActivity.MUSIC_RECEIVER);
+			return intent.getParcelableExtra(MusicGalleryActivity.MUSIC_RECEIVER);
 		}else
 			return null;
 	}
@@ -168,8 +166,6 @@ public class DownloadService extends IntentService {
 				assets = json2.getAsJsonObject().get("assets").getAsJsonObject();
 				preview = assets.get("preview").getAsJsonObject();
 
-				//ib.setImage(Picasso.with(context).load(Uri.parse(preview.get("url").getAsString())).resize(100,100).get());
-				//ib.setImage(Utilities.decodeBitmapFromUrl(preview.get("url").getAsString(), 100 ,100));
 				ib.setDescription(json2.getAsJsonObject().get("description").getAsString());
 				ib.setId(json2.getAsJsonObject().get("id").getAsInt());
 				ib.setIdContributor(json2.getAsJsonObject().get("contributor").getAsJsonObject().get("id").getAsInt());

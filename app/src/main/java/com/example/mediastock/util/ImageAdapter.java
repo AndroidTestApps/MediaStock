@@ -44,7 +44,7 @@ public class ImageAdapter extends BaseAdapter {
 	@SuppressLint("ViewHolder")
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		ViewHolder viewHolder;// = new ViewHolder();
+		ViewHolder viewHolder;
 
         if(convertView == null) {
             viewHolder = new ViewHolder();
@@ -57,14 +57,6 @@ public class ImageAdapter extends BaseAdapter {
 
 		// update the item view
 		ImageBean item = images.get(position);
-/*
-		if(item.getImage() == null){
-			Picasso.with(context).load(Uri.parse(item.getUrl())).resize(100,100).into(viewHolder.ivIcon);
-			viewHolder.ivIcon.setBackgroundResource(R.drawable.border);
-		}else{
-			viewHolder.ivIcon.setBackgroundResource(R.drawable.border);
-			viewHolder.ivIcon.setImageBitmap(item.getImage());
-		}*/
 
         Picasso.with(context).load(Uri.parse(item.getUrl())).resize(100,100).into(viewHolder.ivIcon);
         viewHolder.ivIcon.setBackgroundResource(R.drawable.border);

@@ -36,15 +36,15 @@
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:uiOptions="splitActionBarWhenNarrow" />
         <activity
-            android:name="com.example.mediastock.activities.ImageGaleryActivity"
+            android:name=".activities.ImageGalleryActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:uiOptions="splitActionBarWhenNarrow" />
         <activity
-            android:name="com.example.mediastock.activities.MusicGaleryActivity"
+            android:name=".activities.MusicGalleryActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:uiOptions="splitActionBarWhenNarrow" />
         <activity
-            android:name="com.example.mediastock.activities.VideoGaleryActivity"
+            android:name=".activities.VideoGalleryActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:uiOptions="splitActionBarWhenNarrow" />
         <activity

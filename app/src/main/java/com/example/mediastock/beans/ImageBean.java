@@ -1,13 +1,9 @@
 package com.example.mediastock.beans;
 
-import java.lang.ref.WeakReference;
-
-import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 public class ImageBean extends Bean{
-	private WeakReference<Bitmap> bitmapRef;
 	private int  id;
 	private String description;
 	private String url;
@@ -35,17 +31,6 @@ public class ImageBean extends Bean{
 	public void setDescription(String description) {
 		this.description = description;
 	}
-
-
-	public Bitmap getImage() {
-		return bitmapRef.get();
-	}
-
-
-	public void setImage(Bitmap image) {
-		bitmapRef = new WeakReference<Bitmap>(image);
-	}
-
 
 	public String getUrl() {
 		return url;
@@ -80,8 +65,6 @@ public class ImageBean extends Bean{
 		dest.writeInt(idContributor);
 		dest.writeString(description);
 		dest.writeString(url);
-		this.getImage().writeToParcel(dest, 0);
-
 	}
 
 	private void readFromParcel(Parcel in) {
@@ -89,7 +72,6 @@ public class ImageBean extends Bean{
 		idContributor = in.readInt();
 		description = in.readString();
 		url = in.readString();
-		this.setImage(Bitmap.CREATOR.createFromParcel(in));
 	}
 
 	public static final Parcelable.Creator<ImageBean> CREATOR =

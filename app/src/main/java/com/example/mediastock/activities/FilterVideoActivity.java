@@ -21,7 +21,7 @@ public class FilterVideoActivity extends Activity implements OnItemSelectedListe
 	public static final String SORT = "sort";
 	public static final String FILTER_SEARCH = "filtersearch";
 	public static final String PER_PAGE = "perpage";
-	private SparseArray<String> query = new SparseArray<String>();
+	private SparseArray<String> query = new SparseArray<>();
 	private EditText word;
 
 	@Override
@@ -59,7 +59,7 @@ public class FilterVideoActivity extends Activity implements OnItemSelectedListe
 	 */
 	@Override
 	public void onClick(View arg0) {
-		Intent intent = new Intent(FilterVideoActivity.this, VideoGaleryActivity.class);
+		Intent intent = new Intent(FilterVideoActivity.this, VideoGalleryActivity.class);
 
 		intent.putExtra(FILTER_SEARCH, true);
 

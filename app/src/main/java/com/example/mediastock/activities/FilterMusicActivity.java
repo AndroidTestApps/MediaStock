@@ -1,7 +1,5 @@
 package com.example.mediastock.activities;
 
-import com.example.mediastock.R;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,11 +7,13 @@ import android.util.SparseArray;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.AdapterView.OnItemSelectedListener;
+
+import com.example.mediastock.R;
 
 public class FilterMusicActivity extends Activity implements OnItemSelectedListener,OnClickListener {
 	public static final String ARTIST = "artist";
@@ -21,7 +21,7 @@ public class FilterMusicActivity extends Activity implements OnItemSelectedListe
 	public static final String GENRE = "genre";
 	public static final String FILTER_SEARCH = "filterserach";
 	public static final String PER_PAGE = "perpage";
-	private SparseArray<String> query = new SparseArray<String>();
+	private SparseArray<String> query = new SparseArray<>();
 	private EditText artist, title;
 	
 	@Override
@@ -75,7 +75,7 @@ public class FilterMusicActivity extends Activity implements OnItemSelectedListe
 	 */
 	@Override
 	public void onClick(View v) {
-		Intent intent = new Intent(FilterMusicActivity.this, MusicGaleryActivity.class);
+		Intent intent = new Intent(FilterMusicActivity.this, MusicGalleryActivity.class);
 
 		intent.putExtra(FILTER_SEARCH, true);
 

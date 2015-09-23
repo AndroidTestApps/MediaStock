@@ -39,7 +39,7 @@ import java.util.Iterator;
  * 
  * @author Dinu
  */
-public class VideoGaleryActivity extends BaseActivity implements LoaderCallbacks<Void>, OnItemClickListener{
+public class VideoGalleryActivity extends BaseActivity implements LoaderCallbacks<Void>, OnItemClickListener{
 	private int counter = 0;
 	private Adapter videoAdapter;
 	private ArrayList<Bean> videos = new ArrayList<>();
@@ -164,7 +164,7 @@ public class VideoGaleryActivity extends BaseActivity implements LoaderCallbacks
 		String description = item.getText().toString();
 		String url = item.getTag().toString();
 
-		Intent intent = new Intent(VideoGaleryActivity.this, VideoPlayerActivity.class);
+		Intent intent = new Intent(VideoGalleryActivity.this, VideoPlayerActivity.class);
 		intent.putExtra("url", url);
 		intent.putExtra("description", description);
 
@@ -179,11 +179,11 @@ public class VideoGaleryActivity extends BaseActivity implements LoaderCallbacks
 	 * @author Dinu
 	 */
 	private static class LoadData extends AsyncTaskLoader<Void> {
-		private static WeakReference<VideoGaleryActivity> activity;
+		private static WeakReference<VideoGalleryActivity> activity;
 		private Bundle bundle;
 		private int type;
 
-		public LoadData(VideoGaleryActivity context, int type, Bundle bundle) {
+		public LoadData(VideoGalleryActivity context, int type, Bundle bundle) {
 			super(context);
 
 			this.type = type;

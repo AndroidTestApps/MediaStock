@@ -1,7 +1,5 @@
 package com.example.mediastock.activities;
 
-import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -47,7 +45,6 @@ public class DisplayImageActivity extends BaseActivity {
     private HorizontalScrollView hs;
 	private static Handler handler;
 	private LinearLayout layout;
-	//private ProgressDialog progressDialog;
 	private boolean newImage = false;
 	private ImageBean imgBean;
 	private ImageView imageView;
@@ -68,13 +65,7 @@ public class DisplayImageActivity extends BaseActivity {
 			StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 			StrictMode.setThreadPolicy(policy);
 
-            /*
-			progressDialog = new ProgressDialog(this);
-			progressDialog.setMessage("Loading...");
-			progressDialog.show();
-            */
-
-            this.showProgressDialog();
+            showProgressDialog();
 
 			layout = (LinearLayout) this.findViewById(R.id.image_home_ScrollView).findViewById(R.id.scroll_image_linearLayout);
             sw = ((ScrollView) findViewById(R.id.scrollViewDisplayImage));
@@ -87,23 +78,42 @@ public class DisplayImageActivity extends BaseActivity {
             // to handle the UI updates
             handler = new MyHandler(this);
 
-			// get the image
-			DownloadThread thread1 = new DownloadThread(1, this);
-			thread1.setUrl(getUrl());
-			new Thread(thread1).start();
+            // get image
+           getMainImage(getUrl());
 
 			// get the authors name
-			DownloadThread thread2 = new DownloadThread(2, this);
-			thread2.setAuthorID(getContributorId());
-			new Thread(thread2).start();
+			DownloadThread thread1 = new DownloadThread(1);
+			thread1.setAuthorID(getContributorId());
+			new Thread(thread1).start();
 
 			// get the similar images 
-			DownloadThread thread3 = new DownloadThread(3, this);
-			thread3.setImageID(getId());
-			new Thread(thread3).start();
+			DownloadThread thread2 = new DownloadThread(2);
+			thread2.setImageID(getId());
+			new Thread(thread2).start();
 		}
 	}
 
+    /**
+     * It downloads the main image from the server
+     *
+     * @param url the url for the server
+     */
+    private void getMainImage(String url){
+        dismissProgressDialog();
+        sw.fullScroll(View.FOCUS_UP);
+
+        Picasso.with(this.getApplicationContext()).load(url).resize(250, 250).into(imageView);
+
+        if(!newImage)
+            description.setText("Description: " + getDescription());
+        else
+            description.setText("Description: " + imgBean.getDescription());
+
+    }
+
+    /**
+     * Handler to update the UI
+     */
     private static class MyHandler extends Handler{
         private static WeakReference<DisplayImageActivity> activity;
 
@@ -116,20 +126,6 @@ public class DisplayImageActivity extends BaseActivity {
             DisplayImageActivity context = activity.get();
 
             switch(msg.what){
-
-                // update the UI with the image
-                case 0:
-                    context.dismissProgressDialog();
-                    context.sw.fullScroll(View.FOCUS_UP);
-
-                    context.imageView.setImageBitmap((Bitmap) msg.getData().getParcelable("image"));
-
-                    if(!context.newImage)
-                        context.description.setText("Description: " + context.getDescription());
-                    else
-                        context.description.setText("Description: " + context.imgBean.getDescription());
-
-                    break;
 
                 // update the UI with the authors name
                 case 1:
@@ -151,6 +147,7 @@ public class DisplayImageActivity extends BaseActivity {
             }
         }
     }
+
 
 	@Override
 	public void onDestroy() {
@@ -175,26 +172,23 @@ public class DisplayImageActivity extends BaseActivity {
 	}
 
 	/**
-	 * Method which updates the UI with the new image 
+	 * Method which updates the UI with the new image, authors name and similar images
 	 *  
 	 * @param img the image bean
 	 */
 	private void updateUI(ImageBean img) {
-		// get the image
-		DownloadThread thread1 = new DownloadThread(1, this);
-		thread1.setUrl(img.getUrl());
-		new Thread(thread1).start();
+        // get image
+        getMainImage(img.getUrl());
 
 		// get the authors name
-		DownloadThread thread2 = new DownloadThread(2, this);
-		thread2.setAuthorID(img.getIdContributor());
-		new Thread(thread2).start();
-
+		DownloadThread thread1 = new DownloadThread(1);
+		thread1.setAuthorID(img.getIdContributor());
+		new Thread(thread1).start();
 
 		// get the similar images to the current image
-		DownloadThread thread3 = new DownloadThread(3, this);
-		thread3.setImageID(img.getId());
-		new Thread(thread3).start();
+		DownloadThread thread2 = new DownloadThread(2);
+		thread2.setImageID(img.getId());
+		new Thread(thread2).start();
 	}
 
 	/**
@@ -207,11 +201,10 @@ public class DisplayImageActivity extends BaseActivity {
 			return;
 
 		ImageView iv = new ImageView(getApplicationContext());
-		iv.setLayoutParams(new LayoutParams(140,140));	
-		iv.setId(image.getId());	
-		iv.setImageBitmap(image.getImage());
-		iv.setPadding(0, 0, 4, 0);
-		iv.setBackgroundResource(R.drawable.border);
+		iv.setLayoutParams(new LayoutParams(140,140));
+        Picasso.with(this.getApplicationContext()).load(image.getUrl()).resize(100, 100).into(iv);
+		iv.setId(image.getId());
+        iv.setBackgroundResource(R.drawable.border);
 
 		layout.addView(iv);
 
@@ -228,26 +221,22 @@ public class DisplayImageActivity extends BaseActivity {
 
 
 
-
 	/**
-	 * Static inner class to download the image, authors name and the similar images.
+	 * Static inner class to download the authors name and the similar images.
 	 * 
 	 * @author Dinu
 	 */
 	private static class DownloadThread implements Runnable{
-		private static WeakReference<DisplayImageActivity> activity;
 		private final int type;
-		private String url;
 		private int authorID;
 		private int imageID;
 
 		/**
 		 * The constructor.
-		 * @param type 1-get image, 2-get authors name, 3-get similar images
+		 * @param type 1-get authors name, 2-get similar images
 		 */
-		public DownloadThread(int type, DisplayImageActivity context){
+		public DownloadThread(int type){
 			this.type = type;
-			activity = new WeakReference<>(context);
 		}
 
 
@@ -255,15 +244,12 @@ public class DisplayImageActivity extends BaseActivity {
 		public void run() {
 
 			switch(type){
-			
-			case 1:
-				getImage(url); break;
 
-			case 2: 
+			case 1:
 				getAuthor(authorID);
 				break;
 
-			case 3:	
+			case 2:
 				getSimilarImages(imageID);
 				break;
 
@@ -272,42 +258,6 @@ public class DisplayImageActivity extends BaseActivity {
 
 		}
 
-
-		private void getImage(String url){
-			final Message msg = new Message();
-			Bundle bundle = new Bundle();
-
-			try {
-
-				bundle.putParcelable("image", Picasso.with(activity.get()).load(Uri.parse(url)).resize(250, 250).get());
-
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-
-			/*
-			try {
-
-				bundle.putParcelable("image", Utilities.decodeBitmapFromUrl(url, 250 ,250)); 
-
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			 */
-			msg.setData(bundle);
-			msg.what = 0;
-
-			// update the UI with the image
-			handler.post(new Runnable(){
-
-				@Override
-				public void run() {
-					handler.dispatchMessage(msg);
-				}
-			});
-		}
 
 		private void getAuthor(int id){
 			String urlStr = "https://@api.shutterstock.com/v2/contributors/";
@@ -339,7 +289,7 @@ public class DisplayImageActivity extends BaseActivity {
 			}
 
 			final Message msg = new Message();
-			Bundle bundle = new Bundle();
+			final Bundle bundle = new Bundle();
 			bundle.putString("name", author);
 			msg.setData(bundle);
 			msg.what = 1;
@@ -369,7 +319,6 @@ public class DisplayImageActivity extends BaseActivity {
 				}
 			});
 
-
 			InputStream is = null;
 
 			try {
@@ -397,8 +346,6 @@ public class DisplayImageActivity extends BaseActivity {
 					assets = json2.getAsJsonObject().get("assets").getAsJsonObject();
 					preview = assets.get("preview").getAsJsonObject();
 
-					ib.setImage(Picasso.with(activity.get()).load(Uri.parse(preview.get("url").getAsString())).resize(100, 100).get());
-					//ib.setImage(Utilities.decodeBitmapFromUrl(preview.get("url").getAsString(), 100 ,100));
 					ib.setDescription(json2.getAsJsonObject().get("description").getAsString());
 					ib.setId(json2.getAsJsonObject().get("id").getAsInt());
 					ib.setIdContributor(json2.getAsJsonObject().get("contributor").getAsJsonObject().get("id").getAsInt());
@@ -438,16 +385,11 @@ public class DisplayImageActivity extends BaseActivity {
 			this.imageID = imageID;
 		}
 
-		private void setUrl(String url){
-			this.url = url;
-		}
-
 		private void setAuthorID(int authorID){
 			this.authorID = authorID;
 		}
 
 	}
-
 
 
 }

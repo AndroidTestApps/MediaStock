@@ -1,7 +1,5 @@
 package com.example.mediastock.activities;
 
-import com.example.mediastock.R;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +9,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
+
+import com.example.mediastock.R;
 
 
 public class FilterActivity extends Activity{
@@ -28,7 +28,7 @@ public class FilterActivity extends Activity{
 			setContentView(R.layout.activity_filter);
 			
 			Button image = (Button) this.findViewById(R.id.filter_filterImage);
-			Button  music = (Button ) this.findViewById(R.id.filter_filterMusic);
+			Button music = (Button ) this.findViewById(R.id.filter_filterMusic);
 			Button video = (Button) this.findViewById(R.id.filter_filterVideo);
 			
 			image.setOnClickListener(new OnClickListener(){

@@ -1,9 +1,5 @@
 package com.example.mediastock.activities;
 
-import java.util.ArrayList;
-
-import com.example.mediastock.R;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -16,14 +12,18 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 
+import com.example.mediastock.R;
+
+import java.util.ArrayList;
+
 public class FilterImageActivity extends Activity implements OnItemSelectedListener, OnClickListener{
-	private ArrayList<String> orientation_list = new ArrayList<String>();
+	private ArrayList<String> orientation_list = new ArrayList<>();
 	public static final String CATEGORY = "category";
 	public static final String ORIENTATION = "orientation";
 	public static final String SORT_BY = "sortby";
 	public static final String FILTER_SEARCH = "filterserach";
 	public static final String PER_PAGE = "perpage";
-	private SparseArray<String> query = new SparseArray<String>();
+	private SparseArray<String> query = new SparseArray<>();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -103,7 +103,7 @@ public class FilterImageActivity extends Activity implements OnItemSelectedListe
 	 */
 	@Override
 	public void onClick(View v) {
-		Intent intent = new Intent(FilterImageActivity.this, ImageGaleryActivity.class);
+		Intent intent = new Intent(FilterImageActivity.this, ImageGalleryActivity.class);
 
 		intent.putExtra(FILTER_SEARCH, true);
 

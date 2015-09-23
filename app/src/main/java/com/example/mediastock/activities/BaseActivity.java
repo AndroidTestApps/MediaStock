@@ -107,9 +107,9 @@ public abstract class BaseActivity extends Activity{
 		Spinner filter = (Spinner) this.findViewById(R.id.spinner_filter);
 
 		ArrayAdapter<String> adapter_filter = null;
-		if(this instanceof VideoGaleryActivity)
+		if(this instanceof VideoGalleryActivity)
 			adapter_filter = new ArrayAdapter<String>(this, R.layout.spinner_item, getVideoList());
-		else if(this instanceof MusicGaleryActivity)
+		else if(this instanceof MusicGalleryActivity)
 			adapter_filter = new ArrayAdapter<String>(this, R.layout.spinner_item, getMusicList());
 		else
 			adapter_filter = new ArrayAdapter<String>(this, R.layout.spinner_item, getImageList());
@@ -194,7 +194,7 @@ public abstract class BaseActivity extends Activity{
 	}
 
 	/**
-	 * Start the ImageGaleryActivity or MusicGaleryActivity or VideoGaleryActivity.
+	 * Start the ImageGalleryActivity or MusicGalleryActivity or VideoGalleryActivity.
 	 * We pass the user input as key.
 	 * 
 	 * @param search the user input
@@ -204,11 +204,11 @@ public abstract class BaseActivity extends Activity{
 
 		Intent intent = null;
 		if(this.search_type.equals("Image"))
-			intent = new Intent(getApplicationContext(), ImageGaleryActivity.class);
+			intent = new Intent(getApplicationContext(), ImageGalleryActivity.class);
 		else if(this.search_type.equals("Music"))
-			intent = new Intent(getApplicationContext(), MusicGaleryActivity.class);
+			intent = new Intent(getApplicationContext(), MusicGalleryActivity.class);
 		else
-			intent = new Intent(getApplicationContext(), VideoGaleryActivity.class);
+			intent = new Intent(getApplicationContext(), VideoGalleryActivity.class);
 
 		if(twoWords){
 			intent.putExtra("twoWords", true);

@@ -39,11 +39,10 @@ import java.util.Iterator;
  * 
  * @author Dinu
  */
-public class MusicGaleryActivity extends BaseActivity implements DownloadResultReceiver.Receiver, OnItemClickListener {
+public class MusicGalleryActivity extends BaseActivity implements DownloadResultReceiver.Receiver, OnItemClickListener {
 	public static final String MUSIC_RECEIVER = "mreceiver";
-	//private ProgressDialog progressDialog;
 	private Adapter musicAdapter;
-	private ArrayList<Bean> music = new ArrayList<Bean>();
+	private ArrayList<Bean> music = new ArrayList<>();
 	private DownloadResultReceiver resultReceiver;
 
 
@@ -156,7 +155,7 @@ public class MusicGaleryActivity extends BaseActivity implements DownloadResultR
 		String title = item.getText().toString();
 		String url = item.getTag().toString();
 
-		Intent intent = new Intent(MusicGaleryActivity.this, MusicPlayerActivity.class);
+		Intent intent = new Intent(MusicGalleryActivity.this, MusicPlayerActivity.class);
 		intent.putExtra("url", url);
 		intent.putExtra("title", title);
 
@@ -170,11 +169,11 @@ public class MusicGaleryActivity extends BaseActivity implements DownloadResultR
 	 * @author Dinu
 	 */
 	private static class WebRequest extends AsyncTask<String, Bean, String>{
-		private static WeakReference<MusicGaleryActivity> activity;
+		private static WeakReference<MusicGalleryActivity> activity;
 		private boolean searchSuccess = true;
 
-		public WebRequest(MusicGaleryActivity activity){
-			WebRequest.activity = new WeakReference<MusicGaleryActivity>(activity);
+		public WebRequest(MusicGalleryActivity activity){
+			WebRequest.activity = new WeakReference<MusicGalleryActivity>(activity);
 		}
 
 		@Override
@@ -345,7 +344,7 @@ public class MusicGaleryActivity extends BaseActivity implements DownloadResultR
 		switch(resultCode){
 		case 1:
 			this.dismissProgressDialog();
-			MusicBean bean = (MusicBean) resultData.getParcelable(DownloadService.MUSIC_BEAN);
+			MusicBean bean = resultData.getParcelable(DownloadService.MUSIC_BEAN);
 
 			// update UI with the music
 			music.add(bean);
