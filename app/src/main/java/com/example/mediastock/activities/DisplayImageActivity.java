@@ -239,7 +239,6 @@ public class DisplayImageActivity extends BaseActivity {
 			this.type = type;
 		}
 
-
 		@Override
 		public void run() {
 

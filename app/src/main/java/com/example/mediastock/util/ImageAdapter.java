@@ -1,6 +1,5 @@
 package com.example.mediastock.util;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.Uri;
 import android.view.LayoutInflater;
@@ -41,7 +40,6 @@ public class ImageAdapter extends BaseAdapter {
 		return position;
 	}
 
-	@SuppressLint("ViewHolder")
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		ViewHolder viewHolder;
@@ -55,10 +53,11 @@ public class ImageAdapter extends BaseAdapter {
         }else
             viewHolder = (ViewHolder) convertView.getTag();
 
-		// update the item view
 		ImageBean item = images.get(position);
 
+        // get image
         Picasso.with(context).load(Uri.parse(item.getUrl())).resize(100,100).into(viewHolder.ivIcon);
+
         viewHolder.ivIcon.setBackgroundResource(R.drawable.border);
 
 		return convertView;

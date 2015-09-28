@@ -475,7 +475,7 @@ public class VideoGalleryActivity extends BaseActivity implements LoaderCallback
 		}
 
 		/**
-		 * Method to run a thread to update the UI with the video
+		 * Method to run a thread to update the UI with the video.
 		 * 
 		 * @param bean the video bean
 		 */

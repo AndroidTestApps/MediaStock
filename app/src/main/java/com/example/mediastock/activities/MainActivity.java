@@ -278,9 +278,7 @@ public class MainActivity extends BaseActivity implements ListView.OnTouchListen
 
 		/**
 		 * Method to get the recent images. It gets the id, description, id of the contributor and the url for the preview.
-		 * @throws IOException 
 		 */
-		@SuppressWarnings("deprecation")
 		private void getRecentImages(int day){
 			Date d = new Date();	
 			SimpleDateFormat ft = new SimpleDateFormat ("yyyy-MM");
@@ -314,6 +312,7 @@ public class MainActivity extends BaseActivity implements ListView.OnTouchListen
 				JsonObject assets;
 				JsonObject preview;
 
+                // get objects
 				Iterator<JsonElement> iterator = array.iterator();
 				while(iterator.hasNext()){
 					JsonElement json2 = iterator.next();

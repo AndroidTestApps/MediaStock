@@ -54,15 +54,15 @@ public class DownloadService extends IntentService {
 		// get images
 		if(type == 1){
 
-			// update the UI with the progress dialog
+            // show progress dialog on the UI
 			publishImageResult(null, 2, receiver);
 
 			getImages(url, receiver);
 
-			// or get music
+		// or get music
 		}else{
 
-			// update the UI with the progress dialog
+			// show progress dialog on the UI
 			publishMusicResult(null, 2, receiver);
 
 			getMusic(url, receiver);
@@ -132,7 +132,6 @@ public class DownloadService extends IntentService {
 	 * 
 	 * @param urlStr the URL
 	 * @param receiver the result receiver
-	 * @throws IOException
 	 */
 	private void getImages(String urlStr, ResultReceiver receiver){
 		InputStream is = null;
@@ -193,7 +192,6 @@ public class DownloadService extends IntentService {
 	 * 
 	 * @param urlStr the URL
 	 * @param receiver the result receiver
-	 * @throws IOException
 	 */
 	private void getMusic(String urlStr, ResultReceiver receiver){
 		InputStream is = null;
