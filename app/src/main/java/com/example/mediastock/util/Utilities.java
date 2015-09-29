@@ -12,7 +12,7 @@ public class Utilities {
 	/**
 	 * It reads the content of the input stream.
 	 * @param rd
-	 * @return
+	 * @return the string from the stream
 	 * @throws IOException
 	 */
 	public static String readAll(Reader rd) throws IOException {
