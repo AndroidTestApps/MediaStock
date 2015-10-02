@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import com.example.mediastock.R;
 import com.example.mediastock.beans.ImageBean;
@@ -17,11 +18,13 @@ import java.util.ArrayList;
 public class ImageAdapter extends BaseAdapter {
 	private Context context;
 	private ArrayList<ImageBean> images;
+    private final int width;
 
 
 	public ImageAdapter(Context context, ArrayList<ImageBean> grid){
 		this.images = grid;
 		this.context = context;
+        width = context.getResources().getDisplayMetrics().widthPixels;
 	}
 
 
@@ -55,10 +58,10 @@ public class ImageAdapter extends BaseAdapter {
 
 		ImageBean item = images.get(position);
 
-        // get image
-        Picasso.with(context).load(Uri.parse(item.getUrl())).resize(100,100).into(viewHolder.ivIcon);
+        viewHolder.ivIcon.setLayoutParams(new LinearLayout.LayoutParams(width / 3, width / 3));
 
-        viewHolder.ivIcon.setBackgroundResource(R.drawable.border);
+        // get image
+        Picasso.with(context).load(Uri.parse(item.getUrl())).resize(width/3,width/3).placeholder(R.drawable.border).centerCrop().into(viewHolder.ivIcon);
 
 		return convertView;
 	}

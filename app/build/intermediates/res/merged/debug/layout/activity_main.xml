@@ -21,15 +21,19 @@
             android:layout_alignParentEnd="true"
             android:layout_below="@+id/home_image_text"
             android:fastScrollEnabled="true"
-            android:paddingLeft="3dp"
-            android:paddingRight="3dp"
-            android:isScrollContainer="false" >
+            android:paddingLeft="2dp"
+            android:paddingRight="2dp"
+            android:isScrollContainer="false"
+            android:paddingTop="1dp"
+            android:paddingBottom="1dp"
+            android:background="#000000">
 
             <LinearLayout
                 android:id="@+id/scroll_main_linearLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal" >
+                android:orientation="horizontal"
+                >
             </LinearLayout>
         </HorizontalScrollView>
         

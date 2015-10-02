@@ -57,6 +57,7 @@ public class VideoGalleryActivity extends BaseActivity implements LoaderCallback
 		}else{
 
 			setContentView(R.layout.activity_music_video_galery);
+            setTitle("Video gallery");
 
             showProgressDialog();
 

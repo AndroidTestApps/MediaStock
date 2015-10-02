@@ -7,7 +7,6 @@ import android.os.StrictMode;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -45,6 +44,7 @@ public class DisplayImageActivity extends BaseActivity {
     private HorizontalScrollView hs;
 	private static Handler handler;
 	private LinearLayout layout;
+    private LinearLayout.LayoutParams layout_param;
 	private boolean newImage = false;
 	private ImageBean imgBean;
 	private ImageView imageView;
@@ -68,6 +68,8 @@ public class DisplayImageActivity extends BaseActivity {
             showProgressDialog();
 
 			layout = (LinearLayout) this.findViewById(R.id.image_home_ScrollView).findViewById(R.id.scroll_image_linearLayout);
+            layout_param = new LinearLayout.LayoutParams(150, 150);
+            layout_param.setMargins(0, 0, 3, 0);
             sw = ((ScrollView) findViewById(R.id.scrollViewDisplayImage));
             hs = (HorizontalScrollView) this.findViewById(R.id.image_home_ScrollView);
 
@@ -93,23 +95,6 @@ public class DisplayImageActivity extends BaseActivity {
 		}
 	}
 
-    /**
-     * It downloads the main image from the server
-     *
-     * @param url the url for the server
-     */
-    private void getMainImage(String url){
-        dismissProgressDialog();
-        sw.fullScroll(View.FOCUS_UP);
-
-        Picasso.with(this.getApplicationContext()).load(url).resize(250, 250).into(imageView);
-
-        if(!newImage)
-            description.setText("Description: " + getDescription());
-        else
-            description.setText("Description: " + imgBean.getDescription());
-
-    }
 
     /**
      * Handler to update the UI
@@ -129,7 +114,7 @@ public class DisplayImageActivity extends BaseActivity {
 
                 // update the UI with the authors name
                 case 1:
-                    context.contributorsName.setText("Author: " +  msg.getData().getString("name"));
+                    context.contributorsName.append(" " + msg.getData().getString("name"));
                     break;
 
                 // update the UI with the similar images
@@ -171,6 +156,25 @@ public class DisplayImageActivity extends BaseActivity {
 		return getIntent().getIntExtra("contributor", 0);
 	}
 
+
+    /**
+     * It downloads the main image from the server
+     *
+     * @param url the url for the server
+     */
+    private void getMainImage(String url){
+        dismissProgressDialog();
+        sw.fullScroll(View.FOCUS_UP);
+
+        Picasso.with(getApplicationContext()).load(url).placeholder(R.drawable.border).fit().centerInside().into(imageView);
+
+        if(!newImage)
+            description.append(" " + getDescription());
+        else
+            description.append(" " + imgBean.getDescription());
+
+    }
+
 	/**
 	 * Method which updates the UI with the new image, authors name and similar images
 	 *  
@@ -201,10 +205,10 @@ public class DisplayImageActivity extends BaseActivity {
 			return;
 
 		ImageView iv = new ImageView(getApplicationContext());
-		iv.setLayoutParams(new LayoutParams(140,140));
-        Picasso.with(this.getApplicationContext()).load(image.getUrl()).resize(100, 100).into(iv);
+		iv.setLayoutParams(layout_param);
+
+        Picasso.with(this.getApplicationContext()).load(image.getUrl()).placeholder(R.drawable.border).resize(150, 150).centerCrop().into(iv);
 		iv.setId(image.getId());
-        iv.setBackgroundResource(R.drawable.border);
 
 		layout.addView(iv);
 

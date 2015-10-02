@@ -3,22 +3,25 @@
     android:id="@+id/scrollViewDisplayImage"
     android:layout_width="match_parent"
     android:layout_height="fill_parent"
-    android:background="@drawable/theme"
+    android:background="#000000"
     android:isScrollContainer="true"
     android:orientation="vertical" >
 
     <RelativeLayout
         android:layout_width="fill_parent"
-        android:layout_height="450dp" >
+        android:layout_height="match_parent"
+        android:layout_marginBottom="5dp">
 
         <TextView
             android:id="@+id/textView_description_displayImage"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/imageView_displayImage"
+            android:layout_below="@+id/Rel_layout"
             android:background="@drawable/shape"
-            android:paddingTop="2dp"
-            android:textColor="@color/white" />
+            android:textColor="#000000"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:text="Description:"/>
 
         <TextView
             android:id="@+id/TextView_contributor_displayImage"
@@ -26,8 +29,10 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/textView_description_displayImage"
             android:background="@drawable/shape"
-            android:paddingTop="2dp"
-            android:textColor="@color/white" />
+            android:paddingTop="10dp"
+            android:textColor="#000000"
+            android:paddingBottom="10dp"
+            android:text="Author:"/>
 
         <TextView
             android:id="@+id/TextView_similar_displayImage"
@@ -36,9 +41,10 @@
             android:layout_below="@+id/TextView_contributor_displayImage"
             android:layout_marginTop="3dp"
             android:background="@drawable/shape"
-            android:paddingTop="2dp"
+            android:paddingTop="10dp"
             android:text="@string/similar"
-            android:textColor="@color/black" />
+            android:textColor="#000000"
+            android:paddingBottom="10dp"/>
 
         <HorizontalScrollView
             android:id="@+id/image_home_ScrollView"
@@ -46,23 +52,40 @@
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_below="@+id/TextView_similar_displayImage"
-            android:paddingLeft="3dp" >
+            android:paddingLeft="3dp"
+            android:layout_marginLeft="2dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginRight="2dp"
+            android:layout_marginBottom="1dp">
 
             <LinearLayout
                 android:id="@+id/scroll_image_linearLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="100dp"
-                android:orientation="horizontal" >
+                android:orientation="horizontal"
+                android:dividerPadding="3dp">
             </LinearLayout>
         </HorizontalScrollView>
 
-        <ImageView
-            android:id="@+id/imageView_displayImage"
-            android:layout_width="250dp"
-            android:layout_height="250dp"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true" />
-        
+        <RelativeLayout
+            android:id="@+id/Rel_layout"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginBottom="1dp"
+            android:layout_marginTop="1dp"
+            android:background="#3f3f3f">
+
+            <ImageView
+                android:id="@+id/imageView_displayImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true" />
+
+        </RelativeLayout>
+
     </RelativeLayout>
 
 </ScrollView>

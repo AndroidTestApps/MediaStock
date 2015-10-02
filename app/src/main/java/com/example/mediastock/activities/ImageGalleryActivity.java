@@ -58,6 +58,7 @@ public class ImageGalleryActivity extends BaseActivity implements DownloadResult
 		}else{
 
 			setContentView(R.layout.activity_image_galery);
+            setTitle("Image gallery");
 
             showProgressDialog();
 

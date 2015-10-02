@@ -4,12 +4,12 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="3dp"
     >
     
     <ImageView android:id="@+id/ivIcon"
-        android:layout_width="100dp"
-        android:layout_height="100dp"      
-     	 />
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:adjustViewBounds="true"
+        android:scaleType="centerCrop"/>
           
 </LinearLayout><!-- From: file:/home/dinu/AndroidStudio_projects/MediaStock/app/src/main/res/layout/grid_image.xml -->

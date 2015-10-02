@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ImageView;
@@ -26,7 +25,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.squareup.leakcanary.LeakCanary;
 import com.squareup.picasso.Picasso;
 
 import java.io.BufferedReader;
@@ -51,6 +49,7 @@ import java.util.Iterator;
 public class MainActivity extends BaseActivity implements ListView.OnTouchListener, OnItemClickListener, OnClickListener{
 	private int counter = 0;
 	private LinearLayout layout_images;
+    private LinearLayout.LayoutParams layout_param;
 	private Adapter musicAdapter;
 	private Adapter videoAdapter;
 	private ArrayList<Bean> music = new ArrayList<>();
@@ -70,9 +69,8 @@ public class MainActivity extends BaseActivity implements ListView.OnTouchListen
             showProgressDialog();
 
 			layout_images = (LinearLayout) this.findViewById(R.id.image_main_ScrollView).findViewById(R.id.scroll_main_linearLayout);
-
-            LeakCanary.install(this.getApplication());
-
+            layout_param = new LinearLayout.LayoutParams(180, 180);
+            layout_param.setMargins(0, 0, 3, 0);
 
 			// music list listeners
 			musicAdapter = new Adapter(getApplicationContext(), music, 1);
@@ -123,10 +121,10 @@ public class MainActivity extends BaseActivity implements ListView.OnTouchListen
 	 */
 	private void displayImg(final ImageBean bean){	
 		ImageView iv = new ImageView(getApplicationContext());
-		iv.setLayoutParams(new LayoutParams(180, 180));
+        iv.setLayoutParams(layout_param);
+        iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
-        Picasso.with(this.getApplicationContext()).load(bean.getUrl()).resize(100,100).into(iv);
-		iv.setBackgroundResource(R.drawable.border);
+        Picasso.with(getApplicationContext()).load(bean.getUrl()).placeholder(R.drawable.border).resize(180, 180).centerCrop().into(iv);
 
 		layout_images.addView(iv);
 

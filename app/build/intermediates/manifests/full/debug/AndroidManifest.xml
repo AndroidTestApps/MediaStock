@@ -11,11 +11,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- To store the heap dumps and leak analysis results. -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-
-    <android:uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
     <application
         android:allowBackup="true"
         android:icon="@drawable/launcher"
@@ -41,15 +36,15 @@
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:uiOptions="splitActionBarWhenNarrow" />
         <activity
-            android:name="com.example.mediastock.activities.ImageGaleryActivity"
+            android:name="com.example.mediastock.activities.ImageGalleryActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:uiOptions="splitActionBarWhenNarrow" />
         <activity
-            android:name="com.example.mediastock.activities.MusicGaleryActivity"
+            android:name="com.example.mediastock.activities.MusicGalleryActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:uiOptions="splitActionBarWhenNarrow" />
         <activity
-            android:name="com.example.mediastock.activities.VideoGaleryActivity"
+            android:name="com.example.mediastock.activities.VideoGalleryActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:uiOptions="splitActionBarWhenNarrow" />
         <activity
@@ -70,27 +65,6 @@
 
         <service android:name="com.example.mediastock.util.DownloadService" >
         </service>
-        <service
-            android:name="com.squareup.leakcanary.internal.HeapAnalyzerService"
-            android:enabled="false"
-            android:process=":leakcanary" />
-        <service
-            android:name="com.squareup.leakcanary.DisplayLeakService"
-            android:enabled="false" />
-
-        <activity
-            android:name="com.squareup.leakcanary.internal.DisplayLeakActivity"
-            android:enabled="false"
-            android:icon="@drawable/__leak_canary_icon"
-            android:label="@string/__leak_canary_display_activity_label"
-            android:taskAffinity="com.squareup.leakcanary"
-            android:theme="@style/__LeakCanary.Base" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
     </application>
 
 </manifest>

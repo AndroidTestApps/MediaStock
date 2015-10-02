@@ -117,9 +117,9 @@
                 android:layout_gravity="center|bottom"
                 android:layout_marginTop="30dp"
                 android:background="@drawable/shape"
-                android:gravity="center"
                 android:text="Search"
-                android:textColor="@color/color_change" />
+                android:textColor="@color/color_change"
+                android:gravity="center"/>
         </LinearLayout>
     </RelativeLayout>
 

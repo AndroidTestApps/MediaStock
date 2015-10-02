@@ -58,6 +58,8 @@ public class MusicGalleryActivity extends BaseActivity implements DownloadResult
 		}else{
 
 			setContentView(R.layout.activity_music_video_galery);
+            setTitle("Music gallery");
+
             showProgressDialog();
 
 			// music list
