@@ -271,7 +271,7 @@ public class MusicGalleryActivity extends BaseActivity implements DownloadResult
 				JsonObject o = json.getAsJsonObject();
 				JsonArray array = o.get("data").getAsJsonArray();
 
-				if(array.size() < 1){
+				if(array.size() == 0){
 					searchSuccess = false;
 					return;
 				}				

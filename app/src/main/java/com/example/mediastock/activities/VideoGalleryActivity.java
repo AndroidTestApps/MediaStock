@@ -29,9 +29,7 @@ import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 
 /**
@@ -40,7 +38,6 @@ import java.util.Iterator;
  * @author Dinu
  */
 public class VideoGalleryActivity extends BaseActivity implements LoaderCallbacks<Void>, OnItemClickListener{
-	private int counter = 0;
 	private Adapter videoAdapter;
 	private ArrayList<Bean> videos = new ArrayList<>();
 
@@ -334,7 +331,7 @@ public class VideoGalleryActivity extends BaseActivity implements LoaderCallback
 				JsonObject o = json.getAsJsonObject();
 				JsonArray array = o.get("data").getAsJsonArray();
 
-				if(array.size() < 1){
+				if(array.size() == 0){
 					runThread(null);
 					return;
 				}				
@@ -394,12 +391,7 @@ public class VideoGalleryActivity extends BaseActivity implements LoaderCallback
 		 */
 		private void getRecentVideos(int day){
 			String urlStr = "https://api.shutterstock.com/v2/videos/search?per_page=25&added_date_start=";
-
-			Date d = new Date();	
-			SimpleDateFormat ft = new SimpleDateFormat ("yyyy-MM");
-			@SuppressWarnings("deprecation")
-			String date = ft.format(d) + "-" + (d.getDate() - day - 1); 
-			urlStr += date;
+            urlStr += Utilities.getDate(day);
 
 			InputStream is = null;
 
@@ -420,7 +412,9 @@ public class VideoGalleryActivity extends BaseActivity implements LoaderCallback
 				JsonArray array = o.get("data").getAsJsonArray();
 
 				if(array.size() == 0){
-					getRecentVideos(activity.get().counter++);
+                    int yesterday = day;
+                    yesterday += 1;
+					getRecentVideos(yesterday);
 					return;
 				}
 				
@@ -463,7 +457,6 @@ public class VideoGalleryActivity extends BaseActivity implements LoaderCallback
 					runThread(vBean);
 				}
 			} catch (IOException e) {
-				getRecentVideos(activity.get().counter++);
 				e.printStackTrace();
 			} finally {
 				try {

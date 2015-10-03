@@ -29,9 +29,7 @@ import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 
 
@@ -41,7 +39,6 @@ import java.util.Iterator;
  * @author Dinu
  */
 public class ImageGalleryActivity extends BaseActivity implements DownloadResultReceiver.Receiver {
-	private int counter = 0;
 	public static final String IMG_RECEIVER = "ireceiver";
 	private ImageAdapter imgAdapter;
 	private ArrayList<ImageBean> images = new ArrayList<>();
@@ -221,7 +218,7 @@ public class ImageGalleryActivity extends BaseActivity implements DownloadResult
 				JsonObject assets;
 				JsonObject preview;
 
-				if(array.size() < 1){
+				if(array.size() == 0){
 					searchSuccess = false;
 					return;
 				}				
@@ -257,18 +254,11 @@ public class ImageGalleryActivity extends BaseActivity implements DownloadResult
 
 		/**
 		 * Method to get the recent images.
-		 * We get the image, description of the image, id of the image, url for the preview, and id of the contributor. 
-		 *
-		 * @throws IOException
+		 * We get the image, description of the image, id of the image, url for the preview, and id of the contributor.
 		 */
-		@SuppressWarnings("deprecation")
 		private void getRecentImages(int day){
-			Date d = new Date();	
-			SimpleDateFormat ft = new SimpleDateFormat ("yyyy-MM");
-			String date = ft.format(d) + "-" + (d.getDate() - day);
-
 			String urlStr = "https://@api.shutterstock.com/v2/images/search?per_page=15&added_date=";
-			urlStr += date;
+			urlStr += Utilities.getDate(day);
 
 			InputStream is = null;
 
@@ -286,7 +276,9 @@ public class ImageGalleryActivity extends BaseActivity implements DownloadResult
 				JsonArray array = o.get("data").getAsJsonArray();
 
 				if(array.size() == 0){
-					getRecentImages(activity.get().counter++);
+                    int yesterday = day;
+                    yesterday += 1;
+					getRecentImages(yesterday);
 					return;
 				}
 				
@@ -311,7 +303,6 @@ public class ImageGalleryActivity extends BaseActivity implements DownloadResult
 
 				}
 			} catch (IOException e) {
-				getRecentImages(activity.get().counter++);
 				e.printStackTrace();
 			} finally {
 				try {

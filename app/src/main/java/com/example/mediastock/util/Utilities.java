@@ -5,15 +5,17 @@ import org.apache.commons.codec.binary.Base64;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 
 public class Utilities {
 
 	/**
 	 * It reads the content of the input stream.
-	 * @param rd
+     *
 	 * @return the string from the stream
-	 * @throws IOException
 	 */
 	public static String readAll(Reader rd) throws IOException {
 		StringBuilder sb = new StringBuilder();
@@ -25,6 +27,16 @@ public class Utilities {
 		return sb.toString();
 	}
 
+
+    public static String getDate(int day){
+        SimpleDateFormat ft = new SimpleDateFormat ("yyyy-MM-dd");
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DATE, -day);
+
+        Date d = calendar.getTime();
+
+        return ft.format(d);
+    }
 
 	public static String getLicenseKey(){
 		String authString = "3bcee2a0f5bc8879f49f:3a24e63a54e171fe231ea2c777ea2dd21884c072";
