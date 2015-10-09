@@ -1,0 +1,27 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+   <item
+        android:id="@+id/item_search"
+        android:icon="@drawable/ic_action_search"
+        android:visible="true"
+        android:title="@string/search"
+        app:showAsAction="always"
+        />
+
+     <item
+        android:id="@+id/item_recent_music"
+        android:title="@string/music_home"
+        />
+
+    <item
+        android:id="@+id/item_recent_images"
+        android:title="@string/image_home"
+        />
+
+    <item
+        android:id="@+id/item_recent_videos"
+        android:title="@string/video_home"
+        />
+
+</menu>

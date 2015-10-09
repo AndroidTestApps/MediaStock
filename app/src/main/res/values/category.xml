@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+     <string-array name="category_array">
+        <item>Transportation</item>
+        <item>Animals/Wildlife</item>
+        <item>Buildings/Landmarks</item>
+        <item>Backgrounds/Textures</item>
+        <item>Business/Finance</item>
+        <item>Education</item>
+        <item>Healthcare/Medical</item>
+        <item>Holidays</item>
+        <item>Objects</item>
+        <item>Industrial</item>
+        <item>Nature</item>
+        <item>People</item>
+        <item>Religion</item>
+        <item>Science</item>
+        <item>Technology</item>
+        <item>Signs/Symbols</item>
+        <item>Sports/Recreation</item>
+       <item>DELETED</item>
+       <item>NOT-CATEGORIZED</item>
+       <item>Interiors</item>
+      <item>Miscellaneous</item>
+      <item>Illustrations/Clip-Art</item>
+      <item>Vintage</item>
+      <item>Parks/Outdoor</item>
+      <item>Abstract</item>
+      <item>Beauty/Fashion</item>
+      <item>Editorial</item>
+      <item>Vectors</item>
+      <item>Celebrities</item>     
+    </string-array>
+</resources>
