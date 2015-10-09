@@ -55,6 +55,9 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
     private ListView listViewMusic;
     private LinearLayout layout_p_bar;
 
+    /**
+     * Method to create an instance of this fragment for the viewPager
+     */
     public static MusicFragment createInstance() {
         return new MusicFragment();
     }
@@ -97,6 +100,9 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         return view;
     }
 
+    /**
+     * Initialize the UI components and get the recent music
+     */
     private void compute() {
 
         // music list
@@ -105,45 +111,31 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         listViewMusic.setAdapter(musicAdapter);
         listViewMusic.setOnItemClickListener(this);
 
-        if(!music.isEmpty()){
-            cancelListVisibility();
-            music.clear();
-            musicAdapter.notifyDataSetChanged();
-        }
-
+        deleteItems();
         new WebRequest(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "getmusic");
 
     }
 
+    /**
+     * Method to get the recent music
+     */
     public void getRecentMusic() {
         if (!isOnline())
             return;
 
-        cancelListVisibility();
-
-        music.clear();
-        musicAdapter.notifyDataSetChanged();
+        // show progress
+        showProgressBar();
+        deleteItems();
 
         new WebRequest(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "getmusic");
     }
 
-    private void cancelListVisibility() {
-        listViewMusic.setVisibility(View.INVISIBLE);
-        layout_p_bar.setVisibility(View.VISIBLE);
-        p_bar.setVisibility(View.VISIBLE);
-    }
-
-    private void restoreListVisibility(){
-        p_bar.setVisibility(View.GONE);
-        layout_p_bar.setVisibility(View.GONE);
-        listViewMusic.setVisibility(View.VISIBLE);
-    }
-
+    /**
+     * It searches the music by one or two keys
+     */
     public void searchMusicByKey(String key1, String key2) {
-        cancelListVisibility();
-
-        music.clear();
-        musicAdapter.notifyDataSetChanged();
+        showProgressBar();
+        deleteItems();
 
         if (key2 != null) {
             new WebRequest(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "search", key1);
@@ -154,16 +146,15 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
 
 
     /**
+     * Start the filter search. The bundle contains alla the users input.
      * We pass all the info to DownloadService service to start to download the images.
      */
     public void startFilterSearch(Bundle bundle) {
         if (!isOnline())
             return;
 
-        cancelListVisibility();
-
-        music.clear();
-        musicAdapter.notifyDataSetChanged();
+        showProgressBar();
+        deleteItems();
 
         resultReceiver = new DownloadResultReceiver(new Handler());
         resultReceiver.setReceiver(this);
@@ -176,7 +167,36 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         intent.putExtra(FilterMusicFragment.GENRE, bundle.getString(FilterMusicFragment.GENRE));
         intent.putExtra(FilterMusicFragment.PER_PAGE, bundle.getString(FilterMusicFragment.PER_PAGE));
 
-        this.getActivity().startService(intent);
+        getActivity().startService(intent);
+    }
+
+
+    /**
+     * Method to delete the list of music and to notify the adapter
+     */
+    private void deleteItems(){
+        if(!music.isEmpty()){
+            music.clear();
+            musicAdapter.notifyDataSetChanged();
+        }
+    }
+
+    /**
+     * It shows the progress bar
+     */
+    private void showProgressBar() {
+        listViewMusic.setVisibility(View.INVISIBLE);
+        layout_p_bar.setVisibility(View.VISIBLE);
+        p_bar.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Method to dismiss the progress bar
+     */
+    private void dismissProgressBar(){
+        p_bar.setVisibility(View.GONE);
+        layout_p_bar.setVisibility(View.GONE);
+        listViewMusic.setVisibility(View.VISIBLE);
     }
 
 
@@ -345,7 +365,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         @Override
         protected void onProgressUpdate(Bean... bean) {
             if (activity.get().p_bar.isShown())
-                activity.get().restoreListVisibility();
+                activity.get().dismissProgressBar();
 
             if (bean[0] == null)
                 Toast.makeText(activity.get().getActivity(), "No music was found", Toast.LENGTH_SHORT).show();
@@ -360,7 +380,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         protected void onPostExecute(String result) {
 
             if (!searchSuccess) {
-                activity.get().restoreListVisibility();
+                activity.get().dismissProgressBar();
                 Toast.makeText(activity.get().getActivity(), "Sorry, no music with " + result + " was found!", Toast.LENGTH_LONG).show();
             }
         }
@@ -377,7 +397,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
 
             case 1:
                 if (p_bar.isShown())
-                    restoreListVisibility();
+                    dismissProgressBar();
 
                 MusicBean bean = resultData.getParcelable(DownloadService.MUSIC_BEAN);
 
@@ -387,7 +407,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                 break;
 
             case 2:
-                cancelListVisibility();
+                showProgressBar();
                 break;
 
             default:

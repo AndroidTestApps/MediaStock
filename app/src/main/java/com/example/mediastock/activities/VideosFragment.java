@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,11 +49,15 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
     private MusicVideoAdapter videoAdapter;
     private ArrayList<Bean> videos = new ArrayList<>();
     private static Context context;
+    private static Handler handler;
     private View view = null;
     private LinearLayout layout_p_bar;
     private ListView listViewVideo;
     private ProgressBar p_bar;
 
+    /**
+     * Method to create an instance of this fragment for the viewPager
+     */
     public static VideosFragment createInstance() {
         return new VideosFragment();
     }
@@ -71,12 +77,12 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         }
     }
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
     }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -89,12 +95,15 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         view = inflater.inflate(R.layout.video_fragment, container, false);
         p_bar = (ProgressBar) view.findViewById(R.id.p_bar);
         layout_p_bar = (LinearLayout) view.findViewById(R.id.layout_pBar);
-
+        handler = new MyHandler(this);
         compute();
 
         return view;
     }
 
+    /**
+     * Initialize the UI components and get the recent videos
+     */
     private void compute() {
 
         // video list
@@ -103,77 +112,88 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         listViewVideo.setAdapter(videoAdapter);
         listViewVideo.setOnItemClickListener(this);
 
-        if(!videos.isEmpty()){
-            cancelListVisibility();
-            videos.clear();
-            videoAdapter.notifyDataSetChanged();
-        }
-
-        this.getActivity().getLoaderManager().initLoader(0, null, this);
-
+        deleteItems();
+        getActivity().getLoaderManager().initLoader(0, null, this);
     }
 
-    private void cancelListVisibility() {
-        listViewVideo.setVisibility(View.INVISIBLE);
-        layout_p_bar.setVisibility(View.VISIBLE);
-        p_bar.setVisibility(View.VISIBLE);
-    }
 
-    private void restoreListVisibility(){
-        p_bar.setVisibility(View.GONE);
-        layout_p_bar.setVisibility(View.GONE);
-        listViewVideo.setVisibility(View.VISIBLE);
-    }
-
+    /**
+     * Method to get the recent videos
+     */
     public void getRecentVideos() {
         if (!isOnline())
             return;
 
-        cancelListVisibility();
-
-        videos.clear();
-        videoAdapter.notifyDataSetChanged();
-
-        this.getActivity().getLoaderManager().initLoader(0, null, this);
+        showProgressBar();
+        deleteItems();
+        getActivity().getLoaderManager().initLoader(0, null, this);
     }
 
-    public void searchVideosByKey(String key1, String key2) {
-        cancelListVisibility();
 
-        videos.clear();
-        videoAdapter.notifyDataSetChanged();
+    /**
+     * It searches the videos by one or two keys
+     */
+    public void searchVideosByKey(String key1, String key2) {
+        showProgressBar();
+        deleteItems();
 
         if (key2 != null) {
             Bundle bundle1 = new Bundle();
             bundle1.putString("key", key1);
-            this.getActivity().getLoaderManager().initLoader(4, bundle1, this);
+            getActivity().getLoaderManager().initLoader(4, bundle1, this);
 
             Bundle bundle2 = new Bundle();
             bundle2.putString("key", key2);
-            this.getActivity().getLoaderManager().initLoader(4, bundle2, this);
+            getActivity().getLoaderManager().initLoader(4, bundle2, this);
         } else {
             Bundle bundle = new Bundle();
             bundle.putString("key", key1);
-            this.getActivity().getLoaderManager().initLoader(4, bundle, this);
+            getActivity().getLoaderManager().initLoader(4, bundle, this);
         }
 
     }
 
     /**
-     * The method starts the loader with the bundle as info.
+     * Start the filter search. The bundle contains alla the users input.
      */
     public void startFilterSearch(Bundle bundle) {
         if (!isOnline())
             return;
 
-        cancelListVisibility();
-
-        videos.clear();
-        videoAdapter.notifyDataSetChanged();
-
-        this.getActivity().getLoaderManager().initLoader(5, bundle, this);
+        showProgressBar();
+        deleteItems();
+        getActivity().getLoaderManager().initLoader(5, bundle, this);
     }
 
+
+
+    /**
+     * Method to delete the list of videos and to notify the adapter
+     */
+    private void deleteItems(){
+        if(!videos.isEmpty()) {
+            videos.clear();
+            videoAdapter.notifyDataSetChanged();
+        }
+    }
+
+    /**
+     * It shows the progress bar
+     */
+    private void showProgressBar() {
+        listViewVideo.setVisibility(View.INVISIBLE);
+        layout_p_bar.setVisibility(View.VISIBLE);
+        p_bar.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Method to dismiss the progress bar
+     */
+    private void dismissProgressBar(){
+        p_bar.setVisibility(View.GONE);
+        layout_p_bar.setVisibility(View.GONE);
+        listViewVideo.setVisibility(View.VISIBLE);
+    }
 
     /**
      * Method to create a Loader.
@@ -221,6 +241,56 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         startActivity(intent);
     }
 
+
+    /**
+     * Handler to update the UI
+     */
+    private static class MyHandler extends Handler {
+        private static WeakReference<VideosFragment> activity;
+
+        public MyHandler(VideosFragment context){
+            activity = new WeakReference<>(context);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            VideosFragment context = activity.get();
+
+            switch (msg.what){
+
+                case 1:
+                    VideoBean bean = msg.getData().getParcelable("bean");
+
+                    if (bean != null) {
+                        context.videoAdapter.notifyDataSetChanged();
+                        context.videos.add(bean);
+                    } else {
+                        context.dismissProgressBar();
+                        Toast.makeText(context.getActivity(), "No video was found", Toast.LENGTH_SHORT).show();
+                    }
+
+                    break;
+
+                case 2:
+                    if (context.p_bar.isShown())
+                        context.dismissProgressBar();
+
+                    Toast.makeText(context.getActivity(), "No video was found", Toast.LENGTH_SHORT).show();
+
+                    break;
+
+                case 3:
+                    if (context.p_bar.isShown())
+                        context.dismissProgressBar();
+
+                    break;
+
+                default: break;
+            }
+
+        }
+
+    }
 
     /**
      * Static inner class to search for videos, to get the recent videos and to do a filter search from the server.
@@ -283,6 +353,8 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
 
         private void filterVideos() {
+            Bundle bundle = new Bundle();
+            final Message msg = new Message();
             String urlStr = parseUrlFilterSearch();
 
             InputStream is = null;
@@ -304,10 +376,17 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                 JsonArray array = o.get("data").getAsJsonArray();
 
 
-                if (array.size() < 1) {
-                    runThread(null);
+                if (array.size() == 0) {
+                    handler.post(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            handler.sendEmptyMessage(2);
+                        }
+                    });
                     return;
                 }
+
 
                 Iterator<JsonElement> iterator = array.iterator();
                 while (iterator.hasNext()) {
@@ -345,7 +424,30 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                     vBean.setPreview(preview);
                     times++;
 
-                    runThread(vBean);
+                    // dismiss progress
+                    handler.post(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            handler.sendEmptyMessage(3);
+                        }
+                    });
+
+                    // set the video bean
+                    bundle.putParcelable("bean", vBean);
+                    msg.setData(bundle);
+                    msg.what = 1;
+
+                    // update the UI with the video
+                    handler.post(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            handler.dispatchMessage(msg);
+                        }
+                    });
+
+                    //updateUI(vBean);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -362,6 +464,8 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         }
 
         private void searchVideosByKey() {
+            Bundle bundle = new Bundle();
+            final Message msg = new Message();
             String urlStr = "https://api.shutterstock.com/v2/videos/search?per_page=50&query=";
             urlStr += bundle.getString("key");
 
@@ -384,7 +488,13 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                 JsonArray array = o.get("data").getAsJsonArray();
 
                 if (array.size() == 0) {
-                    runThread(null);
+                    handler.post(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            handler.sendEmptyMessage(2);
+                        }
+                    });
                     return;
                 }
 
@@ -424,7 +534,30 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                     vBean.setPreview(preview);
                     times++;
 
-                    runThread(vBean);
+                    // dismiss progress
+                    handler.post(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            handler.sendEmptyMessage(3);
+                        }
+                    });
+
+                    // set the video bean
+                    bundle.putParcelable("bean", vBean);
+                    msg.setData(bundle);
+                    msg.what = 1;
+
+                    // update the UI with the video
+                    handler.post(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            handler.dispatchMessage(msg);
+                        }
+                    });
+
+                    //updateUI(vBean);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -442,6 +575,8 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
          * Method to get the videos from the server. It gets the id, description and the url for the preview.
          */
         private void getRecentVideos(int day) {
+            Bundle bundle = new Bundle();
+            final Message msg = new Message();
             String urlStr = "https://api.shutterstock.com/v2/videos/search?per_page=50&added_date_start=";
             urlStr += Utilities.getDate(day);
 
@@ -506,7 +641,30 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                     vBean.setPreview(preview);
                     times++;
 
-                    runThread(vBean);
+                    // dismiss progress
+                    handler.post(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            handler.sendEmptyMessage(3);
+                        }
+                    });
+
+                    // set the video bean
+                    bundle.putParcelable("bean", vBean);
+                    msg.setData(bundle);
+                    msg.what = 1;
+
+                    // update the UI with the video
+                    handler.post(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            handler.dispatchMessage(msg);
+                        }
+                    });
+
+                    //updateUI(vBean);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -525,25 +683,24 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
          *
          * @param bean the video bean
          */
-        private void runThread(final VideoBean bean) {
-            final VideosFragment context = activity.get();
+        private void updateUI(final VideoBean bean) {
 
-            if (context != null) {
-                context.getActivity().runOnUiThread(new Runnable() {
+            if (activity.get()!= null) {
+                activity.get().getActivity().runOnUiThread(new Runnable() {
 
                     @Override
                     public void run() {
 
-                        if (context.p_bar.isShown())
-                            context.restoreListVisibility();
+                        if(activity.get().p_bar.isShown())
+                            activity.get().dismissProgressBar();
 
                         if (bean != null) {
-                            context.videoAdapter.notifyDataSetChanged();
-                            context.videos.add(bean);
+                            activity.get().videoAdapter.notifyDataSetChanged();
+                            activity.get().videos.add(bean);
                         } else {
                             String msg = bundle.getString("key") == null ? " that input " : bundle.getString("key");
-                            context.restoreListVisibility();
-                            Toast.makeText(context.getActivity(), "No video with " + msg + " was found", Toast.LENGTH_SHORT).show();
+                            activity.get().dismissProgressBar();
+                            Toast.makeText(activity.get().getActivity(), "No video with " + msg + " was found", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });

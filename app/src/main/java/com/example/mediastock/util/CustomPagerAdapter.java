@@ -56,11 +56,6 @@ public class CustomPagerAdapter extends FragmentStatePagerAdapter {
     }
 
     @Override
-    public Object instantiateItem(ViewGroup container, int position) {
-        return super.instantiateItem(container, position);
-    }
-
-    @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
     }
 

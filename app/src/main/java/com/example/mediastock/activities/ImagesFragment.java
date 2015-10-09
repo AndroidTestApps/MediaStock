@@ -54,6 +54,9 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
     private GridView grid;
 
 
+    /**
+     * Method to create an instance of this fragment for the viewPager
+     */
     public static ImagesFragment createInstance() {
         return new ImagesFragment();
     }
@@ -79,7 +82,6 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
             Toast.makeText(context, "Not online", Toast.LENGTH_SHORT).show();
             return;
         }
-
     }
 
 
@@ -100,6 +102,9 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         return view;
     }
 
+    /**
+     * Initialize the UI components and get the recent images
+     */
     private void compute() {
 
         // grid images
@@ -113,44 +118,29 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
             }
         });
 
-        if(!images.isEmpty()){
-            cancelGridVisibility();
-            images.clear();
-            imgAdapter.notifyDataSetChanged();
-        }
-
+        deleteItems();
         new WebRequest(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "getImages");
     }
 
-    private void cancelGridVisibility() {
-        grid.setVisibility(View.INVISIBLE);
-        layout_p_bar.setVisibility(View.VISIBLE);
-        p_bar.setVisibility(View.VISIBLE);
-    }
 
-    private void restoreGridVisibility() {
-        p_bar.setVisibility(View.GONE);
-        layout_p_bar.setVisibility(View.GONE);
-        grid.setVisibility(View.VISIBLE);
-    }
-
+    /**
+     * Method to get the recent images
+     */
     public void getRecentImages() {
         if (!isOnline())
             return;
 
-        cancelGridVisibility();
-
-        images.clear();
-        imgAdapter.notifyDataSetChanged();
-
+        showProgressBar();
+        deleteItems();
         new WebRequest(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "getImages");
     }
 
+    /**
+     * It searches the images by one or two keys
+     */
     public void searchImagesByKey(String key1, String key2) {
-        cancelGridVisibility();
-
-        images.clear();
-        imgAdapter.notifyDataSetChanged();
+        showProgressBar();
+        deleteItems();
 
         if (key2 != null) {
             new WebRequest(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "search", key1);
@@ -161,16 +151,15 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
     }
 
     /**
+     * Start the filter search. The bundle contains alla the users input.
      * We pass all the info to DownloadService service to start to download the images.
      */
     public void startFilterSearch(Bundle bundle) {
         if (!isOnline())
             return;
 
-        cancelGridVisibility();
-
-        images.clear();
-        imgAdapter.notifyDataSetChanged();
+        showProgressBar();
+        deleteItems();
 
         resultReceiver = new DownloadResultReceiver(new Handler());
         resultReceiver.setReceiver(this);
@@ -183,7 +172,37 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         intent.putExtra(FilterImageFragment.SORT_BY, bundle.getString(FilterImageFragment.SORT_BY));
         intent.putExtra(FilterImageFragment.PER_PAGE, bundle.getString(FilterImageFragment.PER_PAGE));
 
-        this.getActivity().startService(intent);
+        getActivity().startService(intent);
+    }
+
+
+    /**
+     * Method to delete the list of images and to notify the adapter
+     */
+    private void deleteItems(){
+        if(!images.isEmpty()) {
+            images.clear();
+            imgAdapter.notifyDataSetChanged();
+        }
+    }
+
+
+    /**
+     * It shows the progress bar
+     */
+    private void showProgressBar() {
+        grid.setVisibility(View.INVISIBLE);
+        layout_p_bar.setVisibility(View.VISIBLE);
+        p_bar.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Method to dismiss the progress bar
+     */
+    private void dismissProgressBar() {
+        p_bar.setVisibility(View.GONE);
+        layout_p_bar.setVisibility(View.GONE);
+        grid.setVisibility(View.VISIBLE);
     }
 
 
@@ -357,7 +376,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         @Override
         protected void onProgressUpdate(ImageBean... bean) {
             if (activity.get().p_bar.isShown())
-                activity.get().restoreGridVisibility();
+                activity.get().dismissProgressBar();
 
             if (bean[0] == null)
                 Toast.makeText(context, "No image was found", Toast.LENGTH_SHORT).show();
@@ -372,9 +391,8 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         protected void onPostExecute(String result) {
 
             if (!searchSuccess) {
-                activity.get().restoreGridVisibility();
+                activity.get().dismissProgressBar();
                 Toast.makeText(context, "Sorry, no image with " + result + " was found!", Toast.LENGTH_LONG).show();
-
             }
         }
     }
@@ -389,7 +407,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         switch (resultCode) {
             case 1:
                 if (p_bar.isShown())
-                    restoreGridVisibility();
+                    dismissProgressBar();
 
                 ImageBean bean = resultData.getParcelable(DownloadService.IMG_BEAN);
 
@@ -399,7 +417,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                 break;
 
             case 2:
-                cancelGridVisibility();
+                showProgressBar();
                 break;
 
             default:

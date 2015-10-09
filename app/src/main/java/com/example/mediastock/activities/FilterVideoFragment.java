@@ -32,7 +32,7 @@ public class FilterVideoFragment extends AbstractFragment implements OnItemSelec
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        //super.onSaveInstanceState(outState);
+        super.onSaveInstanceState(outState);
     }
 
     @Override

@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by dinu on 04/10/15.
+ * Main activity that contains a View Pager with has six fragments
  */
 public class BaseActivity extends AppCompatActivity implements FilterImageFragment.FilterImageMessage, FilterMusicFragment.FilterMusicMessage, FilterVideoFragment.FilterVideoMessage {
     private static String key1;
@@ -88,6 +88,10 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
     }
 
 
+    /**
+     * Callback method to do a filter search of the images
+     * @param bundle bundle that contains the users input
+     */
     @Override
     public void handleFilterImage(Bundle bundle) {
         ImagesFragment frag = (ImagesFragment) adapter.getItem(0);
@@ -95,6 +99,11 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         frag.startFilterSearch(bundle);
     }
 
+
+    /**
+     * Callback method to do a filter search of the music
+     * @param bundle bundle that contains the users input
+     */
     @Override
     public void handleFilterMusic(Bundle bundle) {
         MusicFragment frag = (MusicFragment) adapter.getItem(2);
@@ -103,6 +112,10 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
     }
 
 
+    /**
+     * Callback method to do a filter search of the videos
+     * @param bundle bundle that contains the users input
+     */
     @Override
     public void handleFilterVideo(Bundle bundle) {
         VideosFragment frag = (VideosFragment) adapter.getItem(1);
@@ -110,6 +123,9 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         frag.startFilterSearch(bundle);
     }
 
+    /**
+     * Method that returns a list of fragments
+     */
     public List<AbstractFragment> getFragments() {
         List<AbstractFragment> list = new ArrayList<>();
 
@@ -119,6 +135,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
         return list;
     }
+
 
 
     @Override
@@ -171,7 +188,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
     }
 
     /**
-     * Search button.
+     * Search button action bar
      */
     private void openSearch() {
         setTitle("");
@@ -221,10 +238,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
     }
 
     /**
-     * Start the ImagesFragment or MusicFragment or VideosFragment.
-     * We pass the user input as key.
-     *
-     * @param search the user input
+     * Method to handle the users input for the search
      */
     private void startSearch(String search, View view) {
         input.setVisibility(View.GONE);
