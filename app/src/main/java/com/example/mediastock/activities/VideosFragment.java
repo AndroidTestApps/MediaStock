@@ -72,7 +72,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         super.onStart();
 
         if (!isOnline()) {
-            Toast.makeText(context, "Not online", Toast.LENGTH_SHORT).show();
+            showAlertDialog();
             return;
         }
     }
@@ -447,7 +447,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                         }
                     });
 
-                    //updateUI(vBean);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -459,8 +458,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                     e.printStackTrace();
                 }
             }
-
-
         }
 
         private void searchVideosByKey() {
@@ -557,7 +554,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                         }
                     });
 
-                    //updateUI(vBean);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -664,7 +660,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                         }
                     });
 
-                    //updateUI(vBean);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -678,34 +673,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
             }
         }
 
-        /**
-         * Method to run a thread to update the UI with the video.
-         *
-         * @param bean the video bean
-         */
-        private void updateUI(final VideoBean bean) {
-
-            if (activity.get()!= null) {
-                activity.get().getActivity().runOnUiThread(new Runnable() {
-
-                    @Override
-                    public void run() {
-
-                        if(activity.get().p_bar.isShown())
-                            activity.get().dismissProgressBar();
-
-                        if (bean != null) {
-                            activity.get().videoAdapter.notifyDataSetChanged();
-                            activity.get().videos.add(bean);
-                        } else {
-                            String msg = bundle.getString("key") == null ? " that input " : bundle.getString("key");
-                            activity.get().dismissProgressBar();
-                            Toast.makeText(activity.get().getActivity(), "No video with " + msg + " was found", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-            }
-        }
     }
 
 

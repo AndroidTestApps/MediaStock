@@ -79,7 +79,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         super.onStart();
 
         if (!isOnline()) {
-            Toast.makeText(context, "Not online", Toast.LENGTH_SHORT).show();
+            showAlertDialog();
             return;
         }
     }
@@ -90,7 +90,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         super.onCreate(savedInstanceState);
         context = this.getActivity().getApplicationContext();
 
-        if(!isOnline())
+        if (!isOnline())
             return null;
 
         view = inflater.inflate(R.layout.images_fragment, container, false);
@@ -179,7 +179,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
     /**
      * Method to delete the list of images and to notify the adapter
      */
-    private void deleteItems(){
+    private void deleteItems() {
         if(!images.isEmpty()) {
             images.clear();
             imgAdapter.notifyDataSetChanged();
@@ -191,7 +191,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
      * It shows the progress bar
      */
     private void showProgressBar() {
-        grid.setVisibility(View.INVISIBLE);
+        grid.setVisibility(View.GONE);
         layout_p_bar.setVisibility(View.VISIBLE);
         p_bar.setVisibility(View.VISIBLE);
     }

@@ -78,7 +78,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         super.onStart();
 
         if (!isOnline()){
-            Toast.makeText(context, "Not online", Toast.LENGTH_SHORT).show();
+            showAlertDialog();
             return;
         }
     }

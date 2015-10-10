@@ -1,6 +1,8 @@
 package com.example.mediastock.activities;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
@@ -10,6 +12,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.ContextThemeWrapper;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -44,11 +47,15 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
         setContentView(R.layout.main_activity);
-
-        context = this;
-
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        if(!isOnline()){
+            showAlertDialog();
+            return;
+        }
+
+        context = this;
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         tabLayout.setTabTextColors(ColorStateList.valueOf(Color.parseColor("#e7ff5800")));
@@ -136,6 +143,20 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         return list;
     }
 
+    private void showAlertDialog(){
+        AlertDialog.Builder msg = new AlertDialog.Builder(new ContextThemeWrapper(this, android.R.style.Theme_Dialog));
+        msg.setTitle("MediaStock");
+        msg.setMessage("There is no internet connection!");
+        msg.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                finish();
+            }
+        });
+
+        msg.show();
+    }
 
 
     @Override
@@ -295,12 +316,14 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
     private boolean parseQuery(String query) {
         boolean twoWords = false;
 
-        for (int i = 0; i < query.length(); i++)
-            if (query.charAt(i) == ' ') {
-                key1 = query.substring(0, i);
-                key2 = query.substring(i + 1, query.length());
-                twoWords = true;
-            }
+        if(query.contains(" ")) {
+            for (int i = 0; i < query.length(); i++)
+                if (query.charAt(i) == ' ') {
+                    key1 = query.substring(0, i);
+                    key2 = query.substring(i + 1, query.length());
+                    twoWords = true;
+                }
+        }
 
         return twoWords;
     }

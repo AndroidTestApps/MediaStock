@@ -91,8 +91,10 @@ public class FilterImageFragment extends AbstractFragment implements OnItemSelec
     public void onStart() {
         super.onStart();
 
-        if(!isOnline())
+        if(!isOnline()) {
+            showAlertDialog();
             return;
+        }
     }
 
     /**
