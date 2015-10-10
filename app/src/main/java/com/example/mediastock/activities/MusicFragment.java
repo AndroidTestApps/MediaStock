@@ -111,6 +111,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         listViewMusic.setAdapter(musicAdapter);
         listViewMusic.setOnItemClickListener(this);
 
+        showProgressBar();
         deleteItems();
         new WebRequest(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "getmusic");
 
@@ -185,7 +186,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
      * It shows the progress bar
      */
     private void showProgressBar() {
-        listViewMusic.setVisibility(View.INVISIBLE);
+        listViewMusic.setVisibility(View.GONE);
         layout_p_bar.setVisibility(View.VISIBLE);
         p_bar.setVisibility(View.VISIBLE);
     }
@@ -216,6 +217,34 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         startActivity(intent);
     }
 
+    /**
+     * It handles the result of the DownloadService service. It updates the UI.
+     */
+    @Override
+    public void onReceiveResult(int resultCode, Bundle resultData) {
+        switch (resultCode) {
+
+            case 1:
+                if (p_bar.isShown())
+                    dismissProgressBar();
+
+                MusicBean bean = resultData.getParcelable(DownloadService.MUSIC_BEAN);
+
+                // update UI with the music
+                music.add(bean);
+                musicAdapter.notifyDataSetChanged();
+                break;
+
+            case 2:
+                showProgressBar();
+                break;
+
+            default:
+                Toast.makeText(context, "Search failed", Toast.LENGTH_LONG).show();
+                break;
+        }
+
+    }
 
     /**
      * Static inner class to search for music and to get the recent music from the server.
@@ -383,36 +412,6 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                 activity.get().dismissProgressBar();
                 Toast.makeText(activity.get().getActivity(), "Sorry, no music with " + result + " was found!", Toast.LENGTH_LONG).show();
             }
-        }
-
-    }
-
-
-    /**
-     * It handles the result of the DownloadService service. It updates the UI.
-     */
-    @Override
-    public void onReceiveResult(int resultCode, Bundle resultData) {
-        switch (resultCode) {
-
-            case 1:
-                if (p_bar.isShown())
-                    dismissProgressBar();
-
-                MusicBean bean = resultData.getParcelable(DownloadService.MUSIC_BEAN);
-
-                // update UI with the music
-                music.add(bean);
-                musicAdapter.notifyDataSetChanged();
-                break;
-
-            case 2:
-                showProgressBar();
-                break;
-
-            default:
-                Toast.makeText(context, "Search failed", Toast.LENGTH_LONG).show();
-                break;
         }
 
     }

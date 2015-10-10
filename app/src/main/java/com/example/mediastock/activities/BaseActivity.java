@@ -320,8 +320,12 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
             for (int i = 0; i < query.length(); i++)
                 if (query.charAt(i) == ' ') {
                     key1 = query.substring(0, i);
+
                     key2 = query.substring(i + 1, query.length());
-                    twoWords = true;
+                    if (!key2.contains(" ")) {
+                        twoWords = true;
+                        break;
+                    }
                 }
         }
 

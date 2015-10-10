@@ -8,6 +8,7 @@ import android.content.Loader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,10 +47,10 @@ import java.util.Iterator;
  * @author Dinu
  */
 public class VideosFragment extends AbstractFragment implements LoaderCallbacks<Void>, OnItemClickListener {
-    private MusicVideoAdapter videoAdapter;
-    private ArrayList<Bean> videos = new ArrayList<>();
     private static Context context;
     private static Handler handler;
+    private MusicVideoAdapter videoAdapter;
+    private ArrayList<Bean> videos = new ArrayList<>();
     private View view = null;
     private LinearLayout layout_p_bar;
     private ListView listViewVideo;
@@ -112,6 +113,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         listViewVideo.setAdapter(videoAdapter);
         listViewVideo.setOnItemClickListener(this);
 
+        showProgressBar();
         deleteItems();
         getActivity().getLoaderManager().initLoader(0, null, this);
     }
@@ -181,7 +183,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
      * It shows the progress bar
      */
     private void showProgressBar() {
-        listViewVideo.setVisibility(View.INVISIBLE);
+        listViewVideo.setVisibility(View.GONE);
         layout_p_bar.setVisibility(View.VISIBLE);
         p_bar.setVisibility(View.VISIBLE);
     }
@@ -241,6 +243,14 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         startActivity(intent);
     }
 
+    // not used
+    @Override
+    public void onLoadFinished(Loader<Void> arg0, Void arg1) {
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Void> arg0) {
+    }
 
     /**
      * Handler to update the UI
@@ -248,7 +258,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
     private static class MyHandler extends Handler {
         private static WeakReference<VideosFragment> activity;
 
-        public MyHandler(VideosFragment context){
+        public MyHandler(VideosFragment context) {
             activity = new WeakReference<>(context);
         }
 
@@ -256,18 +266,16 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         public void handleMessage(Message msg) {
             VideosFragment context = activity.get();
 
-            switch (msg.what){
+            switch (msg.what) {
 
                 case 1:
                     VideoBean bean = msg.getData().getParcelable("bean");
 
                     if (bean != null) {
-                        context.videoAdapter.notifyDataSetChanged();
                         context.videos.add(bean);
-                    } else {
-                        context.dismissProgressBar();
+                        context.videoAdapter.notifyDataSetChanged();
+                    } else
                         Toast.makeText(context.getActivity(), "No video was found", Toast.LENGTH_SHORT).show();
-                    }
 
                     break;
 
@@ -285,7 +293,8 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
                     break;
 
-                default: break;
+                default:
+                    break;
             }
 
         }
@@ -298,7 +307,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
      * @author Dinu
      */
     private static class LoadData extends AsyncTaskLoader<Void> {
-        private static WeakReference<VideosFragment> activity;
         private Bundle bundle;
         private int type;
 
@@ -307,7 +315,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
             this.type = type;
             this.bundle = bundle;
-            activity = new WeakReference<>(context);
         }
 
         @Override
@@ -353,8 +360,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
 
         private void filterVideos() {
-            Bundle bundle = new Bundle();
-            final Message msg = new Message();
             String urlStr = parseUrlFilterSearch();
 
             InputStream is = null;
@@ -374,7 +379,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                 JsonElement json = new JsonParser().parse(jsonText);
                 JsonObject o = json.getAsJsonObject();
                 JsonArray array = o.get("data").getAsJsonArray();
-
 
                 if (array.size() == 0) {
                     handler.post(new Runnable() {
@@ -433,6 +437,9 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                         }
                     });
 
+                    Bundle bundle = new Bundle();
+                    final Message msg = new Message();
+
                     // set the video bean
                     bundle.putParcelable("bean", vBean);
                     msg.setData(bundle);
@@ -446,7 +453,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                             handler.dispatchMessage(msg);
                         }
                     });
-
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -461,8 +467,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         }
 
         private void searchVideosByKey() {
-            Bundle bundle = new Bundle();
-            final Message msg = new Message();
             String urlStr = "https://api.shutterstock.com/v2/videos/search?per_page=50&query=";
             urlStr += bundle.getString("key");
 
@@ -540,6 +544,9 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                         }
                     });
 
+                    Bundle bundle = new Bundle();
+                    final Message msg = new Message();
+
                     // set the video bean
                     bundle.putParcelable("bean", vBean);
                     msg.setData(bundle);
@@ -571,8 +578,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
          * Method to get the videos from the server. It gets the id, description and the url for the preview.
          */
         private void getRecentVideos(int day) {
-            Bundle bundle = new Bundle();
-            final Message msg = new Message();
             String urlStr = "https://api.shutterstock.com/v2/videos/search?per_page=50&added_date_start=";
             urlStr += Utilities.getDate(day);
 
@@ -646,6 +651,9 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                         }
                     });
 
+                    Bundle bundle = new Bundle();
+                    final Message msg = new Message();
+
                     // set the video bean
                     bundle.putParcelable("bean", vBean);
                     msg.setData(bundle);
@@ -673,16 +681,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
             }
         }
 
-    }
-
-
-    // not used
-    @Override
-    public void onLoadFinished(Loader<Void> arg0, Void arg1) {
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Void> arg0) {
     }
 
 
