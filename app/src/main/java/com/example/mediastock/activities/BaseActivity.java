@@ -50,10 +50,8 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        if(!isOnline()){
+        if (!isOnline())
             showAlertDialog();
-            return;
-        }
 
         context = this;
 
@@ -151,7 +149,6 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
-                finish();
             }
         });
 
@@ -221,7 +218,6 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         View v = inflator.inflate(R.layout.actionbar_search, null);
         actionBar.setCustomView(v);
 
-        // icon dismiss inside edit text
         input = (EditText) v.findViewById(R.id.actionbar_search);
         input.requestFocus();
         showKeyboard();
@@ -232,13 +228,17 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
             public boolean onTouch(View arg0, MotionEvent event) {
 
                 if (event.getAction() == MotionEvent.ACTION_UP) {
+
+                    // icon dismiss inside edit text
                     if (event.getRawX() >= input.getRight() - input.getTotalPaddingRight()) {
                         input.setVisibility(View.GONE);
                         setTitle("MediaStock");
                         hideKeyboard(input);
                         return true;
-                    }
+                    } else
+                        showKeyboard();
                 }
+
                 return true;
             }
         });
@@ -307,29 +307,25 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
 
     /**
-     * We parse the text that the user wrote.
+     * We parse the users input
      * If the user wrote two words, we parse the text and search for the words.
      *
-     * @param query the text of the user
+     * @param query the input
      * @return true if the user wrote two words, false otherwise
      */
     private boolean parseQuery(String query) {
-        boolean twoWords = false;
-
-        if(query.contains(" ")) {
+        if (query.contains(" ")) {
             for (int i = 0; i < query.length(); i++)
                 if (query.charAt(i) == ' ') {
                     key1 = query.substring(0, i);
 
                     key2 = query.substring(i + 1, query.length());
-                    if (!key2.contains(" ")) {
-                        twoWords = true;
-                        break;
-                    }
+                    return !key2.isEmpty();
+
                 }
         }
 
-        return twoWords;
+        return false;
     }
 
     private void hideKeyboard(View view) {
