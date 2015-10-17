@@ -1,11 +1,15 @@
 package com.example.mediastock.activities;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -42,16 +46,17 @@ import java.util.Iterator;
  *
  * @author Dinu
  */
-public class DisplayImageActivity extends AppCompatActivity {
+public class DisplayImageActivity extends AppCompatActivity implements View.OnClickListener {
+    private static Handler handler;
     private ScrollView sw;
     private HorizontalScrollView hs;
-    private static Handler handler;
     private LinearLayout layout;
     private LinearLayout.LayoutParams layout_param;
     private boolean newImage = false;
     private ImageBean imgBean;
     private ImageView imageView;
     private TextView description, contributorsName;
+    private FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +66,7 @@ public class DisplayImageActivity extends AppCompatActivity {
         if (!isOnline()) {
             Toast.makeText(this, "Not online", Toast.LENGTH_SHORT).show();
             finish();
-        }else{
+        } else {
 
             setContentView(R.layout.display_image_activity);
 
@@ -69,6 +74,8 @@ public class DisplayImageActivity extends AppCompatActivity {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
 
+            fab = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
+            fab.setOnClickListener(this);
             layout = (LinearLayout) this.findViewById(R.id.image_home_ScrollView).findViewById(R.id.scroll_image_linearLayout);
             layout_param = new LinearLayout.LayoutParams(150, 150);
             layout_param.setMargins(0, 0, 3, 0);
@@ -97,45 +104,15 @@ public class DisplayImageActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onClick(View v) {
 
-    /**
-     * Handler to update the UI
-     */
-    private static class MyHandler extends Handler {
-        private static WeakReference<DisplayImageActivity> activity;
-
-        public MyHandler(DisplayImageActivity context) {
-            activity = new WeakReference<>(context);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            DisplayImageActivity context = activity.get();
-
-            switch (msg.what) {
-
-                // update the UI with the authors name
-                case 1:
-                    context.contributorsName.append(" " + msg.getData().getString("name"));
-                    break;
-
-                // update the UI with the similar images
-                case 2:
-                    context.displayImg((ImageBean) msg.getData().getParcelable("bean"));
-                    break;
-
-                // remove the old similar images
-                case 3:
-                    ViewGroup v = (ViewGroup) context.hs.getChildAt(0);
-                    v.removeAllViews();
-                    break;
-
-                default:
-                    break;
-            }
+        if (v.getId() == R.id.fab_favorites) {
+            fab.setBackgroundTintMode(PorterDuff.Mode.DST_ATOP);
+            fab.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#ff9100")));
+            Toast.makeText(this, "Image added to favorites", Toast.LENGTH_SHORT).show();
         }
     }
-
 
     @Override
     public void onDestroy() {
@@ -158,7 +135,6 @@ public class DisplayImageActivity extends AppCompatActivity {
     private int getContributorId() {
         return getIntent().getIntExtra("contributor", 0);
     }
-
 
     /**
      * It downloads the main image from the server
@@ -234,6 +210,44 @@ public class DisplayImageActivity extends AppCompatActivity {
         ConnectivityManager cm = (ConnectivityManager) this.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 
         return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
+    }
+
+    /**
+     * Handler to update the UI
+     */
+    private static class MyHandler extends Handler {
+        private static WeakReference<DisplayImageActivity> activity;
+
+        public MyHandler(DisplayImageActivity context) {
+            activity = new WeakReference<>(context);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            DisplayImageActivity context = activity.get();
+
+            switch (msg.what) {
+
+                // update the UI with the authors name
+                case 1:
+                    context.contributorsName.append(" " + msg.getData().getString("name"));
+                    break;
+
+                // update the UI with the similar images
+                case 2:
+                    context.displayImg((ImageBean) msg.getData().getParcelable("bean"));
+                    break;
+
+                // remove the old similar images
+                case 3:
+                    ViewGroup v = (ViewGroup) context.hs.getChildAt(0);
+                    v.removeAllViews();
+                    break;
+
+                default:
+                    break;
+            }
+        }
     }
 
     /**
