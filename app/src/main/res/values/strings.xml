@@ -6,7 +6,7 @@
     <string name="music_home">Recent music</string>
     <string name="image_home">Recent images</string>
     <string name="video_home">Recent videos</string>
-    <string name="home">Home</string>
+    <string name="favorites">Favorites</string>
     <string name="search">Search</string>
     <color name="white">#FFFFFF</color>
     <string name="similar">Similar images</string>

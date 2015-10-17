@@ -18,25 +18,19 @@ import com.example.mediastock.R;
 import java.util.ArrayList;
 
 public class FilterImageFragment extends AbstractFragment implements OnItemSelectedListener, OnClickListener{
-	private ArrayList<String> orientation_list = new ArrayList<>();
 	public static final String CATEGORY = "category";
 	public static final String ORIENTATION = "orientation";
 	public static final String SORT_BY = "sortby";
 	public static final String PER_PAGE = "perpage";
-	private SparseArray<String> query = new SparseArray<>();
+    private ArrayList<String> orientation_list = new ArrayList<>();
+    private SparseArray<String> query = new SparseArray<>();
     private Context context;
     private FilterImageMessage imageMessage;
-
-
-    public interface FilterImageMessage {
-        void handleFilterImage(Bundle bundle);
-    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
     }
-
 
     @Override
     public void onAttach(Context context) {
@@ -49,9 +43,6 @@ public class FilterImageFragment extends AbstractFragment implements OnItemSelec
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = this.getContext();
-
-        if(!isOnline())
-            return null;
 
         View  view = inflater.inflate(R.layout.filter_image_fragment, container, false);
 
@@ -90,11 +81,6 @@ public class FilterImageFragment extends AbstractFragment implements OnItemSelec
     @Override
     public void onStart() {
         super.onStart();
-
-        if(!isOnline()) {
-            showAlertDialog();
-            return;
-        }
     }
 
     /**
@@ -106,8 +92,8 @@ public class FilterImageFragment extends AbstractFragment implements OnItemSelec
 
 		switch(id){
 
-		case R.id.spinner_category: 
-			query.put(1, parent.getItemAtPosition(pos).toString());
+            case R.id.spinner_category:
+                query.put(1, parent.getItemAtPosition(pos).toString());
 			break;
 
 		case R.id.spinner_orientation:
@@ -127,19 +113,23 @@ public class FilterImageFragment extends AbstractFragment implements OnItemSelec
 		}
 	}
 
-
 	private void initList(){
-		orientation_list.add("All");	
-		orientation_list.add("Horizontal");
+        orientation_list.add("All");
+        orientation_list.add("Horizontal");
 		orientation_list.add("Vertical");
 	}
-
 
 	/**
 	 * Button search
 	 */
 	@Override
 	public void onClick(View v) {
+
+        if (!isOnline()) {
+            showAlertDialog();
+            return;
+        }
+
         Bundle bundle = new Bundle();
         bundle.putString(CATEGORY, query.get(1));
         bundle.putString(ORIENTATION, query.get(3));
@@ -151,4 +141,8 @@ public class FilterImageFragment extends AbstractFragment implements OnItemSelec
 
 	@Override
 	public void onNothingSelected(AdapterView<?> arg0) {}
+
+    public interface FilterImageMessage {
+        void handleFilterImage(Bundle bundle);
+    }
 }

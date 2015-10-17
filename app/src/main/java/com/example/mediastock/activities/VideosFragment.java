@@ -71,11 +71,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
     @Override
     public void onStart() {
         super.onStart();
-
-        if (!isOnline()) {
-            showAlertDialog();
-            return;
-        }
     }
 
     @Override

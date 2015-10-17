@@ -26,10 +26,6 @@ public class FilterVideoFragment extends AbstractFragment implements OnItemSelec
     private Context context;
     private FilterVideoMessage filterVideoMessage;
 
-    public interface FilterVideoMessage {
-        void handleFilterVideo(Bundle bundle);
-    }
-
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -46,9 +42,6 @@ public class FilterVideoFragment extends AbstractFragment implements OnItemSelec
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = this.getContext();
-
-        if(!isOnline())
-            return null;
 
         View view = inflater.inflate(R.layout.filter_video_fragment, container, false);
 
@@ -81,12 +74,6 @@ public class FilterVideoFragment extends AbstractFragment implements OnItemSelec
     @Override
     public void onStart() {
         super.onStart();
-
-        if(!isOnline()) {
-            showAlertDialog();
-            return;
-        }
-
     }
 
     /**
@@ -94,6 +81,10 @@ public class FilterVideoFragment extends AbstractFragment implements OnItemSelec
      */
     @Override
     public void onClick(View arg0) {
+        if (!isOnline()) {
+            showAlertDialog();
+            return;
+        }
         Bundle bundle = new Bundle();
         bundle.putString(WORD, word.getText().toString());
         bundle.putString(SORT, query.get(1));
@@ -131,6 +122,10 @@ public class FilterVideoFragment extends AbstractFragment implements OnItemSelec
 
     @Override
     public void onNothingSelected(AdapterView<?> arg0) {
+    }
+
+    public interface FilterVideoMessage {
+        void handleFilterVideo(Bundle bundle);
     }
 
 }

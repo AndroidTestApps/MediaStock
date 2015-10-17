@@ -32,7 +32,7 @@ public abstract class AbstractFragment extends android.support.v4.app.Fragment{
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
-                getActivity().finish();
+
             }
         });
 

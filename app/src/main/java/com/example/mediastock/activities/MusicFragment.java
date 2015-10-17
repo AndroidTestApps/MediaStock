@@ -76,11 +76,6 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
     @Override
     public void onStart() {
         super.onStart();
-
-        if (!isOnline()){
-            showAlertDialog();
-            return;
-        }
     }
 
     @Override

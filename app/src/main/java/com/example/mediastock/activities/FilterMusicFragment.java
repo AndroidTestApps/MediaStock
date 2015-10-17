@@ -26,16 +26,10 @@ public class FilterMusicFragment extends AbstractFragment implements OnItemSelec
     private Context context;
     private FilterMusicMessage filterMusicMessage;
 
-
-    public interface FilterMusicMessage {
-        void handleFilterMusic(Bundle bundle);
-    }
-
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
     }
-
 
     @Override
     public void onAttach(Context context) {
@@ -48,9 +42,6 @@ public class FilterMusicFragment extends AbstractFragment implements OnItemSelec
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = this.getContext();
-
-        if(!isOnline())
-            return null;
 
         View  view = inflater.inflate(R.layout.filter_music_fragment, container, false);
 
@@ -78,11 +69,6 @@ public class FilterMusicFragment extends AbstractFragment implements OnItemSelec
     @Override
     public void onStart() {
         super.onStart();
-
-        if(!isOnline()) {
-            showAlertDialog();
-            return;
-        }
     }
 
     /**
@@ -113,6 +99,11 @@ public class FilterMusicFragment extends AbstractFragment implements OnItemSelec
      */
     @Override
     public void onClick(View v) {
+        if (!isOnline()) {
+            showAlertDialog();
+            return;
+        }
+
         Bundle bundle = new Bundle();
         bundle.putString(ARTIST, artist.getText().toString());
         bundle.putString(TITLE, title.getText().toString());
@@ -122,9 +113,13 @@ public class FilterMusicFragment extends AbstractFragment implements OnItemSelec
         filterMusicMessage.handleFilterMusic(bundle);
     }
 
-
     @Override
     public void onNothingSelected(AdapterView<?> arg0) {
+    }
+
+
+    public interface FilterMusicMessage {
+        void handleFilterMusic(Bundle bundle);
     }
 
 

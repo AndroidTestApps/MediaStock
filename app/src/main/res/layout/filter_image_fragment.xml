@@ -47,7 +47,9 @@
                 android:layout_gravity="center"
                 android:layout_marginLeft="40dp"
                 android:layout_marginRight="40dp"
-                android:gravity="center"/>
+                android:background="@drawable/gradient_spinner"
+                android:gravity="center"
+                android:spinnerMode="dropdown" />
 
             <TextView
                 android:id="@+id/filter_sortBy"
@@ -69,7 +71,8 @@
                 android:layout_height="40dp"
                 android:layout_gravity="center"
                 android:layout_marginLeft="40dp"
-                android:layout_marginRight="40dp"/>
+                android:layout_marginRight="40dp"
+                android:background="@drawable/gradient_spinner" />
 
             <TextView
                 android:id="@+id/filter_orientation"
@@ -91,7 +94,9 @@
                 android:layout_height="40dp"
                 android:layout_gravity="center"
                 android:layout_marginLeft="40dp"
-                android:layout_marginRight="40dp"/>
+                android:layout_marginRight="40dp"
+                android:layout_marginTop="0dp"
+                android:background="@drawable/gradient_spinner" />
 
             <TextView
                 android:id="@+id/filter_per_page"
@@ -113,7 +118,8 @@
                 android:layout_height="40dp"
                 android:layout_gravity="center"
                 android:layout_marginLeft="40dp"
-                android:layout_marginRight="40dp"/>
+                android:layout_marginRight="40dp"
+                android:background="@drawable/gradient_spinner" />
 
             <Button
                 android:id="@+id/filter_button_search"

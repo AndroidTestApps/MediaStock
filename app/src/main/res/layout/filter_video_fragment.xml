@@ -23,7 +23,7 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/filterVideo_category"
+                android:id="@+id/filterVideo_word"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
@@ -33,20 +33,23 @@
                 android:background="@drawable/shape"
                 android:gravity="center"
                 android:padding="4dp"
-                android:text="Category"
-                android:textColor="#ffffff"/>
+                android:text="Keyword"
+                android:textColor="#fefefe" />
 
-            <Spinner
-                android:id="@+id/spinnerVideo_category"
+            <EditText
+                android:id="@+id/editTextVideo_word"
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginLeft="40dp"
                 android:layout_marginRight="40dp"
-                android:gravity="center"/>
+                android:background="@drawable/gradient_edittext"
+                android:hint="Keyword"
+                android:padding="7dp"
+                android:textColor="@color/black" />
 
             <TextView
-                android:id="@+id/filterVideo_word"
+                android:id="@+id/filterVideo_category"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
@@ -56,18 +59,19 @@
                 android:background="@drawable/shape"
                 android:gravity="center"
                 android:padding="4dp"
-                android:text="Keyword"
-                android:textColor="#fefefe"/>
+                android:text="Category"
+                android:textColor="#ffffff" />
 
-            <EditText
-                android:id="@+id/editTextVideo_word"
+            <Spinner
+                android:id="@+id/spinnerVideo_category"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="40dp"
                 android:layout_gravity="center"
                 android:layout_marginLeft="40dp"
                 android:layout_marginRight="40dp"
-                android:hint="Keyword"
-                android:textColor="@color/black"/>
+                android:background="@drawable/gradient_spinner"
+                android:gravity="center" />
+
 
             <TextView
                 android:id="@+id/filterVideo_sort"
@@ -89,7 +93,8 @@
                 android:layout_height="40dp"
                 android:layout_gravity="center"
                 android:layout_marginLeft="40dp"
-                android:layout_marginRight="40dp"/>
+                android:layout_marginRight="40dp"
+                android:background="@drawable/gradient_spinner" />
 
             <TextView
                 android:id="@+id/filterVideo_per_page"
@@ -111,7 +116,8 @@
                 android:layout_height="40dp"
                 android:layout_gravity="center"
                 android:layout_marginLeft="40dp"
-                android:layout_marginRight="40dp"/>
+                android:layout_marginRight="40dp"
+                android:background="@drawable/gradient_spinner" />
 
             <Button
                 android:id="@+id/filterVideo_button"

@@ -55,7 +55,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
 
     /**
-     * Method to create an instance of this fragment for the viewPager
+     * Method to create an instance of this fragment for the viewPager.
      */
     public static ImagesFragment createInstance() {
         return new ImagesFragment();
@@ -78,10 +78,6 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
     public void onStart() {
         super.onStart();
 
-        if (!isOnline()) {
-            showAlertDialog();
-            return;
-        }
     }
 
 
@@ -222,6 +218,33 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         startActivity(intent);
     }
 
+    /**
+     * It handles the result of the DownloadService service.
+     * Method used when we do a filter search. It updates the UI.
+     */
+    @Override
+    public void onReceiveResult(int resultCode, Bundle resultData) {
+        switch (resultCode) {
+            case 1:
+                if (p_bar.isShown())
+                    dismissProgressBar();
+
+                ImageBean bean = resultData.getParcelable(DownloadService.IMG_BEAN);
+
+                // update UI with the image
+                images.add(bean);
+                imgAdapter.notifyDataSetChanged();
+                break;
+
+            case 2:
+                showProgressBar();
+                break;
+
+            default:
+                Toast.makeText(context, "Search failed", Toast.LENGTH_LONG).show();
+                break;
+        }
+    }
 
     /**
      * Static inner class to search for images and to get the recent images from the server.
@@ -262,11 +285,13 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                 URL url = new URL(urlStr);
                 URLConnection conn = url.openConnection();
                 conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
-                is = conn.getInputStream();
 
+                // get stream
+                is = conn.getInputStream();
                 BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
                 String jsonText = Utilities.readAll(rd);
 
+                // parse json text
                 JsonElement json = new JsonParser().parse(jsonText);
                 JsonObject o = json.getAsJsonObject();
                 JsonArray array = o.get("data").getAsJsonArray();
@@ -279,6 +304,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                     return;
                 }
 
+                // get objects
                 Iterator<JsonElement> iterator = array.iterator();
                 while (iterator.hasNext()) {
                     JsonElement json2 = iterator.next();
@@ -356,8 +382,9 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
                     // update UI
                     publishProgress(ib);
-
                 }
+
+
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -394,35 +421,6 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                 activity.get().dismissProgressBar();
                 Toast.makeText(context, "Sorry, no image with " + result + " was found!", Toast.LENGTH_LONG).show();
             }
-        }
-    }
-
-
-    /**
-     * It handles the result of the DownloadService service.
-     * Method used when we do a filter search. It updates the UI.
-     */
-    @Override
-    public void onReceiveResult(int resultCode, Bundle resultData) {
-        switch (resultCode) {
-            case 1:
-                if (p_bar.isShown())
-                    dismissProgressBar();
-
-                ImageBean bean = resultData.getParcelable(DownloadService.IMG_BEAN);
-
-                // update UI with the image
-                images.add(bean);
-                imgAdapter.notifyDataSetChanged();
-                break;
-
-            case 2:
-                showProgressBar();
-                break;
-
-            default:
-                Toast.makeText(context, "Search failed", Toast.LENGTH_LONG).show();
-                break;
         }
     }
 
