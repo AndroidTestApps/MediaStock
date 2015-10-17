@@ -108,7 +108,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     public void onClick(View v) {
 
         if (v.getId() == R.id.fab_favorites) {
-            fab.setBackgroundTintMode(PorterDuff.Mode.DST_ATOP);
             fab.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#ff9100")));
             Toast.makeText(this, "Image added to favorites", Toast.LENGTH_SHORT).show();
         }
