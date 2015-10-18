@@ -8,16 +8,15 @@ import android.content.Loader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mediastock.R;
@@ -46,15 +45,14 @@ import java.util.Iterator;
  *
  * @author Dinu
  */
-public class VideosFragment extends AbstractFragment implements LoaderCallbacks<Void>, OnItemClickListener {
+public class VideosFragment extends AbstractFragment implements LoaderCallbacks<Void> {
     private static Context context;
     private static Handler handler;
-    private MusicVideoAdapter videoAdapter;
-    private ArrayList<Bean> videos = new ArrayList<>();
     private View view = null;
     private LinearLayout layout_p_bar;
-    private ListView listViewVideo;
     private ProgressBar p_bar;
+    private RecyclerView recyclerView;
+    private MusicVideoAdapter videoAdapter;
 
     /**
      * Method to create an instance of this fragment for the viewPager
@@ -85,13 +83,14 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         super.onCreate(savedInstanceState);
         context = this.getActivity().getApplicationContext();
 
-        if(!isOnline())
+        if (!isOnline())
             return null;
 
         view = inflater.inflate(R.layout.video_fragment, container, false);
         p_bar = (ProgressBar) view.findViewById(R.id.p_bar);
         layout_p_bar = (LinearLayout) view.findViewById(R.id.layout_pBar);
         handler = new MyHandler(this);
+
         compute();
 
         return view;
@@ -103,10 +102,25 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
     private void compute() {
 
         // video list
-        videoAdapter = new MusicVideoAdapter(context, videos, 2);
-        listViewVideo = (ListView) view.findViewById(R.id.list_music_video_galery);
-        listViewVideo.setAdapter(videoAdapter);
-        listViewVideo.setOnItemClickListener(this);
+        recyclerView = (RecyclerView) view.findViewById(R.id.list_video_galery);
+        recyclerView.setHasFixedSize(true);
+        LinearLayoutManager llm = new LinearLayoutManager(context);
+        llm.setOrientation(LinearLayoutManager.VERTICAL);
+        recyclerView.setLayoutManager(llm);
+        videoAdapter = new MusicVideoAdapter(context, 2);
+        recyclerView.setAdapter(videoAdapter);
+        videoAdapter.SetOnItemClickListener(new MusicVideoAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                VideoBean bean = (VideoBean) videoAdapter.getItemAt(position);
+
+                Intent intent = new Intent(context, VideoPlayerActivity.class);
+                intent.putExtra("url", bean.getPreview());
+                intent.putExtra("description", bean.getDescription());
+
+                startActivity(intent);
+            }
+        });
 
         showProgressBar();
         deleteItems();
@@ -163,22 +177,18 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
     }
 
 
-
     /**
      * Method to delete the list of videos and to notify the adapter
      */
-    private void deleteItems(){
-        if(!videos.isEmpty()) {
-            videos.clear();
-            videoAdapter.notifyDataSetChanged();
-        }
+    private void deleteItems() {
+        videoAdapter.deleteItems();
     }
 
     /**
      * It shows the progress bar
      */
     private void showProgressBar() {
-        listViewVideo.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.GONE);
         layout_p_bar.setVisibility(View.VISIBLE);
         p_bar.setVisibility(View.VISIBLE);
     }
@@ -186,10 +196,10 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
     /**
      * Method to dismiss the progress bar
      */
-    private void dismissProgressBar(){
+    private void dismissProgressBar() {
         p_bar.setVisibility(View.GONE);
         layout_p_bar.setVisibility(View.GONE);
-        listViewVideo.setVisibility(View.VISIBLE);
+        recyclerView.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -223,24 +233,11 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
 
     /**
-     * Listener on the item of the listView.
+     * The data was loaded and we destroy the loader
      */
     @Override
-    public void onItemClick(AdapterView<?> arg0, View view, int arg2, long arg3) {
-        TextView item = (TextView) view.findViewById(R.id.textView_grid_music_video);
-        String description = item.getText().toString();
-        String url = item.getTag().toString();
-
-        Intent intent = new Intent(context, VideoPlayerActivity.class);
-        intent.putExtra("url", url);
-        intent.putExtra("description", description);
-
-        startActivity(intent);
-    }
-
-    // not used
-    @Override
     public void onLoadFinished(Loader<Void> arg0, Void arg1) {
+        getActivity().getLoaderManager().destroyLoader(arg0.getId());
     }
 
     @Override
@@ -267,24 +264,21 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                     VideoBean bean = msg.getData().getParcelable("bean");
 
                     if (bean != null) {
-                        context.videos.add(bean);
-                        context.videoAdapter.notifyDataSetChanged();
+                        context.videoAdapter.addItem(bean);
+                        // context.videoAdapter.notifyDataSetChanged();
                     } else
                         Toast.makeText(context.getActivity(), "No video was found", Toast.LENGTH_SHORT).show();
 
                     break;
 
                 case 2:
-                    if (context.p_bar.isShown())
-                        context.dismissProgressBar();
-
+                    context.dismissProgressBar();
                     Toast.makeText(context.getActivity(), "No video was found", Toast.LENGTH_SHORT).show();
 
                     break;
 
                 case 3:
-                    if (context.p_bar.isShown())
-                        context.dismissProgressBar();
+                    context.dismissProgressBar();
 
                     break;
 

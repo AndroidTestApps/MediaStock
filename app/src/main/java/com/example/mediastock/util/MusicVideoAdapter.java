@@ -1,95 +1,117 @@
 package com.example.mediastock.util;
 
-import java.util.ArrayList;
-
-import com.example.mediastock.R;
-import com.example.mediastock.beans.*;
-
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class MusicVideoAdapter extends BaseAdapter {
-	private ArrayList<Bean> list;
-	private Context context;
-	private int type;
+import com.example.mediastock.R;
+import com.example.mediastock.beans.Bean;
+import com.example.mediastock.beans.MusicBean;
+import com.example.mediastock.beans.VideoBean;
 
-	/**
-	 * The constructor.
-	 * 
-	 * @param context the context
-	 * @param list a list of beans
-	 * @param type 1 represents MusicBean , 2 represents VideoBean
-	 */
-	public MusicVideoAdapter(Context context, ArrayList<Bean> list, int type){
-		this.list = list;
-		this.context = context;
-		this.type = type;
-	}
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 
-	@Override
-	public int getCount() {
-		return this.list.size();
-	}
+/**
+ * Created by Dinu Ber on 17/10/2015.
+ */
+public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.MyHolder> {
+    private static Context context;
+    private final int type;
+    private ArrayList<Bean> list = new ArrayList<>();
+    private Drawable icon_music;
+    private Drawable icon_video;
+    private OnItemClickListener listener;
 
-	@Override
-	public Object getItem(int position) {
-		return this.list.get(position);
-	}
 
-	@Override
-	public long getItemId(int position) {
-		return position;
-	}
+    public MusicVideoAdapter(Context context, int type) {
+        MusicVideoAdapter.context = context;
+        this.type = type;
 
-	
-	@Override
-	public View getView(int position, View convertView, ViewGroup parent){
-		ViewHolder viewHolder;
+        icon_music = context.getResources().getDrawable(R.drawable.music);
+        icon_video = context.getResources().getDrawable(R.drawable.video);
 
-		if(convertView == null) {
-			LayoutInflater inflater = LayoutInflater.from(context);					
-			convertView = inflater.inflate(R.layout.grid_music_video, parent, false);
-			viewHolder = new ViewHolder();
-			viewHolder.ivIcon = (ImageView) convertView.findViewById(R.id.ivIcon_music_video);
-			viewHolder.text = (TextView) convertView.findViewById(R.id.textView_grid_music_video);
-			convertView.setTag(viewHolder);
+        this.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+            }
+        });
+    }
 
-		} else 
-			// recycle the already inflated view 
-			viewHolder = (ViewHolder) convertView.getTag();
+    public void SetOnItemClickListener(final OnItemClickListener listerner) {
+        this.listener = listerner;
+    }
 
-		// music
-		if(type == 1){
-			MusicBean item = (MusicBean) list.get(position);
+    @Override
+    public MyHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View item = LayoutInflater.from(parent.getContext()).inflate(R.layout.grid_music_video, parent, false);
 
-			@SuppressWarnings("deprecation")
-			Drawable icon = context.getResources().getDrawable(R.drawable.music);
-			viewHolder.ivIcon.setImageDrawable(icon);
-			viewHolder.text.setText(item.getTitle());
-			viewHolder.text.setTag(item.getPreview());
-			
-		// video
-		}else{
-			VideoBean item = (VideoBean)list.get(position);
-			
-			@SuppressWarnings("deprecation")
-			Drawable icon = context.getResources().getDrawable(R.drawable.video);
-			viewHolder.ivIcon.setImageDrawable(icon);
-			viewHolder.text.setText(item.getDescription());	
-			viewHolder.text.setTag(item.getPreview());
-		}
+        return new MyHolder(item, this);
+    }
 
-		return convertView;
-	}
+    @Override
+    public void onBindViewHolder(MyHolder holder, int position) {
+        if (type == 1) {
+            MusicBean item = (MusicBean) list.get(position);
+            holder.ivIcon.setImageDrawable(icon_music);
+            holder.text.setText(item.getTitle());
+        } else {
+            VideoBean item_video = (VideoBean) list.get(position);
+            holder.ivIcon.setImageDrawable(icon_video);
+            holder.text.setText(item_video.getDescription());
+        }
+    }
 
-	private static class ViewHolder{
-		ImageView ivIcon;
-		TextView text;
-	}
+    @Override
+    public int getItemCount() {
+        return list.size();
+    }
+
+    public void addItem(Bean bean) {
+        this.list.add(bean);
+        this.notifyDataSetChanged();
+    }
+
+    public void deleteItems() {
+        if (!list.isEmpty()) {
+            this.list.clear();
+            this.notifyDataSetChanged();
+        }
+    }
+
+    public Bean getItemAt(int position) {
+        return this.list.get(position);
+    }
+
+    public interface OnItemClickListener {
+        void onItemClick(View view, int position);
+    }
+
+    public static class MyHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        protected ImageView ivIcon;
+        protected TextView text;
+        private WeakReference<MusicVideoAdapter> ref;
+
+        public MyHolder(View itemView, MusicVideoAdapter adapter) {
+            super(itemView);
+
+            ref = new WeakReference<MusicVideoAdapter>(adapter);
+            ivIcon = (ImageView) itemView.findViewById(R.id.ivIcon_music_video);
+            text = (TextView) itemView.findViewById(R.id.textView_grid_music_video);
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            if (ref.get().listener != null) {
+                ref.get().listener.onItemClick(v, getPosition());
+            }
+        }
+    }
 }

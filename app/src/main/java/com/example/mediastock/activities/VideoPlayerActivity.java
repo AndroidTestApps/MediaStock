@@ -1,6 +1,7 @@
 package com.example.mediastock.activities;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
@@ -41,6 +42,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
     private double finalTime = 0;
     private SeekBar seekbar;
     private TextView tx1, tx2;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,10 +56,26 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
             setContentView(R.layout.video_player_activity);
 
+            progressDialog = new ProgressDialog(this);
+            progressDialog.setMessage("Loading...");
             play = (Button) this.findViewById(R.id.button_playvideoplayer);
             pause = (Button) this.findViewById(R.id.button_pausevideoplayer);
             tx1 = (TextView) findViewById(R.id.textView2_video);
             tx2 = (TextView) findViewById(R.id.textView3_video);
+
+            String url = getIntent().getStringExtra("url");
+            TextView description = (TextView) this.findViewById(R.id.textView_video_player_title);
+            description.setText(getIntent().getStringExtra("description"));
+
+            mediaPlayer = new MediaPlayer();
+            try {
+
+                mediaPlayer.setDataSource(url);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
             seekbar = (SeekBar) findViewById(R.id.seekBar_video);
             seekbar.setClickable(false);
             seekbar.setOnSeekBarChangeListener(this);
@@ -70,12 +88,6 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
             surfaceHolder.addCallback(this);
             surfaceHolder.setSizeFromLayout();
 
-            String url = getIntent().getStringExtra("url");
-            TextView description = (TextView) this.findViewById(R.id.textView_video_player_title);
-            description.setText(getIntent().getStringExtra("description"));
-
-            mediaPlayer = MediaPlayer.create(this.getApplicationContext(), Uri.parse(url));
-
             play.setOnClickListener(new View.OnClickListener() {
 
                 @Override
@@ -85,7 +97,6 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                     playVideo(surfaceHolder);
                 }
             });
-
 
             pause.setOnClickListener(new View.OnClickListener() {
 
@@ -129,18 +140,16 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mediaPlayer.setDisplay(holder);
 
-        try {
+        mediaPlayer.prepareAsync();
+        progressDialog.show();
 
-            mediaPlayer.prepare();
-
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        mediaPlayer.start();
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                progressDialog.dismiss();
+                mediaPlayer.start();
+            }
+        });
 
         finalTime = mediaPlayer.getDuration();
         startTime = mediaPlayer.getCurrentPosition();

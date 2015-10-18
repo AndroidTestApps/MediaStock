@@ -5,15 +5,15 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mediastock.R;
@@ -44,16 +44,15 @@ import java.util.Iterator;
  *
  * @author Dinu
  */
-public class MusicFragment extends AbstractFragment implements DownloadResultReceiver.Receiver, OnItemClickListener {
+public class MusicFragment extends AbstractFragment implements DownloadResultReceiver.Receiver {
     public static final String MUSIC_RECEIVER = "mreceiver";
     private static Context context;
-    private MusicVideoAdapter musicAdapter;
-    private ArrayList<Bean> music = new ArrayList<>();
     private DownloadResultReceiver resultReceiver;
     private View view = null;
     private ProgressBar p_bar;
-    private ListView listViewMusic;
     private LinearLayout layout_p_bar;
+    private RecyclerView recyclerView;
+    private MusicVideoAdapter musicAdapter;
 
     /**
      * Method to create an instance of this fragment for the viewPager
@@ -83,7 +82,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         super.onCreate(savedInstanceState);
         context = this.getActivity().getApplicationContext();
 
-        if(!isOnline())
+        if (!isOnline())
             return null;
 
         view = inflater.inflate(R.layout.music_fragment, container, false);
@@ -101,10 +100,25 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
     private void compute() {
 
         // music list
-        musicAdapter = new MusicVideoAdapter(context, music, 1);
-        listViewMusic = (ListView) view.findViewById(R.id.list_music_video_galery);
-        listViewMusic.setAdapter(musicAdapter);
-        listViewMusic.setOnItemClickListener(this);
+        recyclerView = (RecyclerView) view.findViewById(R.id.list_music_galery);
+        recyclerView.setHasFixedSize(true);
+        LinearLayoutManager llm = new LinearLayoutManager(context);
+        llm.setOrientation(LinearLayoutManager.VERTICAL);
+        recyclerView.setLayoutManager(llm);
+        musicAdapter = new MusicVideoAdapter(context, 1);
+        recyclerView.setAdapter(musicAdapter);
+        musicAdapter.SetOnItemClickListener(new MusicVideoAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+
+                MusicBean b = (MusicBean) musicAdapter.getItemAt(position);
+                Intent intent = new Intent(context, MusicPlayerActivity.class);
+                intent.putExtra("url", b.getPreview());
+                intent.putExtra("title", b.getTitle());
+
+                startActivity(intent);
+            }
+        });
 
         showProgressBar();
         deleteItems();
@@ -170,18 +184,15 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
     /**
      * Method to delete the list of music and to notify the adapter
      */
-    private void deleteItems(){
-        if(!music.isEmpty()){
-            music.clear();
-            musicAdapter.notifyDataSetChanged();
-        }
+    private void deleteItems() {
+        musicAdapter.deleteItems();
     }
 
     /**
      * It shows the progress bar
      */
     private void showProgressBar() {
-        listViewMusic.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.GONE);
         layout_p_bar.setVisibility(View.VISIBLE);
         p_bar.setVisibility(View.VISIBLE);
     }
@@ -189,28 +200,12 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
     /**
      * Method to dismiss the progress bar
      */
-    private void dismissProgressBar(){
+    private void dismissProgressBar() {
         p_bar.setVisibility(View.GONE);
         layout_p_bar.setVisibility(View.GONE);
-        listViewMusic.setVisibility(View.VISIBLE);
+        recyclerView.setVisibility(View.VISIBLE);
     }
 
-
-    /**
-     * Listener on the item of the listView.
-     */
-    @Override
-    public void onItemClick(AdapterView<?> arg0, View view, int arg2, long arg3) {
-        TextView item = (TextView) view.findViewById(R.id.textView_grid_music_video);
-        String title = item.getText().toString();
-        String url = item.getTag().toString();
-
-        Intent intent = new Intent(context, MusicPlayerActivity.class);
-        intent.putExtra("url", url);
-        intent.putExtra("title", title);
-
-        startActivity(intent);
-    }
 
     /**
      * It handles the result of the DownloadService service. It updates the UI.
@@ -220,14 +215,12 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         switch (resultCode) {
 
             case 1:
-                if (p_bar.isShown())
-                    dismissProgressBar();
+                dismissProgressBar();
 
                 MusicBean bean = resultData.getParcelable(DownloadService.MUSIC_BEAN);
 
                 // update UI with the music
-                music.add(bean);
-                musicAdapter.notifyDataSetChanged();
+                musicAdapter.addItem(bean);
                 break;
 
             case 2:
@@ -251,8 +244,9 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         private boolean searchSuccess = true;
 
         public WebRequest(MusicFragment activity) {
-            WebRequest.activity = new WeakReference<MusicFragment>(activity);
+            WebRequest.activity = new WeakReference<>(activity);
         }
+
 
         @Override
         protected String doInBackground(String... params) {
@@ -329,7 +323,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
          * @param key the key
          */
         private void searchMusicByKey(String key) {
-            String urlStr = "https://@api.shutterstock.com/v2/audio/search?per_page=50&title=";
+            String urlStr = "https://@api.shutterstock.com/v2/audio/search?per_page=100&title=";
             urlStr += key;
 
             InputStream is = null;
@@ -393,10 +387,9 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
 
             if (bean[0] == null)
                 Toast.makeText(activity.get().getActivity(), "No music was found", Toast.LENGTH_SHORT).show();
-            else {
-                activity.get().music.add(bean[0]);
-                activity.get().musicAdapter.notifyDataSetChanged();
-            }
+            else
+                activity.get().musicAdapter.addItem(bean[0]);
+
         }
 
 

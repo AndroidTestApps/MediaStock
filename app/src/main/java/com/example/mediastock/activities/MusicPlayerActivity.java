@@ -1,6 +1,7 @@
 package com.example.mediastock.activities;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -37,6 +38,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
     private double finalTime = 0;
     private SeekBar seekbar;
     private TextView tx1, tx2, title;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +51,9 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
         } else {
 
             setContentView(R.layout.music_player_activity);
+
+            progressDialog = new ProgressDialog(this);
+            progressDialog.setMessage("Loading...");
 
             pause = (Button) findViewById(R.id.button_mediaPlayer_pause);
             play = (Button) findViewById(R.id.button_mediaPlayer_play);
@@ -66,8 +71,15 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
             String music_title = getIntent().getStringExtra("title");
             title.setText(music_title);
 
-            mediaPlayer = MediaPlayer.create(this.getApplicationContext(), Uri.parse(url));
+            mediaPlayer = new MediaPlayer();
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            try {
+
+                mediaPlayer.setDataSource(url);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
             playMusic();
 
@@ -108,18 +120,18 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
     private void playMusic() {
         play.setTextColor(Color.YELLOW);
 
+        mediaPlayer.prepareAsync();
 
-        try {
+        progressDialog.show();
 
-            mediaPlayer.prepare();
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                progressDialog.dismiss();
+                mp.start();
+            }
+        });
 
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        mediaPlayer.start();
 
         finalTime = mediaPlayer.getDuration();
         startTime = mediaPlayer.getCurrentPosition();
