@@ -54,6 +54,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
 
             progressDialog = new ProgressDialog(this);
             progressDialog.setMessage("Loading...");
+            progressDialog.show();
 
             pause = (Button) findViewById(R.id.button_mediaPlayer_pause);
             play = (Button) findViewById(R.id.button_mediaPlayer_play);
@@ -81,7 +82,14 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
                 e.printStackTrace();
             }
 
-            playMusic();
+            mediaPlayer.prepareAsync();
+            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mp) {
+                    progressDialog.dismiss();
+                    playMusic();
+                }
+            });
 
             play.setOnClickListener(new View.OnClickListener() {
 
@@ -119,27 +127,16 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
 
     private void playMusic() {
         play.setTextColor(Color.YELLOW);
-
-        mediaPlayer.prepareAsync();
-
-        progressDialog.show();
-
-        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                progressDialog.dismiss();
-                mp.start();
-            }
-        });
-
-
         finalTime = mediaPlayer.getDuration();
         startTime = mediaPlayer.getCurrentPosition();
+
+        mediaPlayer.start();
 
         if (oneTimeOnly == 0) {
             seekbar.setMax((int) finalTime);
             oneTimeOnly = 1;
         }
+
         tx2.setText(String.format("%d min, %d sec",
                         TimeUnit.MILLISECONDS.toMinutes((long) finalTime),
                         TimeUnit.MILLISECONDS.toSeconds((long) finalTime) -
@@ -176,12 +173,32 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
         return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
     }
 
-    @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
+
+    private static class UpdateSongTime implements Runnable {
+        private static WeakReference<MusicPlayerActivity> activity;
+
+        public UpdateSongTime(MusicPlayerActivity context) {
+            activity = new WeakReference<>(context);
+        }
+
+        public void run() {
+
+            if (activity.get().mediaPlayer != null && activity.get().mediaPlayer.isPlaying()) {
+                activity.get().startTime = activity.get().mediaPlayer.getCurrentPosition();
+                activity.get().tx1.setText(String.format("%d min, %d sec",
+                        TimeUnit.MILLISECONDS.toMinutes((long) activity.get().startTime),
+                        TimeUnit.MILLISECONDS.toSeconds((long) activity.get().startTime) -
+                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) activity.get().startTime))));
+
+                activity.get().seekbar.setProgress((int) activity.get().startTime);
+                myHandler.postDelayed(this, 100);
+            }
+        }
     }
 
+    // not used
     @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {
+    public void onStartTrackingTouch(SeekBar seekBar) {
     }
 
     private static class UpdateSongTime implements Runnable {
@@ -204,6 +221,10 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
                 myHandler.postDelayed(this, 100);
             }
         }
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
     }
 
 

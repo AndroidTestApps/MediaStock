@@ -10,6 +10,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.SurfaceHolder;
@@ -37,6 +38,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
     public int oneTimeOnly = 0;
     private MediaPlayer mediaPlayer;
     private SurfaceView surfaceView;
+    private SurfaceHolder surfaceHolder;
     private Button play, pause;
     private double startTime = 0;
     private double finalTime = 0;
@@ -58,6 +60,8 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
             progressDialog = new ProgressDialog(this);
             progressDialog.setMessage("Loading...");
+            progressDialog.show();
+
             play = (Button) this.findViewById(R.id.button_playvideoplayer);
             pause = (Button) this.findViewById(R.id.button_pausevideoplayer);
             tx1 = (TextView) findViewById(R.id.textView2_video);
@@ -76,6 +80,15 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                 e.printStackTrace();
             }
 
+            mediaPlayer.prepareAsync();
+            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mp) {
+                    progressDialog.dismiss();
+                    playVideo();
+                }
+            });
+
             seekbar = (SeekBar) findViewById(R.id.seekBar_video);
             seekbar.setClickable(false);
             seekbar.setOnSeekBarChangeListener(this);
@@ -84,7 +97,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
             getWindow().setFormat(PixelFormat.UNKNOWN);
             surfaceView = (SurfaceView) findViewById(R.id.surfaceview);
-            final SurfaceHolder surfaceHolder = surfaceView.getHolder();
+            surfaceHolder = surfaceView.getHolder();
             surfaceHolder.addCallback(this);
             surfaceHolder.setSizeFromLayout();
 
@@ -94,7 +107,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                 public void onClick(View v) {
                     pause.setTextColor(Color.WHITE);
                     play.setTextColor(Color.YELLOW);
-                    playVideo(surfaceHolder);
+                    playVideo();
                 }
             });
 
@@ -109,7 +122,6 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                     play.setEnabled(true);
                 }
             });
-
         }
     }
 
@@ -130,7 +142,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         finish();
     }
 
-    private void playVideo(SurfaceHolder holder) {
+    private void playVideo() {
         play.setTextColor(Color.YELLOW);
 
         if (mediaPlayer.isPlaying()) {
@@ -138,26 +150,17 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         }
 
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mediaPlayer.setDisplay(holder);
-
-        mediaPlayer.prepareAsync();
-        progressDialog.show();
-
-        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                progressDialog.dismiss();
-                mediaPlayer.start();
-            }
-        });
+        mediaPlayer.setDisplay(surfaceHolder);
 
         finalTime = mediaPlayer.getDuration();
         startTime = mediaPlayer.getCurrentPosition();
+        mediaPlayer.start();
 
         if (oneTimeOnly == 0) {
             seekbar.setMax((int) finalTime);
             oneTimeOnly = 1;
         }
+
         tx2.setText(String.format("%d min, %d sec",
                         TimeUnit.MILLISECONDS.toMinutes((long) finalTime),
                         TimeUnit.MILLISECONDS.toSeconds((long) finalTime) -
@@ -178,11 +181,6 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
 
     @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-        playVideo(holder);
-    }
-
-    @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         if (fromUser)
             mediaPlayer.seekTo(progress);
@@ -199,18 +197,23 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
     }
 
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        holder.getSurface().release();
+    }
+
     // not used
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
     }
 
     @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {
+    public void surfaceCreated(SurfaceHolder holder) {
     }
 
     @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        holder.getSurface().release();
+    public void onStopTrackingTouch(SeekBar seekBar) {
     }
 
     @Override
@@ -238,6 +241,5 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
             }
         }
     }
-
 
 }
