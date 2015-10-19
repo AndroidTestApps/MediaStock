@@ -173,34 +173,15 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
         return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
     }
 
-
-    private static class UpdateSongTime implements Runnable {
-        private static WeakReference<MusicPlayerActivity> activity;
-
-        public UpdateSongTime(MusicPlayerActivity context) {
-            activity = new WeakReference<>(context);
-        }
-
-        public void run() {
-
-            if (activity.get().mediaPlayer != null && activity.get().mediaPlayer.isPlaying()) {
-                activity.get().startTime = activity.get().mediaPlayer.getCurrentPosition();
-                activity.get().tx1.setText(String.format("%d min, %d sec",
-                        TimeUnit.MILLISECONDS.toMinutes((long) activity.get().startTime),
-                        TimeUnit.MILLISECONDS.toSeconds((long) activity.get().startTime) -
-                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) activity.get().startTime))));
-
-                activity.get().seekbar.setProgress((int) activity.get().startTime);
-                myHandler.postDelayed(this, 100);
-            }
-        }
-    }
-
     // not used
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
     }
 
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+    }
+
     private static class UpdateSongTime implements Runnable {
         private static WeakReference<MusicPlayerActivity> activity;
 
@@ -221,10 +202,6 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
                 myHandler.postDelayed(this, 100);
             }
         }
-    }
-
-    @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {
     }
 
 
