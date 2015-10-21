@@ -37,7 +37,6 @@ import java.util.List;
 public class BaseActivity extends AppCompatActivity implements FilterImageFragment.FilterImageMessage, FilterMusicFragment.FilterMusicMessage, FilterVideoFragment.FilterVideoMessage {
     private static String key1;
     private static String key2;
-    private static Context context;
     private CustomPagerAdapter adapter;
     private ViewPager viewPager;
     private EditText input;
@@ -52,8 +51,6 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
         if (!isOnline())
             showAlertDialog();
-
-        context = this;
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         tabLayout.setTabTextColors(ColorStateList.valueOf(Color.parseColor("#e7ff5800")));
@@ -77,12 +74,9 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
-
             }
-
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
-
             }
         });
     }

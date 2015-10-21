@@ -1,4 +1,4 @@
-package com.example.mediastock.beans;
+package com.example.mediastock.data;
 
 import android.os.Parcelable;
 

@@ -13,15 +13,12 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.mediastock.R;
-import com.example.mediastock.beans.Bean;
-import com.example.mediastock.beans.VideoBean;
+import com.example.mediastock.data.VideoBean;
 import com.example.mediastock.util.MusicVideoAdapter;
 import com.example.mediastock.util.Utilities;
 import com.google.gson.JsonArray;
@@ -37,7 +34,6 @@ import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -48,9 +44,9 @@ import java.util.Iterator;
 public class VideosFragment extends AbstractFragment implements LoaderCallbacks<Void> {
     private static Context context;
     private static Handler handler;
-    private View view = null;
-    private LinearLayout layout_p_bar;
-    private ProgressBar p_bar;
+    private View view;
+    private LinearLayout layout_progress_bar;
+    private ProgressBar progressBar;
     private RecyclerView recyclerView;
     private MusicVideoAdapter videoAdapter;
 
@@ -87,8 +83,8 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
             return null;
 
         view = inflater.inflate(R.layout.video_fragment, container, false);
-        p_bar = (ProgressBar) view.findViewById(R.id.p_bar);
-        layout_p_bar = (LinearLayout) view.findViewById(R.id.layout_pBar);
+        progressBar = (ProgressBar) view.findViewById(R.id.p_bar);
+        layout_progress_bar = (LinearLayout) view.findViewById(R.id.layout_pBar);
         handler = new MyHandler(this);
 
         compute();
@@ -189,16 +185,16 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
      */
     private void showProgressBar() {
         recyclerView.setVisibility(View.GONE);
-        layout_p_bar.setVisibility(View.VISIBLE);
-        p_bar.setVisibility(View.VISIBLE);
+        layout_progress_bar.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.VISIBLE);
     }
 
     /**
      * Method to dismiss the progress bar
      */
     private void dismissProgressBar() {
-        p_bar.setVisibility(View.GONE);
-        layout_p_bar.setVisibility(View.GONE);
+        progressBar.setVisibility(View.GONE);
+        layout_progress_bar.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
     }
 
@@ -263,10 +259,9 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                 case 1:
                     VideoBean bean = msg.getData().getParcelable("bean");
 
-                    if (bean != null) {
+                    if (bean != null)
                         context.videoAdapter.addItem(bean);
-                        // context.videoAdapter.notifyDataSetChanged();
-                    } else
+                    else
                         Toast.makeText(context.getActivity(), "No video was found", Toast.LENGTH_SHORT).show();
 
                     break;

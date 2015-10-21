@@ -10,15 +10,15 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.example.mediastock.R;
-import com.example.mediastock.beans.ImageBean;
+import com.example.mediastock.data.ImageBean;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
 public class ImageAdapter extends BaseAdapter {
-	private Context context;
-	private ArrayList<ImageBean> images;
     private final int width;
+    private Context context;
+	private ArrayList<ImageBean> images;
 
 
 	public ImageAdapter(Context context, ArrayList<ImageBean> grid){

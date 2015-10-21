@@ -1,10 +1,20 @@
-package com.example.mediastock.beans;
+package com.example.mediastock.data;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
 public class ImageBean extends Bean{
-	private int  id;
+    public static final Parcelable.Creator<ImageBean> CREATOR =
+            new Parcelable.Creator<ImageBean>() {
+                public ImageBean createFromParcel(Parcel in) {
+                    return new ImageBean(in);
+                }
+
+                public ImageBean[] newArray(int size) {
+                    return new ImageBean[size];
+                }
+            };
+    private int  id;
 	private String description;
 	private String url;
 	private int idContributor;
@@ -18,15 +28,14 @@ public class ImageBean extends Bean{
 	public int getId() {
 		return id;
 	}
-	public void setId(int id) {
+
+    public void setId(int id) {
 		this.id = id;
 	}
-
 
 	public String getDescription() {
 		return description;
 	}
-
 
 	public void setDescription(String description) {
 		this.description = description;
@@ -36,28 +45,22 @@ public class ImageBean extends Bean{
 		return url;
 	}
 
-
 	public void setUrl(String url) {
 		this.url = url;
 	}
-
 
 	public int getIdContributor() {
 		return idContributor;
 	}
 
-
 	public void setIdContributor(int idContributor) {
 		this.idContributor = idContributor;
 	}
-
-
 
 	@Override
 	public int describeContents() {
 		return 0;
 	}
-
 
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
@@ -73,17 +76,6 @@ public class ImageBean extends Bean{
 		description = in.readString();
 		url = in.readString();
 	}
-
-	public static final Parcelable.Creator<ImageBean> CREATOR =
-			new Parcelable.Creator<ImageBean>() {
-		public ImageBean createFromParcel(Parcel in) {
-			return new ImageBean(in);
-		}
-
-		public ImageBean[] newArray(int size) {
-			return new ImageBean[size];
-		}
-	};
 
 
 }

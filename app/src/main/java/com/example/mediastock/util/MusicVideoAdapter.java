@@ -10,9 +10,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.mediastock.R;
-import com.example.mediastock.beans.Bean;
-import com.example.mediastock.beans.MusicBean;
-import com.example.mediastock.beans.VideoBean;
+import com.example.mediastock.data.Bean;
+import com.example.mediastock.data.MusicBean;
+import com.example.mediastock.data.VideoBean;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;

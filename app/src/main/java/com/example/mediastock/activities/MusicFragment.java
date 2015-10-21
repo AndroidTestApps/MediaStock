@@ -10,15 +10,13 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.mediastock.R;
-import com.example.mediastock.beans.Bean;
-import com.example.mediastock.beans.MusicBean;
+import com.example.mediastock.data.Bean;
+import com.example.mediastock.data.MusicBean;
 import com.example.mediastock.util.DownloadResultReceiver;
 import com.example.mediastock.util.DownloadService;
 import com.example.mediastock.util.MusicVideoAdapter;
@@ -36,7 +34,6 @@ import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -48,9 +45,9 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
     public static final String MUSIC_RECEIVER = "mreceiver";
     private static Context context;
     private DownloadResultReceiver resultReceiver;
-    private View view = null;
-    private ProgressBar p_bar;
-    private LinearLayout layout_p_bar;
+    private View view;
+    private ProgressBar progressBar;
+    private LinearLayout layout_progress_bar;
     private RecyclerView recyclerView;
     private MusicVideoAdapter musicAdapter;
 
@@ -86,8 +83,8 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
             return null;
 
         view = inflater.inflate(R.layout.music_fragment, container, false);
-        p_bar = (ProgressBar) view.findViewById(R.id.p_bar);
-        layout_p_bar = (LinearLayout) view.findViewById(R.id.layout_pBar);
+        progressBar = (ProgressBar) view.findViewById(R.id.p_bar);
+        layout_progress_bar = (LinearLayout) view.findViewById(R.id.layout_pBar);
 
         compute();
 
@@ -110,8 +107,8 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         musicAdapter.SetOnItemClickListener(new MusicVideoAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-
                 MusicBean b = (MusicBean) musicAdapter.getItemAt(position);
+
                 Intent intent = new Intent(context, MusicPlayerActivity.class);
                 intent.putExtra("url", b.getPreview());
                 intent.putExtra("title", b.getTitle());
@@ -193,16 +190,16 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
      */
     private void showProgressBar() {
         recyclerView.setVisibility(View.GONE);
-        layout_p_bar.setVisibility(View.VISIBLE);
-        p_bar.setVisibility(View.VISIBLE);
+        layout_progress_bar.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.VISIBLE);
     }
 
     /**
      * Method to dismiss the progress bar
      */
     private void dismissProgressBar() {
-        p_bar.setVisibility(View.GONE);
-        layout_p_bar.setVisibility(View.GONE);
+        progressBar.setVisibility(View.GONE);
+        layout_progress_bar.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
     }
 
@@ -382,7 +379,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
          */
         @Override
         protected void onProgressUpdate(Bean... bean) {
-            if (activity.get().p_bar.isShown())
+            if (activity.get().progressBar.isShown())
                 activity.get().dismissProgressBar();
 
             if (bean[0] == null)

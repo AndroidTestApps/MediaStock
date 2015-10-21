@@ -15,7 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.mediastock.R;
-import com.example.mediastock.beans.ImageBean;
+import com.example.mediastock.data.ImageBean;
 import com.example.mediastock.util.DownloadResultReceiver;
 import com.example.mediastock.util.DownloadService;
 import com.example.mediastock.util.ImageAdapter;
@@ -48,9 +48,9 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
     private ImageAdapter imgAdapter;
     private ArrayList<ImageBean> images = new ArrayList<>();
     private DownloadResultReceiver resultReceiver;
-    private View view = null;
-    private ProgressBar p_bar;
-    private LinearLayout layout_p_bar;
+    private View view;
+    private ProgressBar progressBar;
+    private LinearLayout layout_progress_bar;
     private GridView grid;
 
 
@@ -90,8 +90,8 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
             return null;
 
         view = inflater.inflate(R.layout.images_fragment, container, false);
-        p_bar = (ProgressBar) view.findViewById(R.id.p_img_bar);
-        layout_p_bar = (LinearLayout) view.findViewById(R.id.layout_img_pBar);
+        progressBar = (ProgressBar) view.findViewById(R.id.p_img_bar);
+        layout_progress_bar = (LinearLayout) view.findViewById(R.id.layout_img_pBar);
 
         compute();
 
@@ -188,16 +188,16 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
      */
     private void showProgressBar() {
         grid.setVisibility(View.GONE);
-        layout_p_bar.setVisibility(View.VISIBLE);
-        p_bar.setVisibility(View.VISIBLE);
+        layout_progress_bar.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.VISIBLE);
     }
 
     /**
      * Method to dismiss the progress bar
      */
     private void dismissProgressBar() {
-        p_bar.setVisibility(View.GONE);
-        layout_p_bar.setVisibility(View.GONE);
+        progressBar.setVisibility(View.GONE);
+        layout_progress_bar.setVisibility(View.GONE);
         grid.setVisibility(View.VISIBLE);
     }
 
@@ -226,7 +226,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
     public void onReceiveResult(int resultCode, Bundle resultData) {
         switch (resultCode) {
             case 1:
-                if (p_bar.isShown())
+                if (progressBar.isShown())
                     dismissProgressBar();
 
                 ImageBean bean = resultData.getParcelable(DownloadService.IMG_BEAN);
@@ -402,7 +402,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
          */
         @Override
         protected void onProgressUpdate(ImageBean... bean) {
-            if (activity.get().p_bar.isShown())
+            if (activity.get().progressBar.isShown())
                 activity.get().dismissProgressBar();
 
             if (bean[0] == null)

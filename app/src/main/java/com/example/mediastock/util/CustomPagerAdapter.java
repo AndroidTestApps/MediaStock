@@ -18,6 +18,12 @@ public class CustomPagerAdapter extends FragmentStatePagerAdapter {
     private int numTabs;
 
 
+    public CustomPagerAdapter(FragmentManager fm, int numTabs, List<AbstractFragment> fragments) {
+        super(fm);
+        this.fragments = fragments;
+        this.numTabs = numTabs;
+    }
+
     @Override
     public Parcelable saveState() {
         return super.saveState();
@@ -26,12 +32,6 @@ public class CustomPagerAdapter extends FragmentStatePagerAdapter {
     @Override
     public void restoreState(Parcelable state, ClassLoader loader) {
         super.restoreState(state, loader);
-    }
-
-    public CustomPagerAdapter(FragmentManager fm, int numTabs, List<AbstractFragment> fragments) {
-        super(fm);
-        this.fragments = fragments;
-        this.numTabs = numTabs;
     }
 
     @Override
@@ -54,6 +54,7 @@ public class CustomPagerAdapter extends FragmentStatePagerAdapter {
 
 
     }
+
 
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {

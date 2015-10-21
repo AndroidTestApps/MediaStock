@@ -3,7 +3,6 @@ package com.example.mediastock.activities;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -22,7 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mediastock.R;
-import com.example.mediastock.beans.ImageBean;
+import com.example.mediastock.data.ImageBean;
 import com.example.mediastock.util.Utilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -56,7 +55,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     private ImageBean imgBean;
     private ImageView imageView;
     private TextView description, contributorsName;
-    private FloatingActionButton fab;
+    private FloatingActionButton fab_favorites;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,14 +73,13 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
 
-            fab = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
-            fab.setOnClickListener(this);
+            fab_favorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
+            fab_favorites.setOnClickListener(this);
             layout = (LinearLayout) this.findViewById(R.id.image_home_ScrollView).findViewById(R.id.scroll_image_linearLayout);
             layout_param = new LinearLayout.LayoutParams(150, 150);
-            layout_param.setMargins(0, 0, 3, 0);
+            layout_param.setMargins(0, 0, 5, 0);
             sw = ((ScrollView) findViewById(R.id.scrollViewDisplayImage));
             hs = (HorizontalScrollView) this.findViewById(R.id.image_home_ScrollView);
-
             imageView = (ImageView) this.findViewById(R.id.imageView_displayImage);
             description = (TextView) this.findViewById(R.id.textView_description_displayImage);
             contributorsName = (TextView) this.findViewById(R.id.TextView_contributor_displayImage);
@@ -108,7 +106,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     public void onClick(View v) {
 
         if (v.getId() == R.id.fab_favorites) {
-            fab.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#ff9100")));
+            fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FFF000")));
             Toast.makeText(this, "Image added to favorites", Toast.LENGTH_SHORT).show();
         }
     }
