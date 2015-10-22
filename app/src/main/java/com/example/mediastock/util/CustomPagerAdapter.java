@@ -65,6 +65,4 @@ public class CustomPagerAdapter extends FragmentStatePagerAdapter {
         return numTabs;
     }
 
-
-
 }

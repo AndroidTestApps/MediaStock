@@ -5,11 +5,11 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -33,7 +33,6 @@ import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Iterator;
 
 
@@ -45,13 +44,12 @@ import java.util.Iterator;
 public class ImagesFragment extends AbstractFragment implements DownloadResultReceiver.Receiver {
     public static final String IMG_RECEIVER = "ireceiver";
     private static Context context;
-    private ImageAdapter imgAdapter;
-    private ArrayList<ImageBean> images = new ArrayList<>();
     private DownloadResultReceiver resultReceiver;
     private View view;
     private ProgressBar progressBar;
     private LinearLayout layout_progress_bar;
-    private GridView grid;
+    private RecyclerView recyclerView;
+    private ImageAdapter adapter;
 
 
     /**
@@ -104,13 +102,15 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
     private void compute() {
 
         // grid images
-        grid = (GridView) view.findViewById(R.id.gridView_displayImage);
-        imgAdapter = new ImageAdapter(context, images);
-        grid.setAdapter(imgAdapter);
-        grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        recyclerView = (RecyclerView) view.findViewById(R.id.gridView_displayImage);
+        GridLayoutManager grid = new GridLayoutManager(context, 2);
+        recyclerView.setLayoutManager(grid);
+        adapter = new ImageAdapter(context, 1);
+        recyclerView.setAdapter(adapter);
+        adapter.setOnImageClickListener(new ImageAdapter.OnImageClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> arg0, View v, int pos, long arg3) {
-                goToDisplayImageActivity(images.get(pos));
+            public void onImageClick(View view, int position) {
+                goToDisplayImageActivity(adapter.getBeanAt(position));
             }
         });
 
@@ -176,10 +176,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
      * Method to delete the list of images and to notify the adapter
      */
     private void deleteItems() {
-        if(!images.isEmpty()) {
-            images.clear();
-            imgAdapter.notifyDataSetChanged();
-        }
+        adapter.deleteItems();
     }
 
 
@@ -187,7 +184,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
      * It shows the progress bar
      */
     private void showProgressBar() {
-        grid.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.GONE);
         layout_progress_bar.setVisibility(View.VISIBLE);
         progressBar.setVisibility(View.VISIBLE);
     }
@@ -198,7 +195,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
     private void dismissProgressBar() {
         progressBar.setVisibility(View.GONE);
         layout_progress_bar.setVisibility(View.GONE);
-        grid.setVisibility(View.VISIBLE);
+        recyclerView.setVisibility(View.VISIBLE);
     }
 
 
@@ -232,8 +229,8 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                 ImageBean bean = resultData.getParcelable(DownloadService.IMG_BEAN);
 
                 // update UI with the image
-                images.add(bean);
-                imgAdapter.notifyDataSetChanged();
+                adapter.addItem(bean);
+
                 break;
 
             case 2:
@@ -366,25 +363,26 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
                 JsonObject assets;
                 JsonObject preview;
-
                 Iterator<JsonElement> iterator = array.iterator();
                 while (iterator.hasNext()) {
-                    JsonElement json2 = iterator.next();
+                    JsonObject jsonObj = iterator.next().getAsJsonObject();
                     ImageBean ib = new ImageBean();
 
-                    assets = json2.getAsJsonObject().get("assets").getAsJsonObject();
-                    preview = assets.get("preview").getAsJsonObject();
+                    assets = jsonObj.get("assets").getAsJsonObject();
 
-                    ib.setId(json2.getAsJsonObject().get("id").getAsInt());
-                    ib.setDescription(json2.getAsJsonObject().get("description").getAsString());
-                    ib.setIdContributor(json2.getAsJsonObject().get("contributor").getAsJsonObject().get("id").getAsInt());
-                    ib.setUrl(preview.get("url").getAsString());
+                    if (jsonObj.get("id") != null && jsonObj.get("description") != null
+                            && jsonObj.get("contributor") != null && assets.get("preview") != null) {
+
+                        preview = assets.get("preview").getAsJsonObject();
+                        ib.setId(jsonObj.get("id").getAsInt());
+                        ib.setDescription(jsonObj.get("description").getAsString());
+                        ib.setIdContributor(jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
+                        ib.setUrl(preview.get("url").getAsString());
+                    }
 
                     // update UI
                     publishProgress(ib);
                 }
-
-
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -407,16 +405,13 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
             if (bean[0] == null)
                 Toast.makeText(context, "No image was found", Toast.LENGTH_SHORT).show();
-            else {
-                activity.get().images.add(bean[0]);
-                activity.get().imgAdapter.notifyDataSetChanged();
-            }
+            else
+                activity.get().adapter.addItem(bean[0]);
         }
 
 
         @Override
         protected void onPostExecute(String result) {
-
             if (!searchSuccess) {
                 activity.get().dismissProgressBar();
                 Toast.makeText(context, "Sorry, no image with " + result + " was found!", Toast.LENGTH_LONG).show();

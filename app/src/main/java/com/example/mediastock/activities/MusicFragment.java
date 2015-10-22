@@ -104,7 +104,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         recyclerView.setLayoutManager(llm);
         musicAdapter = new MusicVideoAdapter(context, 1);
         recyclerView.setAdapter(musicAdapter);
-        musicAdapter.SetOnItemClickListener(new MusicVideoAdapter.OnItemClickListener() {
+        musicAdapter.setOnMediaItemClickListener(new MusicVideoAdapter.OnMediaItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
                 MusicBean b = (MusicBean) musicAdapter.getItemAt(position);
@@ -400,6 +400,4 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         }
 
     }
-
-
 }

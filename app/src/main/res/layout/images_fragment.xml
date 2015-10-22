@@ -6,20 +6,13 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <GridView
+
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/gridView_displayImage"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:focusable="true"
-        android:gravity="center"
-        android:horizontalSpacing="4dp"
-        android:layoutMode="clipBounds"
-        android:numColumns="3"
-        android:smoothScrollbar="true"
-        android:stretchMode="columnWidth"
-        android:verticalSpacing="3dp"
-        >
-    </GridView>
+        android:layout_height="match_parent">
+
+    </android.support.v7.widget.RecyclerView>
 
     <LinearLayout
         android:id="@+id/layout_img_pBar"

@@ -10,10 +10,9 @@ import android.os.Message;
 import android.os.StrictMode;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.ViewGroup;
-import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -22,6 +21,7 @@ import android.widget.Toast;
 
 import com.example.mediastock.R;
 import com.example.mediastock.data.ImageBean;
+import com.example.mediastock.util.ImageAdapter;
 import com.example.mediastock.util.Utilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -48,14 +48,15 @@ import java.util.Iterator;
 public class DisplayImageActivity extends AppCompatActivity implements View.OnClickListener {
     private static Handler handler;
     private ScrollView sw;
-    private HorizontalScrollView hs;
-    private LinearLayout layout;
-    private LinearLayout.LayoutParams layout_param;
-    private boolean newImage = false;
-    private ImageBean imgBean;
     private ImageView imageView;
+    private ImageBean imgBean;
+    private ImageAdapter adapter;
+    private RecyclerView recyclerView;
+    private boolean newImage = false;
+    private LinearLayout.LayoutParams layout_param;
     private TextView description, contributorsName;
     private FloatingActionButton fab_favorites;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,19 +76,33 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
             fab_favorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
             fab_favorites.setOnClickListener(this);
-            layout = (LinearLayout) this.findViewById(R.id.image_home_ScrollView).findViewById(R.id.scroll_image_linearLayout);
             layout_param = new LinearLayout.LayoutParams(150, 150);
             layout_param.setMargins(0, 0, 5, 0);
             sw = ((ScrollView) findViewById(R.id.scrollViewDisplayImage));
-            hs = (HorizontalScrollView) this.findViewById(R.id.image_home_ScrollView);
             imageView = (ImageView) this.findViewById(R.id.imageView_displayImage);
             description = (TextView) this.findViewById(R.id.textView_description_displayImage);
             contributorsName = (TextView) this.findViewById(R.id.TextView_contributor_displayImage);
 
+            // similar images
+            recyclerView = (RecyclerView) this.findViewById(R.id.image_home_ScrollView);
+            LinearLayoutManager llm = new LinearLayoutManager(this);
+            llm.setOrientation(LinearLayoutManager.HORIZONTAL);
+            recyclerView.setLayoutManager(llm);
+            adapter = new ImageAdapter(this, 2);
+            recyclerView.setAdapter(adapter);
+            adapter.setOnImageClickListener(new ImageAdapter.OnImageClickListener() {
+                @Override
+                public void onImageClick(View view, int position) {
+                    newImage = true;
+                    imgBean = adapter.getBeanAt(position);
+                    updateUI(imgBean);
+                }
+            });
+
             // to handle the UI updates
             handler = new MyHandler(this);
 
-            // get image
+            // get main image
             getMainImage(getUrl());
 
             // get the authors name
@@ -106,7 +121,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     public void onClick(View v) {
 
         if (v.getId() == R.id.fab_favorites) {
-            fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FFF000")));
+            fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FF0000")));
             Toast.makeText(this, "Image added to favorites", Toast.LENGTH_SHORT).show();
         }
     }
@@ -170,33 +185,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         new Thread(thread2).start();
     }
 
-    /**
-     * Method to display the image into the main UI schrollView
-     *
-     * @param image the image bean
-     */
-    private void displayImg(final ImageBean image) {
-        if (image == null)
-            return;
-
-        ImageView iv = new ImageView(getApplicationContext());
-        iv.setLayoutParams(layout_param);
-
-        Picasso.with(this.getApplicationContext()).load(image.getUrl()).placeholder(R.drawable.border).resize(150, 150).centerCrop().into(iv);
-        iv.setId(image.getId());
-
-        layout.addView(iv);
-
-        iv.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                newImage = true;
-                imgBean = image;
-                updateUI(image);
-            }
-        });
-    }
 
     /**
      * Checks if the device is connected to the Internet
@@ -232,13 +220,12 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
                 // update the UI with the similar images
                 case 2:
-                    context.displayImg((ImageBean) msg.getData().getParcelable("bean"));
+                    context.adapter.addItem((ImageBean) msg.getData().getParcelable("bean"));
                     break;
 
                 // remove the old similar images
                 case 3:
-                    ViewGroup v = (ViewGroup) context.hs.getChildAt(0);
-                    v.removeAllViews();
+                    context.adapter.deleteItems();
                     break;
 
                 default:

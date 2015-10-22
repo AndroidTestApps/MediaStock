@@ -17,20 +17,15 @@ import com.example.mediastock.data.VideoBean;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
-/**
- * Created by Dinu Ber on 17/10/2015.
- */
 public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.MyHolder> {
-    private static Context context;
     private final int type;
+    private final Drawable icon_music;
+    private final Drawable icon_video;
     private ArrayList<Bean> list = new ArrayList<>();
-    private Drawable icon_music;
-    private Drawable icon_video;
-    private OnItemClickListener listener;
+    private OnMediaItemClickListener listener;
 
 
     public MusicVideoAdapter(Context context, int type) {
-        MusicVideoAdapter.context = context;
         this.type = type;
 
         icon_music = context.getResources().getDrawable(R.drawable.music);
@@ -44,8 +39,8 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
         });
     }
 
-    public void SetOnItemClickListener(final OnItemClickListener listerner) {
-        this.listener = listerner;
+    public void setOnMediaItemClickListener(final OnMediaItemClickListener listener) {
+        this.listener = listener;
     }
 
     @Override
@@ -74,22 +69,22 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
     }
 
     public void addItem(Bean bean) {
-        this.list.add(bean);
-        this.notifyDataSetChanged();
+        list.add(bean);
+        notifyDataSetChanged();
     }
 
     public void deleteItems() {
         if (!list.isEmpty()) {
-            this.list.clear();
-            this.notifyDataSetChanged();
+            list.clear();
+            notifyDataSetChanged();
         }
     }
 
     public Bean getItemAt(int position) {
-        return this.list.get(position);
+        return list.get(position);
     }
 
-    public interface OnItemClickListener {
+    public interface OnMediaItemClickListener {
         void onItemClick(View view, int position);
     }
 
@@ -101,7 +96,7 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
         public MyHolder(View itemView, MusicVideoAdapter adapter) {
             super(itemView);
 
-            ref = new WeakReference<MusicVideoAdapter>(adapter);
+            ref = new WeakReference<>(adapter);
             ivIcon = (ImageView) itemView.findViewById(R.id.ivIcon_music_video);
             text = (TextView) itemView.findViewById(R.id.textView_grid_music_video);
             itemView.setOnClickListener(this);
@@ -109,9 +104,8 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
 
         @Override
         public void onClick(View v) {
-            if (ref.get().listener != null) {
-                ref.get().listener.onItemClick(v, getPosition());
-            }
+            if (ref.get().listener != null)
+                ref.get().listener.onItemClick(v, getAdapterPosition());
         }
     }
 }

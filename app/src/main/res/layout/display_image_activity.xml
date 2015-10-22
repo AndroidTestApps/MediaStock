@@ -47,27 +47,20 @@
             android:text="@string/similar"
             android:textColor="#ffffff"/>
 
-        <HorizontalScrollView
+
+        <android.support.v7.widget.RecyclerView
             android:id="@+id/image_home_ScrollView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="100dp"
             android:layout_alignParentStart="true"
             android:layout_below="@+id/TextView_similar_displayImage"
-            android:layout_marginBottom="1dp"
-            android:layout_marginLeft="2dp"
-            android:layout_marginRight="2dp"
+            android:layout_marginBottom="4dp"
+            android:layout_marginLeft="1dp"
+            android:layout_marginRight="1dp"
             android:layout_marginTop="1dp"
-            android:paddingLeft="3dp">
+            android:background="#000000">
 
-            <LinearLayout
-                android:id="@+id/scroll_image_linearLayout"
-                android:layout_width="wrap_content"
-                android:layout_height="100dp"
-                android:background="#000000"
-                android:dividerPadding="3dp"
-                android:orientation="horizontal">
-            </LinearLayout>
-        </HorizontalScrollView>
+        </android.support.v7.widget.RecyclerView>
 
         <RelativeLayout
             android:id="@+id/Rel_layout"
