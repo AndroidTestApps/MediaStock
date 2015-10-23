@@ -105,7 +105,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         recyclerView = (RecyclerView) view.findViewById(R.id.gridView_displayImage);
         GridLayoutManager grid = new GridLayoutManager(context, 2);
         recyclerView.setLayoutManager(grid);
-        adapter = new ImageAdapter(context, 1);
+        adapter = new ImageAdapter(context, 1, recyclerView);
         recyclerView.setAdapter(adapter);
         adapter.setOnImageClickListener(new ImageAdapter.OnImageClickListener() {
             @Override

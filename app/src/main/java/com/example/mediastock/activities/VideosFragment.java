@@ -274,7 +274,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
                 case 3:
                     context.dismissProgressBar();
-
                     break;
 
                 default:
@@ -421,7 +420,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                         }
                     });
 
-                    Bundle bundle = new Bundle();
+                    final Bundle bundle = new Bundle();
                     final Message msg = new Message();
 
                     // set the video bean
@@ -528,7 +527,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                         }
                     });
 
-                    Bundle bundle = new Bundle();
+                    final Bundle bundle = new Bundle();
                     final Message msg = new Message();
 
                     // set the video bean
@@ -635,7 +634,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                         }
                     });
 
-                    Bundle bundle = new Bundle();
+                    final Bundle bundle = new Bundle();
                     final Message msg = new Message();
 
                     // set the video bean
@@ -666,7 +665,5 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         }
 
     }
-
-
 }
 

@@ -23,19 +23,25 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
     private ArrayList<ImageBean> images = new ArrayList<>();
     private OnImageClickListener listener;
     private LinearLayout.LayoutParams layout_param;
+    private RecyclerView recyclerView;
 
-    public ImageAdapter(Context context, int type) {
+    public ImageAdapter(Context context, int type, RecyclerView recyclerView) {
         this.type = type;
+        this.recyclerView = recyclerView;
         activity = context;
         width = context.getResources().getDisplayMetrics().widthPixels;
 
         if (type == 2) {
-            layout_param = new LinearLayout.LayoutParams(width / 3, width / 3);
+
+            layout_param = new LinearLayout.LayoutParams(recyclerView.getLayoutParams().height, recyclerView.getLayoutParams().height);
             layout_param.setMargins(0, 0, 3, 0);
+
         } else {
             layout_param = new LinearLayout.LayoutParams(width / 2, width / 2);
             layout_param.setMargins(1, 1, 1, 0);
         }
+
+
     }
 
     public void setOnImageClickListener(final OnImageClickListener listener) {
@@ -56,7 +62,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
 
         if (item.getUrl() != null)
             if (type == 2)
-                Picasso.with(activity).load(Uri.parse(item.getUrl())).resize(width / 3, width / 3).placeholder(R.drawable.border).centerCrop().into(holder.ivIcon);
+                Picasso.with(activity).load(Uri.parse(item.getUrl())).resize(recyclerView.getLayoutParams().height, recyclerView.getLayoutParams().height).placeholder(R.drawable.border).centerCrop().into(holder.ivIcon);
             else
                 Picasso.with(activity).load(Uri.parse(item.getUrl())).resize(width / 2, width / 2).placeholder(R.drawable.border).centerCrop().into(holder.ivIcon);
 

@@ -12,7 +12,9 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -85,10 +87,14 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
             // similar images
             recyclerView = (RecyclerView) this.findViewById(R.id.image_home_ScrollView);
+            float pixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, getResources().getDisplayMetrics().widthPixels / 4, getResources().getDisplayMetrics());
+            ViewGroup.LayoutParams params = recyclerView.getLayoutParams();
+            params.height = (int) pixels;
+            recyclerView.setLayoutParams(params);
             LinearLayoutManager llm = new LinearLayoutManager(this);
             llm.setOrientation(LinearLayoutManager.HORIZONTAL);
             recyclerView.setLayoutManager(llm);
-            adapter = new ImageAdapter(this, 2);
+            adapter = new ImageAdapter(this, 2, recyclerView);
             recyclerView.setAdapter(adapter);
             adapter.setOnImageClickListener(new ImageAdapter.OnImageClickListener() {
                 @Override
@@ -98,6 +104,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                     updateUI(imgBean);
                 }
             });
+
 
             // to handle the UI updates
             handler = new MyHandler(this);
@@ -350,7 +357,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
                 JsonObject assets;
                 JsonObject preview;
-                Bundle bundle = new Bundle();
+
 
                 Iterator<JsonElement> iterator = array.iterator();
                 while (iterator.hasNext()) {
@@ -366,8 +373,9 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                     ib.setUrl(preview.get("url").getAsString());
 
                     // update the UI with the image
-                    bundle.putParcelable("bean", ib);
+                    final Bundle bundle = new Bundle();
                     final Message msg = new Message();
+                    bundle.putParcelable("bean", ib);
                     msg.setData(bundle);
                     msg.what = 2;
 
