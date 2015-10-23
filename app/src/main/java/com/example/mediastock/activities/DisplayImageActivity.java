@@ -76,6 +76,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
 
+            // layouts init
             fab_favorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
             fab_favorites.setOnClickListener(this);
             layout_param = new LinearLayout.LayoutParams(150, 150);
@@ -124,6 +125,11 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
+    /**
+     * Favorites action button
+     *
+     * @param v the button
+     */
     @Override
     public void onClick(View v) {
 
@@ -163,7 +169,8 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     private void getMainImage(String url) {
         sw.fullScroll(View.FOCUS_UP);
 
-        Picasso.with(getApplicationContext()).load(url).placeholder(R.drawable.border).fit().centerInside().into(imageView);
+        if (url != null)
+            Picasso.with(getApplicationContext()).load(url).placeholder(R.drawable.border).fit().centerInside().into(imageView);
 
         if (!newImage)
             description.append(" " + getDescription());
@@ -296,7 +303,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                 String jsonText = Utilities.readAll(rd);
 
                 JsonElement json = new JsonParser().parse(jsonText);
-                author = json.getAsJsonObject().get("display_name").getAsString();
+                author = json.getAsJsonObject().get("display_name") == null ? " - " : json.getAsJsonObject().get("display_name").getAsString();
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -356,38 +363,39 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                 JsonArray array = o.get("data").getAsJsonArray();
 
                 JsonObject assets;
-                JsonObject preview;
-
-
                 Iterator<JsonElement> iterator = array.iterator();
                 while (iterator.hasNext()) {
-                    JsonElement json2 = iterator.next();
-                    ImageBean ib = new ImageBean();
+                    JsonObject jsonObj = iterator.next().getAsJsonObject();
+                    ImageBean ib = null;
 
-                    assets = json2.getAsJsonObject().get("assets").getAsJsonObject();
-                    preview = assets.get("preview").getAsJsonObject();
+                    assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
 
-                    ib.setDescription(json2.getAsJsonObject().get("description").getAsString());
-                    ib.setId(json2.getAsJsonObject().get("id").getAsInt());
-                    ib.setIdContributor(json2.getAsJsonObject().get("contributor").getAsJsonObject().get("id").getAsInt());
-                    ib.setUrl(preview.get("url").getAsString());
+                    if (assets != null) {
+                        ib = new ImageBean();
+                        ib.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsInt());
+                        ib.setDescription(jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString());
+                        ib.setIdContributor(jsonObj.get("contributor") == null ? null : jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
+                        ib.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
+                    }
 
-                    // update the UI with the image
-                    final Bundle bundle = new Bundle();
-                    final Message msg = new Message();
-                    bundle.putParcelable("bean", ib);
-                    msg.setData(bundle);
-                    msg.what = 2;
+                    if (ib != null) {
 
-                    // update the UI with the new similar images
-                    handler.post(new Runnable() {
+                        // update the UI with the image
+                        final Bundle bundle = new Bundle();
+                        final Message msg = new Message();
+                        bundle.putParcelable("bean", ib);
+                        msg.setData(bundle);
+                        msg.what = 2;
 
-                        @Override
-                        public void run() {
-                            handler.dispatchMessage(msg);
-                        }
-                    });
+                        // update the UI with the new similar images
+                        handler.post(new Runnable() {
 
+                            @Override
+                            public void run() {
+                                handler.dispatchMessage(msg);
+                            }
+                        });
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();

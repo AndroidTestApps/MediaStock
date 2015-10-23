@@ -153,26 +153,27 @@ public class DownloadService extends IntentService {
             if (array.size() == 0) {
                 publishImageResult(null, 3, receiver);
                 return;
-
             }
-            JsonObject assets;
-            JsonObject preview;
 
+            JsonObject assets;
             Iterator<JsonElement> iterator = array.iterator();
             while (iterator.hasNext()) {
-                JsonElement json2 = iterator.next();
-                ImageBean ib = new ImageBean();
+                JsonObject jsonObj = iterator.next().getAsJsonObject();
+                ImageBean ib = null;
 
-                assets = json2.getAsJsonObject().get("assets").getAsJsonObject();
-                preview = assets.get("preview").getAsJsonObject();
+                assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
 
-                ib.setDescription(json2.getAsJsonObject().get("description").getAsString());
-                ib.setId(json2.getAsJsonObject().get("id").getAsInt());
-                ib.setIdContributor(json2.getAsJsonObject().get("contributor").getAsJsonObject().get("id").getAsInt());
-                ib.setUrl(preview.get("url").getAsString());
+                if (assets != null) {
+                    ib = new ImageBean();
+                    ib.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsInt());
+                    ib.setDescription(jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString());
+                    ib.setIdContributor(jsonObj.get("contributor") == null ? null : jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
+                    ib.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
+                }
 
                 // update UI
-                publishImageResult(ib, 1, receiver);
+                if (ib != null)
+                    publishImageResult(ib, 1, receiver);
 
             }
         } catch (IOException e) {

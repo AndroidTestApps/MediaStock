@@ -8,9 +8,11 @@ import android.database.sqlite.SQLiteOpenHelper;
  * Created by dinu on 21/10/15.
  */
 public class Database extends SQLiteOpenHelper {
+    private final static String DB_NAME = "db_mediastock";
+    private final static String TABLE_FAVORITES = "favorites";
 
     public Database(Context context) {
-        super(context, " ", null, 1);
+        super(context, DB_NAME, null, 1);
     }
 
     @Override
@@ -20,6 +22,32 @@ public class Database extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_FAVORITES);
+        onCreate(db);
+
+    }
+
+
+    //TODO
+
+
+    public void getData() {
+
+    }
+
+
+    public void deleteData() {
+
+    }
+
+
+    public void insertData() {
+
+    }
+
+    public void updateData() {
 
     }
 }
+
+

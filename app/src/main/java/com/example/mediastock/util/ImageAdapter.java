@@ -19,11 +19,12 @@ import java.util.ArrayList;
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
     private final int width;
     private final int type;
-    private Context activity;
     private ArrayList<ImageBean> images = new ArrayList<>();
-    private OnImageClickListener listener;
     private LinearLayout.LayoutParams layout_param;
+    private OnImageClickListener listener;
     private RecyclerView recyclerView;
+    private Context activity;
+
 
     public ImageAdapter(Context context, int type, RecyclerView recyclerView) {
         this.type = type;
