@@ -206,11 +206,14 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
      */
     private void goToDisplayImageActivity(ImageBean bean) {
         Intent intent = new Intent(context, DisplayImageActivity.class);
-
+        Bundle bundle = new Bundle();
+        bundle.putParcelable("bean", bean);
+        intent.putExtra("bean", bundle);
+        /*
         intent.putExtra("id", bean.getId());
         intent.putExtra("description", bean.getDescription());
         intent.putExtra("url", bean.getUrl());
-        intent.putExtra("contributor", bean.getIdContributor());
+        intent.putExtra("contributor", bean.getIdContributor());*/
 
         startActivity(intent);
     }

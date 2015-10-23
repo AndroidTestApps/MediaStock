@@ -16,7 +16,6 @@ import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,8 +41,7 @@ import java.nio.charset.Charset;
 import java.util.Iterator;
 
 /**
- * Activity which displays the image that the user clicked. It displays all the informations about that image
- * and the similar images.
+ * Fragment to display the image that the user clicked. It displays the description of the image and the similar images.
  *
  * @author Dinu
  */
@@ -51,11 +49,8 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     private static Handler handler;
     private ScrollView sw;
     private ImageView imageView;
-    private ImageBean imgBean;
     private ImageAdapter adapter;
     private RecyclerView recyclerView;
-    private boolean newImage = false;
-    private LinearLayout.LayoutParams layout_param;
     private TextView description, contributorsName;
     private FloatingActionButton fab_favorites;
 
@@ -79,8 +74,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             // layouts init
             fab_favorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
             fab_favorites.setOnClickListener(this);
-            layout_param = new LinearLayout.LayoutParams(150, 150);
-            layout_param.setMargins(0, 0, 5, 0);
             sw = ((ScrollView) findViewById(R.id.scrollViewDisplayImage));
             imageView = (ImageView) this.findViewById(R.id.imageView_displayImage);
             description = (TextView) this.findViewById(R.id.textView_description_displayImage);
@@ -100,9 +93,8 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             adapter.setOnImageClickListener(new ImageAdapter.OnImageClickListener() {
                 @Override
                 public void onImageClick(View view, int position) {
-                    newImage = true;
-                    imgBean = adapter.getBeanAt(position);
-                    updateUI(imgBean);
+
+                    updateUI(adapter.getBeanAt(position));
                 }
             });
 
@@ -111,16 +103,16 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             handler = new MyHandler(this);
 
             // get main image
-            getMainImage(getUrl());
+            getMainImage(getBeanFromIntent());
 
             // get the authors name
             DownloadThread thread1 = new DownloadThread(1);
-            thread1.setAuthorID(getContributorId());
+            thread1.setAuthorID(getBeanFromIntent().getIdContributor());
             new Thread(thread1).start();
 
             // get the similar images
             DownloadThread thread2 = new DownloadThread(2);
-            thread2.setImageID(getId());
+            thread2.setImageID(getBeanFromIntent().getId());
             new Thread(thread2).start();
         }
     }
@@ -145,57 +137,43 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         imageView.setImageDrawable(null);
     }
 
-    private String getUrl() {
-        return getIntent().getStringExtra("url");
+    private ImageBean getBeanFromIntent() {
+        return getIntent().getBundleExtra("bean").getParcelable("bean");
     }
 
-    private String getDescription() {
-        return getIntent().getStringExtra("description");
-    }
-
-    private int getId() {
-        return getIntent().getIntExtra("id", 0);
-    }
-
-    private int getContributorId() {
-        return getIntent().getIntExtra("contributor", 0);
-    }
 
     /**
      * It downloads the main image from the server
      *
-     * @param url the url for the server
+     * @param bean the image bean
      */
-    private void getMainImage(String url) {
+    private void getMainImage(ImageBean bean) {
         sw.fullScroll(View.FOCUS_UP);
 
-        if (url != null)
-            Picasso.with(getApplicationContext()).load(url).placeholder(R.drawable.border).fit().centerInside().into(imageView);
+        if (bean.getUrl() != null)
+            Picasso.with(getApplicationContext()).load(bean.getUrl()).placeholder(R.drawable.border).fit().centerInside().into(imageView);
 
-        if (!newImage)
-            description.append(" " + getDescription());
-        else
-            description.append(" " + imgBean.getDescription());
-
+        // set description of the image
+        description.append(" " + bean.getDescription());
     }
 
     /**
      * Method which updates the UI with the new image, authors name and similar images
      *
-     * @param img the image bean
+     * @param bean the image bean
      */
-    private void updateUI(ImageBean img) {
+    private void updateUI(ImageBean bean) {
         // get image
-        getMainImage(img.getUrl());
+        getMainImage(bean);
 
         // get the authors name
         DownloadThread thread1 = new DownloadThread(1);
-        thread1.setAuthorID(img.getIdContributor());
+        thread1.setAuthorID(bean.getIdContributor());
         new Thread(thread1).start();
 
         // get the similar images to the current image
         DownloadThread thread2 = new DownloadThread(2);
-        thread2.setImageID(img.getId());
+        thread2.setImageID(bean.getId());
         new Thread(thread2).start();
     }
 
@@ -409,7 +387,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             }
         }
 
-
         private void setImageID(int imageID) {
             this.imageID = imageID;
         }
@@ -419,7 +396,5 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         }
 
     }
-
-
 }
 
