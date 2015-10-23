@@ -37,12 +37,9 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
             layout_param = new LinearLayout.LayoutParams(recyclerView.getLayoutParams().height, recyclerView.getLayoutParams().height);
             layout_param.setMargins(0, 0, 3, 0);
 
-        } else {
+        } else
             layout_param = new LinearLayout.LayoutParams(width / 2, width / 2);
             layout_param.setMargins(1, 1, 1, 0);
-        }
-
-
     }
 
     public void setOnImageClickListener(final OnImageClickListener listener) {
@@ -66,7 +63,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
                 Picasso.with(activity).load(Uri.parse(item.getUrl())).resize(recyclerView.getLayoutParams().height, recyclerView.getLayoutParams().height).placeholder(R.drawable.border).centerCrop().into(holder.ivIcon);
             else
                 Picasso.with(activity).load(Uri.parse(item.getUrl())).resize(width / 2, width / 2).placeholder(R.drawable.border).centerCrop().into(holder.ivIcon);
-
     }
 
     @Override

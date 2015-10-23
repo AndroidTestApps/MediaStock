@@ -81,13 +81,13 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
             // similar images
             recyclerView = (RecyclerView) this.findViewById(R.id.image_home_ScrollView);
+            LinearLayoutManager llm = new LinearLayoutManager(this);
+            llm.setOrientation(LinearLayoutManager.HORIZONTAL);
+            recyclerView.setLayoutManager(llm);
             float pixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, getResources().getDisplayMetrics().widthPixels / 4, getResources().getDisplayMetrics());
             ViewGroup.LayoutParams params = recyclerView.getLayoutParams();
             params.height = (int) pixels;
             recyclerView.setLayoutParams(params);
-            LinearLayoutManager llm = new LinearLayoutManager(this);
-            llm.setOrientation(LinearLayoutManager.HORIZONTAL);
-            recyclerView.setLayoutManager(llm);
             adapter = new ImageAdapter(this, 2, recyclerView);
             recyclerView.setAdapter(adapter);
             adapter.setOnImageClickListener(new ImageAdapter.OnImageClickListener() {
@@ -98,6 +98,12 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                 }
             });
 
+            imageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                }
+            });
 
             // to handle the UI updates
             handler = new MyHandler(this);
