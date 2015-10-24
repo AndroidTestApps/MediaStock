@@ -19,31 +19,35 @@ import java.util.ArrayList;
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
     private final int width;
     private final int type;
+    private int loadingType;
     private ArrayList<ImageBean> images = new ArrayList<>();
     private LinearLayout.LayoutParams layout_param;
-    private OnImageClickListener listener;
-    private RecyclerView recyclerView;
+    private OnImageClickListener image_listener;
+    private OnBottomListener bottom_listener;
     private Context activity;
 
 
-    public ImageAdapter(Context context, int type, RecyclerView recyclerView) {
+    public ImageAdapter(Context context, int type) {
         this.type = type;
-        this.recyclerView = recyclerView;
         activity = context;
         width = context.getResources().getDisplayMetrics().widthPixels;
 
         if (type == 2) {
-
-            layout_param = new LinearLayout.LayoutParams(recyclerView.getLayoutParams().height, recyclerView.getLayoutParams().height);
+            layout_param = new LinearLayout.LayoutParams(width / 3, width / 3);
             layout_param.setMargins(0, 0, 3, 0);
 
-        } else
+        } else {
             layout_param = new LinearLayout.LayoutParams(width / 2, width / 2);
             layout_param.setMargins(1, 1, 1, 0);
+        }
+    }
+
+    public void setOnBottomListener(final OnBottomListener listener) {
+        this.bottom_listener = listener;
     }
 
     public void setOnImageClickListener(final OnImageClickListener listener) {
-        this.listener = listener;
+        this.image_listener = listener;
     }
 
     @Override
@@ -60,9 +64,24 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
 
         if (item.getUrl() != null)
             if (type == 2)
-                Picasso.with(activity).load(Uri.parse(item.getUrl())).resize(recyclerView.getLayoutParams().height, recyclerView.getLayoutParams().height).placeholder(R.drawable.border).centerCrop().into(holder.ivIcon);
+                Picasso.with(activity).load(Uri.parse(item.getUrl())).resize(width / 3, width / 3).placeholder(R.drawable.border).centerCrop().into(holder.ivIcon);
             else
                 Picasso.with(activity).load(Uri.parse(item.getUrl())).resize(width / 2, width / 2).placeholder(R.drawable.border).centerCrop().into(holder.ivIcon);
+
+
+        // scrolled to the bottom
+        if (position >= getItemCount() - 1) {
+            if (bottom_listener != null) {
+
+                // recent images
+                if (loadingType == 1)
+                    bottom_listener.onBottomLoadMoreData(loadingType, getItemCount() + 50);  // load more data
+
+                    // search images by key
+                else
+                    bottom_listener.onBottomLoadMoreData(loadingType, getItemCount() + 30);  // load more data
+            }
+        }
     }
 
     @Override
@@ -86,6 +105,15 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
         }
     }
 
+    public void setLoadingType(int loading_type) {
+        this.loadingType = loading_type;
+    }
+
+    public interface OnBottomListener {
+        void onBottomLoadMoreData(int loadingType, int loadingPageNumber);
+    }
+
+
     public interface OnImageClickListener {
         void onImageClick(View view, int position);
     }
@@ -104,8 +132,8 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
 
         @Override
         public void onClick(View v) {
-            if (ref.get().listener != null)
-                ref.get().listener.onImageClick(v, getAdapterPosition());
+            if (ref.get().image_listener != null)
+                ref.get().image_listener.onImageClick(v, getAdapterPosition());
         }
     }
 }

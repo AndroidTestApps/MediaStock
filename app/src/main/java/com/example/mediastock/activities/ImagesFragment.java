@@ -7,10 +7,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -33,7 +33,6 @@ import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.util.Iterator;
 
 
 /**
@@ -43,11 +42,13 @@ import java.util.Iterator;
  */
 public class ImagesFragment extends AbstractFragment implements DownloadResultReceiver.Receiver {
     public static final String IMG_RECEIVER = "ireceiver";
+    private static String keyWord1;
+    private static String keyWord2;
     private static Context context;
     private DownloadResultReceiver resultReceiver;
     private View view;
     private ProgressBar progressBar;
-    private LinearLayout layout_progress_bar;
+    private ProgressBar progressBar_bottom;
     private RecyclerView recyclerView;
     private ImageAdapter adapter;
 
@@ -89,7 +90,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
         view = inflater.inflate(R.layout.images_fragment, container, false);
         progressBar = (ProgressBar) view.findViewById(R.id.p_img_bar);
-        layout_progress_bar = (LinearLayout) view.findViewById(R.id.layout_img_pBar);
+        progressBar_bottom = (ProgressBar) view.findViewById(R.id.p_img_bar_bottom);
 
         compute();
 
@@ -100,12 +101,13 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
      * Initialize the UI components and get the recent images
      */
     private void compute() {
+        final ImagesFragment fragment = this;
 
         // grid images
         recyclerView = (RecyclerView) view.findViewById(R.id.gridView_displayImage);
         GridLayoutManager grid = new GridLayoutManager(context, 2);
         recyclerView.setLayoutManager(grid);
-        adapter = new ImageAdapter(context, 1, recyclerView);
+        adapter = new ImageAdapter(context, 1);
         recyclerView.setAdapter(adapter);
         adapter.setOnImageClickListener(new ImageAdapter.OnImageClickListener() {
             @Override
@@ -115,8 +117,23 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
             }
         });
 
+        // endless list. load more data when reaching the bottom of the view
+        adapter.setOnBottomListener(new ImageAdapter.OnBottomListener() {
+            @Override
+            public void onBottomLoadMoreData(int loadingType, int loadingPageNumber) {
+                progressBar_bottom.setVisibility(View.VISIBLE);
+
+                // recent images
+                if (loadingType == 1)
+                    new WebRequest(fragment, 1, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+                else
+                    startSearching(keyWord1, keyWord2, loadingPageNumber);  // search images by key
+            }
+        });
+
         deleteItems();
-        new WebRequest(this, 1).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new WebRequest(this, 1, 50).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
 
@@ -129,22 +146,28 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
         showProgressBar();
         deleteItems();
-        new WebRequest(this, 1).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new WebRequest(this, 1, 50).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     /**
      * It searches the images by one or two keys
      */
     public void searchImagesByKey(String key1, String key2) {
+        keyWord1 = key1;
+        keyWord2 = key2;
+
         showProgressBar();
         deleteItems();
+        startSearching(key1, key2, 30);
+    }
 
+    private void startSearching(String key1, String key2, int loadingPageNumber) {
         if (key2 != null) {
-            new WebRequest(this, 2).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key1);
-            new WebRequest(this, 2).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key2);
+            new WebRequest(this, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key1);
+            new WebRequest(this, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key2);
 
         } else
-            new WebRequest(this, 2).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key1);
+            new WebRequest(this, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key1);
     }
 
     /**
@@ -186,7 +209,6 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
      */
     private void showProgressBar() {
         recyclerView.setVisibility(View.GONE);
-        layout_progress_bar.setVisibility(View.VISIBLE);
         progressBar.setVisibility(View.VISIBLE);
     }
 
@@ -195,7 +217,6 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
      */
     private void dismissProgressBar() {
         progressBar.setVisibility(View.GONE);
-        layout_progress_bar.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
     }
 
@@ -251,21 +272,29 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
     private static class WebRequest extends AsyncTask<String, ImageBean, String> {
         private static WeakReference<ImagesFragment> activity;
         private final int type;
+        private final int loadingPageNumber;
         private boolean searchSuccess = true;
 
-        public WebRequest(ImagesFragment activity, int type) {
+        public WebRequest(ImagesFragment activity, int type, int loadingPageNumber) {
             this.type = type;
+            this.loadingPageNumber = loadingPageNumber;
             WebRequest.activity = new WeakReference<>(activity);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            activity.get().adapter.setLoadingType(type);
         }
 
         @Override
         protected String doInBackground(String... params) {
 
             if (type == 1)
-                getRecentImages(0);
-
+                getRecentImages(0, loadingPageNumber);
             else {
-                searchImagesByKey(params[0]);
+                searchImagesByKey(params[0], loadingPageNumber);
+
                 return params[0];
             }
 
@@ -277,9 +306,12 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
          *
          * @param key the key
          */
-        private void searchImagesByKey(String key) {
-            String urlStr = "https://@api.shutterstock.com/v2/images/search?per_page=100&query=";
+        private void searchImagesByKey(String key, int loadingPageNumber) {
+            String urlStr = "https://@api.shutterstock.com/v2/images/search?per_page=";
+            urlStr += loadingPageNumber + "&query=";
             urlStr += key;
+
+            Log.i("url", urlStr + "\n");
 
             InputStream is = null;
             try {
@@ -305,9 +337,8 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                 JsonObject assets;
 
                 // get objects
-                Iterator<JsonElement> iterator = array.iterator();
-                while (iterator.hasNext()) {
-                    JsonObject jsonObj = iterator.next().getAsJsonObject();
+                for (int i = loadingPageNumber - 30; i < array.size(); i++) {
+                    JsonObject jsonObj = array.get(i).getAsJsonObject();
                     ImageBean ib = null;
 
                     assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
@@ -338,10 +369,11 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
         /**
          * Method to get the recent images.
-         * We get the image, description of the image, id of the image, url for the preview, and id of the contributor.
+         * We get the description of the image, id of the image, url for the preview, and id of the contributor.
          */
-        private void getRecentImages(int day) {
-            String urlStr = "https://@api.shutterstock.com/v2/images/search?per_page=100&added_date=";
+        private void getRecentImages(int day, int loadingPageNumber) {
+            String urlStr = "https://@api.shutterstock.com/v2/images/search?per_page=";
+            urlStr += loadingPageNumber + "&added_date=";
             urlStr += Utilities.getDate(day);
 
             InputStream is = null;
@@ -362,16 +394,14 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                 if (array.size() == 0) {
                     int yesterday = day;
                     yesterday += 1;
-                    getRecentImages(yesterday);
+                    getRecentImages(yesterday, loadingPageNumber);
                     return;
                 }
 
                 JsonObject assets;
-                Iterator<JsonElement> iterator = array.iterator();
-                while (iterator.hasNext()) {
-                    JsonObject jsonObj = iterator.next().getAsJsonObject();
+                for (int i = loadingPageNumber - 50; i < array.size(); i++) {
+                    JsonObject jsonObj = array.get(i).getAsJsonObject();
                     ImageBean ib = null;
-
                     assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
 
                     if (assets != null) {
@@ -405,6 +435,9 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         protected void onProgressUpdate(ImageBean... bean) {
             if (activity.get().progressBar.isShown())
                 activity.get().dismissProgressBar();
+
+            if (activity.get().progressBar_bottom.isShown())
+                activity.get().progressBar_bottom.setVisibility(View.GONE);
 
             activity.get().adapter.addItem(bean[0]);
         }

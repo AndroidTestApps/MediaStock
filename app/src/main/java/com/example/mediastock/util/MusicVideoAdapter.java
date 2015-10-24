@@ -21,8 +21,10 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
     private final int type;
     private final Drawable icon_music;
     private final Drawable icon_video;
+    private int loadingType;
     private ArrayList<Bean> list = new ArrayList<>();
-    private OnMediaItemClickListener listener;
+    private OnMediaItemClickListener mediaListener;
+    private OnBottomListener bottomListener;
 
 
     public MusicVideoAdapter(Context context, int type) {
@@ -39,8 +41,16 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
         });
     }
 
+    public void setLoadingType(int loadingType) {
+        this.loadingType = loadingType;
+    }
+
+    public void setOnBottomListener(final OnBottomListener listener) {
+        this.bottomListener = listener;
+    }
+
     public void setOnMediaItemClickListener(final OnMediaItemClickListener listener) {
-        this.listener = listener;
+        this.mediaListener = listener;
     }
 
     @Override
@@ -60,6 +70,20 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
             VideoBean item_video = (VideoBean) list.get(position);
             holder.ivIcon.setImageDrawable(icon_video);
             holder.text.setText(item_video.getDescription());
+        }
+
+        // scrolled to the bottom
+        if (position >= getItemCount() - 1) {
+            if (bottomListener != null) {
+
+                // recent data
+                if (loadingType == 1)
+                    bottomListener.onBottomLoadMoreData(loadingType, getItemCount() + 30); // load more data
+
+                    // search by key
+                else
+                    bottomListener.onBottomLoadMoreData(loadingType, getItemCount() + 20); // load more data
+            }
         }
     }
 
@@ -88,6 +112,10 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
         void onItemClick(View view, int position);
     }
 
+    public interface OnBottomListener {
+        void onBottomLoadMoreData(int loadingType, int loadingPageNumber);
+    }
+
     public static class MyHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         protected ImageView ivIcon;
         protected TextView text;
@@ -104,8 +132,8 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
 
         @Override
         public void onClick(View v) {
-            if (ref.get().listener != null)
-                ref.get().listener.onItemClick(v, getAdapterPosition());
+            if (ref.get().mediaListener != null)
+                ref.get().mediaListener.onItemClick(v, getAdapterPosition());
         }
     }
 }

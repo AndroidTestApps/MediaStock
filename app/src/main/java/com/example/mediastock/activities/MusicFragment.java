@@ -7,10 +7,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -34,7 +34,6 @@ import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.util.Iterator;
 
 /**
  * Activity which displays a listView with music.
@@ -43,13 +42,16 @@ import java.util.Iterator;
  */
 public class MusicFragment extends AbstractFragment implements DownloadResultReceiver.Receiver {
     public static final String MUSIC_RECEIVER = "mreceiver";
+    private static String keyWord1;
+    private static String keyWord2;
     private static Context context;
     private DownloadResultReceiver resultReceiver;
-    private View view;
     private ProgressBar progressBar;
-    private LinearLayout layout_progress_bar;
+    private ProgressBar progressbar_bottom;
     private RecyclerView recyclerView;
     private MusicVideoAdapter musicAdapter;
+    private View view;
+
 
     /**
      * Method to create an instance of this fragment for the viewPager
@@ -84,7 +86,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
 
         view = inflater.inflate(R.layout.music_fragment, container, false);
         progressBar = (ProgressBar) view.findViewById(R.id.p_bar);
-        layout_progress_bar = (LinearLayout) view.findViewById(R.id.layout_pBar);
+        progressbar_bottom = (ProgressBar) view.findViewById(R.id.p_bar_bottom);
 
         compute();
 
@@ -95,6 +97,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
      * Initialize the UI components and get the recent music
      */
     private void compute() {
+        final MusicFragment fragment = this;
 
         // music list
         recyclerView = (RecyclerView) view.findViewById(R.id.list_music_galery);
@@ -117,9 +120,23 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
             }
         });
 
+        // endless list. load more data when reaching the bottom of the view
+        musicAdapter.setOnBottomListener(new MusicVideoAdapter.OnBottomListener() {
+            @Override
+            public void onBottomLoadMoreData(int loadingType, int loadingPageNumber) {
+                progressbar_bottom.setVisibility(View.VISIBLE);
+
+                // recent music
+                if (loadingType == 1)
+                    new WebRequest(fragment, 1, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                else
+                    startSearching(keyWord1, keyWord2, loadingPageNumber);  // search music by key
+            }
+        });
+
         showProgressBar();
         deleteItems();
-        new WebRequest(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "getmusic");
+        new WebRequest(this, 1, 30).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
     }
 
@@ -134,23 +151,28 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         showProgressBar();
         deleteItems();
 
-        new WebRequest(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "getmusic");
+        new WebRequest(this, 1, 30).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     /**
      * It searches the music by one or two keys
      */
     public void searchMusicByKey(String key1, String key2) {
+        keyWord1 = key1;
+        keyWord2 = key2;
+
         showProgressBar();
         deleteItems();
-
-        if (key2 != null) {
-            new WebRequest(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "search", key1);
-            new WebRequest(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "search", key2);
-        } else
-            new WebRequest(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "search", key1);
+        startSearching(key1, key2, 20);
     }
 
+    private void startSearching(String key1, String key2, int loadingPageNumber) {
+        if (key2 != null) {
+            new WebRequest(this, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key1);
+            new WebRequest(this, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key2);
+        } else
+            new WebRequest(this, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key1);
+    }
 
     /**
      * Start the filter search. The bundle contains alla the users input.
@@ -190,7 +212,6 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
      */
     private void showProgressBar() {
         recyclerView.setVisibility(View.GONE);
-        layout_progress_bar.setVisibility(View.VISIBLE);
         progressBar.setVisibility(View.VISIBLE);
     }
 
@@ -199,7 +220,6 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
      */
     private void dismissProgressBar() {
         progressBar.setVisibility(View.GONE);
-        layout_progress_bar.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
     }
 
@@ -238,21 +258,31 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
      */
     private static class WebRequest extends AsyncTask<String, Bean, String> {
         private static WeakReference<MusicFragment> activity;
+        private final int type;
+        private final int loadingPageNumber;
         private boolean searchSuccess = true;
 
-        public WebRequest(MusicFragment activity) {
+        public WebRequest(MusicFragment activity, int type, int loadingPageNumber) {
             WebRequest.activity = new WeakReference<>(activity);
+            this.type = type;
+            this.loadingPageNumber = loadingPageNumber;
         }
 
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            activity.get().musicAdapter.setLoadingType(type);
+        }
 
         @Override
         protected String doInBackground(String... params) {
 
-            if (params[0].equals("getmusic"))
-                getRecentMusic();
+            if (type == 1)
+                getRecentMusic(loadingPageNumber);
             else {
-                searchMusicByKey(params[1]);
-                return params[1];
+                searchMusicByKey(params[0], loadingPageNumber);
+
+                return params[0];
             }
 
             return null;
@@ -261,8 +291,11 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         /**
          * Method to get the music from the server. It gets the id, the title and the url preview.
          */
-        private void getRecentMusic() {
-            String urlStr = "https://api.shutterstock.com/v2/audio/search?per_page=50&added_date_start=2013-01-01";
+        private void getRecentMusic(int loadingPageNumber) {
+            String urlStr = "https://api.shutterstock.com/v2/audio/search?per_page=";
+            urlStr += loadingPageNumber + "&added_date_start=2013-01-01";
+
+            Log.i("url", urlStr);
 
             InputStream is = null;
 
@@ -284,9 +317,8 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                     return;
                 }
 
-                Iterator<JsonElement> iterator = array.iterator();
-                while (iterator.hasNext()) {
-                    JsonElement json2 = iterator.next();
+                for (int i = loadingPageNumber - 30; i < array.size(); i++) {
+                    JsonElement json2 = array.get(i);
                     JsonObject ob = json2.getAsJsonObject();
 
                     String id = ob.get("id").getAsString();
@@ -294,7 +326,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                     JsonObject assets = ob.get("assets").getAsJsonObject();
                     String preview = assets.get("preview_mp3").getAsJsonObject().get("url").getAsString();
 
-                    MusicBean mBean = new MusicBean();
+                    final MusicBean mBean = new MusicBean();
                     mBean.setId(id);
                     mBean.setPreview(preview);
                     mBean.setTitle(title);
@@ -319,9 +351,12 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
          *
          * @param key the key
          */
-        private void searchMusicByKey(String key) {
-            String urlStr = "https://@api.shutterstock.com/v2/audio/search?per_page=100&title=";
+        private void searchMusicByKey(String key, int loadingPageNumber) {
+            String urlStr = "https://@api.shutterstock.com/v2/audio/search?per_page=";
+            urlStr += loadingPageNumber + "&title=";//100&title=";
             urlStr += key;
+
+            Log.i("url", urlStr);
 
             InputStream is = null;
 
@@ -343,9 +378,8 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                     return;
                 }
 
-                Iterator<JsonElement> iterator = array.iterator();
-                while (iterator.hasNext()) {
-                    JsonElement json2 = iterator.next();
+                for (int i = loadingPageNumber - 20; i < array.size(); i++) {
+                    JsonElement json2 = array.get(i);
                     JsonObject ob = json2.getAsJsonObject();
 
                     String id = ob.get("id").getAsString();
@@ -353,7 +387,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                     JsonObject assets = ob.get("assets").getAsJsonObject();
                     String preview = assets.get("preview_mp3").getAsJsonObject().get("url").getAsString();
 
-                    MusicBean mBean = new MusicBean();
+                    final MusicBean mBean = new MusicBean();
                     mBean.setId(id);
                     mBean.setPreview(preview);
                     mBean.setTitle(title);
@@ -382,11 +416,10 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
             if (activity.get().progressBar.isShown())
                 activity.get().dismissProgressBar();
 
-            if (bean[0] == null)
-                Toast.makeText(activity.get().getActivity(), "No music was found", Toast.LENGTH_SHORT).show();
-            else
-                activity.get().musicAdapter.addItem(bean[0]);
+            if (activity.get().progressbar_bottom.isShown())
+                activity.get().progressbar_bottom.setVisibility(View.GONE);
 
+            activity.get().musicAdapter.addItem(bean[0]);
         }
 
 
@@ -398,6 +431,5 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                 Toast.makeText(activity.get().getActivity(), "Sorry, no music with " + result + " was found!", Toast.LENGTH_LONG).show();
             }
         }
-
     }
 }

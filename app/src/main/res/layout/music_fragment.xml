@@ -13,22 +13,22 @@
 
     </android.support.v7.widget.RecyclerView>
 
-    <LinearLayout
-        android:id="@+id/layout_pBar"
-        android:layout_width="match_parent"
+    <ProgressBar
+        android:id="@+id/p_bar_bottom"
+        style="?android:progressBarStyleLarge"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:visibility="gone"/>
+
+    <ProgressBar
+        android:id="@+id/p_bar"
+        style="?android:progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:layout_gravity="center"
-        android:orientation="vertical">
-
-        <ProgressBar
-            android:id="@+id/p_bar"
-            style="?android:progressBarStyleLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center" />
-
-    </LinearLayout>
+        android:layout_gravity="center"/>
 
 </RelativeLayout>

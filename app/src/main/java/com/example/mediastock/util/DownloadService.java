@@ -23,7 +23,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.util.Iterator;
 
 /**
  * Class to fetch the data from the server.
@@ -156,9 +155,8 @@ public class DownloadService extends IntentService {
             }
 
             JsonObject assets;
-            Iterator<JsonElement> iterator = array.iterator();
-            while (iterator.hasNext()) {
-                JsonObject jsonObj = iterator.next().getAsJsonObject();
+            for (JsonElement element : array) {
+                JsonObject jsonObj = element.getAsJsonObject();
                 ImageBean ib = null;
 
                 assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
@@ -216,9 +214,8 @@ public class DownloadService extends IntentService {
                 return;
             }
 
-            Iterator<JsonElement> iterator = array.iterator();
-            while (iterator.hasNext()) {
-                JsonElement json2 = iterator.next();
+            for (JsonElement element : array) {
+                JsonElement json2 = element;
                 JsonObject ob = json2.getAsJsonObject();
 
                 String id = ob.get("id").getAsString();

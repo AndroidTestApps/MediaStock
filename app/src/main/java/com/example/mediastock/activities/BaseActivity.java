@@ -206,7 +206,6 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         setTitle("");
         ActionBar actionBar = this.getSupportActionBar();
         actionBar.setDisplayShowCustomEnabled(true);
-        actionBar.setDisplayShowCustomEnabled(true);
 
         LayoutInflater inflator = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View v = inflator.inflate(R.layout.actionbar_search, null);

@@ -10,10 +10,10 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -34,7 +34,6 @@ import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.util.Iterator;
 
 /**
  * Activity which displays a listView with videos.
@@ -42,13 +41,15 @@ import java.util.Iterator;
  * @author Dinu
  */
 public class VideosFragment extends AbstractFragment implements LoaderCallbacks<Void> {
+    private static String keyWord1;
+    private static String keyWord2;
     private static Context context;
     private static Handler handler;
-    private View view;
-    private LinearLayout layout_progress_bar;
     private ProgressBar progressBar;
+    private ProgressBar progressBar_bottom;
     private RecyclerView recyclerView;
     private MusicVideoAdapter videoAdapter;
+    private View view;
 
     /**
      * Method to create an instance of this fragment for the viewPager
@@ -84,7 +85,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
         view = inflater.inflate(R.layout.video_fragment, container, false);
         progressBar = (ProgressBar) view.findViewById(R.id.p_bar);
-        layout_progress_bar = (LinearLayout) view.findViewById(R.id.layout_pBar);
+        progressBar_bottom = (ProgressBar) view.findViewById(R.id.p_bar_bottom);
         handler = new MyHandler(this);
 
         compute();
@@ -96,6 +97,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
      * Initialize the UI components and get the recent videos
      */
     private void compute() {
+        final VideosFragment fragment = this;
 
         // video list
         recyclerView = (RecyclerView) view.findViewById(R.id.list_video_galery);
@@ -118,9 +120,32 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
             }
         });
 
+        // endless list. load more data when reaching the bottom of the view
+        videoAdapter.setOnBottomListener(new MusicVideoAdapter.OnBottomListener() {
+
+            @Override
+            public void onBottomLoadMoreData(int loadingType, int loadingPageNumber) {
+                progressBar_bottom.setVisibility(View.VISIBLE);
+
+                // recent videos
+                if (loadingType == 1) {
+                    Bundle bundle = new Bundle();
+                    bundle.putInt("pagenumber", loadingPageNumber);
+                    getActivity().getLoaderManager().initLoader(0, bundle, fragment);
+
+                } else
+                    startSearching(keyWord1, keyWord2, loadingPageNumber); // search videos by key
+            }
+        });
+
+
         showProgressBar();
         deleteItems();
-        getActivity().getLoaderManager().initLoader(0, null, this);
+
+        Bundle bundle = new Bundle();
+        bundle.putInt("pagenumber", 30);
+
+        getActivity().getLoaderManager().initLoader(0, bundle, this);
     }
 
 
@@ -133,7 +158,11 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
         showProgressBar();
         deleteItems();
-        getActivity().getLoaderManager().initLoader(0, null, this);
+
+        Bundle bundle = new Bundle();
+        bundle.putInt("pagenumber", 30);
+
+        getActivity().getLoaderManager().initLoader(0, bundle, this);
     }
 
 
@@ -141,23 +170,32 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
      * It searches the videos by one or two keys
      */
     public void searchVideosByKey(String key1, String key2) {
+        keyWord1 = key1;
+        keyWord2 = key2;
+
         showProgressBar();
         deleteItems();
+        startSearching(key1, key2, 20);
+    }
+
+    private void startSearching(String key1, String key2, int loadingPageNumber) {
 
         if (key2 != null) {
             Bundle bundle1 = new Bundle();
             bundle1.putString("key", key1);
+            bundle1.putInt("pagenumber", loadingPageNumber);
             getActivity().getLoaderManager().initLoader(4, bundle1, this);
 
             Bundle bundle2 = new Bundle();
             bundle2.putString("key", key2);
-            getActivity().getLoaderManager().initLoader(4, bundle2, this);
+            bundle2.putInt("pagenumber", loadingPageNumber);
+            getActivity().getLoaderManager().initLoader(3, bundle2, this);
         } else {
             Bundle bundle = new Bundle();
             bundle.putString("key", key1);
+            bundle.putInt("pagenumber", loadingPageNumber);
             getActivity().getLoaderManager().initLoader(4, bundle, this);
         }
-
     }
 
     /**
@@ -185,7 +223,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
      */
     private void showProgressBar() {
         recyclerView.setVisibility(View.GONE);
-        layout_progress_bar.setVisibility(View.VISIBLE);
         progressBar.setVisibility(View.VISIBLE);
     }
 
@@ -194,7 +231,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
      */
     private void dismissProgressBar() {
         progressBar.setVisibility(View.GONE);
-        layout_progress_bar.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
     }
 
@@ -207,16 +243,14 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         switch (id) {
 
             case 0:
-                data = new LoadData(this, 0, null);
-                break;
-            case 1:
-            case 2:
-            case 3:
-            case 4:
                 data = new LoadData(this, 1, bundle);
                 break;
-            case 5:
+            case 3:
+            case 4:
                 data = new LoadData(this, 2, bundle);
+                break;
+            case 5:
+                data = new LoadData(this, 3, bundle);
                 break;
 
             default:
@@ -258,11 +292,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
                 case 1:
                     VideoBean bean = msg.getData().getParcelable("bean");
-
-                    if (bean != null)
-                        context.videoAdapter.addItem(bean);
-                    else
-                        Toast.makeText(context.getActivity(), "No video was found", Toast.LENGTH_SHORT).show();
+                    context.videoAdapter.addItem(bean);
 
                     break;
 
@@ -273,15 +303,18 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                     break;
 
                 case 3:
-                    context.dismissProgressBar();
+                    if (context.progressBar.isShown())
+                        context.dismissProgressBar();
+
+                    if (context.progressBar_bottom.isShown())
+                        context.progressBar_bottom.setVisibility(View.GONE);
+
                     break;
 
                 default:
                     break;
             }
-
         }
-
     }
 
     /**
@@ -290,30 +323,35 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
      * @author Dinu
      */
     private static class LoadData extends AsyncTaskLoader<Void> {
-        private Bundle bundle;
-        private int type;
+        private static WeakReference<VideosFragment> activity;
+        private final Bundle bundle;
+        private final int loadingPageNumber;
+        private final int type;
 
         public LoadData(VideosFragment context, int type, Bundle bundle) {
             super(context.getActivity());
 
+            activity = new WeakReference<>(context);
             this.type = type;
+            this.loadingPageNumber = bundle.getInt("pagenumber");
             this.bundle = bundle;
         }
 
         @Override
         public Void loadInBackground() {
+            activity.get().videoAdapter.setLoadingType(type);
 
             switch (type) {
 
-                case 0:
-                    getRecentVideos(0);
-                    break;
-
                 case 1:
-                    searchVideosByKey();
+                    getRecentVideos(0, loadingPageNumber);
                     break;
 
                 case 2:
+                    searchVideosByKey(loadingPageNumber);
+                    break;
+
+                case 3:
                     filterVideos();
                     break;
 
@@ -374,10 +412,8 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                     return;
                 }
 
-
-                Iterator<JsonElement> iterator = array.iterator();
-                while (iterator.hasNext()) {
-                    JsonElement json2 = iterator.next();
+                for (JsonElement element : array) {
+                    JsonElement json2 = element;
                     JsonObject ob = json2.getAsJsonObject();
 
                     String id = ob.get("id").getAsString();
@@ -449,10 +485,12 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
             }
         }
 
-        private void searchVideosByKey() {
-            String urlStr = "https://api.shutterstock.com/v2/videos/search?per_page=50&query=";
+        private void searchVideosByKey(int loadingPageNumber) {
+            String urlStr = "https://api.shutterstock.com/v2/videos/search?per_page=";
+            urlStr += loadingPageNumber + "&query=";
             urlStr += bundle.getString("key");
 
+            Log.i("url", urlStr);
             InputStream is = null;
 
             try {
@@ -482,9 +520,8 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                     return;
                 }
 
-                Iterator<JsonElement> iterator = array.iterator();
-                while (iterator.hasNext()) {
-                    JsonElement json2 = iterator.next();
+                for (int i = loadingPageNumber - 20; i < array.size(); i++) {
+                    JsonElement json2 = array.get(i);
                     JsonObject ob = json2.getAsJsonObject();
 
                     String id = ob.get("id").getAsString();
@@ -560,9 +597,12 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         /**
          * Method to get the videos from the server. It gets the id, description and the url for the preview.
          */
-        private void getRecentVideos(int day) {
-            String urlStr = "https://api.shutterstock.com/v2/videos/search?per_page=50&added_date_start=";
+        private void getRecentVideos(int day, int loadingPageNumber) {
+            String urlStr = "https://api.shutterstock.com/v2/videos/search?per_page=";
+            urlStr += loadingPageNumber + "&added_date_start=";
             urlStr += Utilities.getDate(day);
+
+            Log.i("url", urlStr);
 
             InputStream is = null;
 
@@ -585,13 +625,12 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                 if (array.size() == 0) {
                     int yesterday = day;
                     yesterday += 1;
-                    getRecentVideos(yesterday);
+                    getRecentVideos(yesterday, loadingPageNumber);
                     return;
                 }
 
-                Iterator<JsonElement> iterator = array.iterator();
-                while (iterator.hasNext()) {
-                    JsonElement json2 = iterator.next();
+                for (int i = loadingPageNumber - 30; i < array.size(); i++) {
+                    JsonElement json2 = array.get(i);
                     JsonObject ob = json2.getAsJsonObject();
 
                     String id = ob.get("id").getAsString();

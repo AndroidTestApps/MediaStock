@@ -12,10 +12,10 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -79,16 +79,21 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             description = (TextView) this.findViewById(R.id.textView_description_displayImage);
             contributorsName = (TextView) this.findViewById(R.id.TextView_contributor_displayImage);
 
+            // main image
+            RelativeLayout relativeLayout = (RelativeLayout) this.findViewById(R.id.Rel_layout);
+            ViewGroup.LayoutParams param = relativeLayout.getLayoutParams();
+            param.height = getResources().getDisplayMetrics().widthPixels;
+            relativeLayout.setLayoutParams(param);
+
             // similar images
             recyclerView = (RecyclerView) this.findViewById(R.id.image_home_ScrollView);
             LinearLayoutManager llm = new LinearLayoutManager(this);
             llm.setOrientation(LinearLayoutManager.HORIZONTAL);
             recyclerView.setLayoutManager(llm);
-            float pixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, getResources().getDisplayMetrics().widthPixels / 4, getResources().getDisplayMetrics());
             ViewGroup.LayoutParams params = recyclerView.getLayoutParams();
-            params.height = (int) pixels;
+            params.height = getResources().getDisplayMetrics().widthPixels / 3;
             recyclerView.setLayoutParams(params);
-            adapter = new ImageAdapter(this, 2, recyclerView);
+            adapter = new ImageAdapter(this, 2);
             recyclerView.setAdapter(adapter);
             adapter.setOnImageClickListener(new ImageAdapter.OnImageClickListener() {
                 @Override

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#000000"
-    android:baselineAligned="false"
-    android:orientation="horizontal">
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#000000"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/list_video_galery"
@@ -13,22 +13,24 @@
 
     </android.support.v7.widget.RecyclerView>
 
-    <LinearLayout
-        android:id="@+id/layout_pBar"
-        android:layout_width="match_parent"
+    <ProgressBar
+        android:id="@+id/p_bar_bottom"
+        style="?android:progressBarStyleLarge"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_alignStart="@+id/p_bar"
+        android:layout_centerHorizontal="true"
+        android:visibility="gone"/>
+
+    <ProgressBar
+        android:id="@+id/p_bar"
+        style="?android:progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:layout_gravity="center"
-        android:orientation="vertical">
+        android:layout_gravity="center"/>
 
-        <ProgressBar
-            android:id="@+id/p_bar"
-            style="?android:progressBarStyleLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center" />
-
-    </LinearLayout>
 
 </RelativeLayout>
