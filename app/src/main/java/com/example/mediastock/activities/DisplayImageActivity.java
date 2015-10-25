@@ -100,13 +100,14 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(DisplayImageActivity.this, FullViewImageActivity.class);
-                intent.putExtra("image", 1);
+                intent.putExtra("image", (String) imageView.getTag());
                 startActivity(intent);
             }
         });
 
         // to handle the UI updates
         handler = new MyHandler(this);
+        sw.fullScroll(View.FOCUS_UP);
 
         // get main image
         getMainImage(getBeanFromIntent());
@@ -120,6 +121,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         DownloadThread thread2 = new DownloadThread(2);
         thread2.setImageID(getBeanFromIntent().getId());
         new Thread(thread2).start();
+
 
     }
 
@@ -156,8 +158,10 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     private void getMainImage(ImageBean bean) {
         sw.fullScroll(View.FOCUS_UP);
 
-        if (bean.getUrl() != null)
+        if (bean.getUrl() != null) {
             Picasso.with(getApplicationContext()).load(bean.getUrl()).placeholder(R.drawable.border).fit().centerInside().into(imageView);
+            imageView.setTag(bean.getUrl());
+        }
 
         // set description of the image
         description.append(" " + bean.getDescription());

@@ -34,6 +34,7 @@
 
         <activity
             android:name="com.example.mediastock.activities.FullViewImageActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             />
 
         <activity

@@ -10,13 +10,7 @@ import android.view.ContextThemeWrapper;
  * Created by dinu on 04/10/15.
  */
 public abstract class AbstractFragment extends android.support.v4.app.Fragment{
-    private Context context;
-    private ConnectivityManager cm;
 
-    public AbstractFragment() {
-        context = getActivity().getApplicationContext();
-        cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-    }
 
     /**
      * Checks if the device is connected to the Internet
@@ -24,8 +18,8 @@ public abstract class AbstractFragment extends android.support.v4.app.Fragment{
      * @return true if connected, false otherwise
      */
     public boolean isOnline() {
-        // Context context = this.getActivity().getApplicationContext();
-        //ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        Context context = this.getActivity().getApplicationContext();
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
     }
