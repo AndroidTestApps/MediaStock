@@ -1,6 +1,7 @@
 package com.example.mediastock.activities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
@@ -54,78 +55,72 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     private TextView description, contributorsName;
     private FloatingActionButton fab_favorites;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.display_image_activity);
 
-        // check if online
-        if (!isOnline()) {
-            Toast.makeText(this, "Not online", Toast.LENGTH_SHORT).show();
-            finish();
-        } else {
+        // handle the threads
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
-            setContentView(R.layout.display_image_activity);
+        // layouts init
+        fab_favorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
+        fab_favorites.setOnClickListener(this);
+        sw = ((ScrollView) findViewById(R.id.scrollViewDisplayImage));
+        imageView = (ImageView) this.findViewById(R.id.imageView_displayImage);
+        description = (TextView) this.findViewById(R.id.textView_description_displayImage);
+        contributorsName = (TextView) this.findViewById(R.id.TextView_contributor_displayImage);
 
-            // handle the threads
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
+        // main image
+        RelativeLayout relativeLayout = (RelativeLayout) this.findViewById(R.id.Rel_layout);
+        ViewGroup.LayoutParams param = relativeLayout.getLayoutParams();
+        param.height = getResources().getDisplayMetrics().widthPixels + 5;
+        relativeLayout.setLayoutParams(param);
 
-            // layouts init
-            fab_favorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
-            fab_favorites.setOnClickListener(this);
-            sw = ((ScrollView) findViewById(R.id.scrollViewDisplayImage));
-            imageView = (ImageView) this.findViewById(R.id.imageView_displayImage);
-            description = (TextView) this.findViewById(R.id.textView_description_displayImage);
-            contributorsName = (TextView) this.findViewById(R.id.TextView_contributor_displayImage);
+        // similar images
+        recyclerView = (RecyclerView) this.findViewById(R.id.image_home_ScrollView);
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        llm.setOrientation(LinearLayoutManager.HORIZONTAL);
+        recyclerView.setLayoutManager(llm);
+        ViewGroup.LayoutParams params = recyclerView.getLayoutParams();
+        params.height = (getResources().getDisplayMetrics().widthPixels / 3) + 2;
+        recyclerView.setLayoutParams(params);
+        adapter = new ImageAdapter(this, 2);
+        recyclerView.setAdapter(adapter);
+        adapter.setOnImageClickListener(new ImageAdapter.OnImageClickListener() {
+            @Override
+            public void onImageClick(View view, int position) {
 
-            // main image
-            RelativeLayout relativeLayout = (RelativeLayout) this.findViewById(R.id.Rel_layout);
-            ViewGroup.LayoutParams param = relativeLayout.getLayoutParams();
-            param.height = getResources().getDisplayMetrics().widthPixels + 5;
-            relativeLayout.setLayoutParams(param);
+                updateUI(adapter.getBeanAt(position));
+            }
+        });
 
-            // similar images
-            recyclerView = (RecyclerView) this.findViewById(R.id.image_home_ScrollView);
-            LinearLayoutManager llm = new LinearLayoutManager(this);
-            llm.setOrientation(LinearLayoutManager.HORIZONTAL);
-            recyclerView.setLayoutManager(llm);
-            ViewGroup.LayoutParams params = recyclerView.getLayoutParams();
-            params.height = (getResources().getDisplayMetrics().widthPixels / 3) + 2;
-            recyclerView.setLayoutParams(params);
-            adapter = new ImageAdapter(this, 2);
-            recyclerView.setAdapter(adapter);
-            adapter.setOnImageClickListener(new ImageAdapter.OnImageClickListener() {
-                @Override
-                public void onImageClick(View view, int position) {
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(DisplayImageActivity.this, FullViewImageActivity.class);
+                intent.putExtra("image", 1);
+                startActivity(intent);
+            }
+        });
 
-                    updateUI(adapter.getBeanAt(position));
-                }
-            });
+        // to handle the UI updates
+        handler = new MyHandler(this);
 
-            imageView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+        // get main image
+        getMainImage(getBeanFromIntent());
 
-                }
-            });
+        // get the authors name
+        DownloadThread thread1 = new DownloadThread(1);
+        thread1.setAuthorID(getBeanFromIntent().getIdContributor());
+        new Thread(thread1).start();
 
-            // to handle the UI updates
-            handler = new MyHandler(this);
+        // get the similar images
+        DownloadThread thread2 = new DownloadThread(2);
+        thread2.setImageID(getBeanFromIntent().getId());
+        new Thread(thread2).start();
 
-            // get main image
-            getMainImage(getBeanFromIntent());
-
-            // get the authors name
-            DownloadThread thread1 = new DownloadThread(1);
-            thread1.setAuthorID(getBeanFromIntent().getIdContributor());
-            new Thread(thread1).start();
-
-            // get the similar images
-            DownloadThread thread2 = new DownloadThread(2);
-            thread2.setImageID(getBeanFromIntent().getId());
-            new Thread(thread2).start();
-        }
     }
 
     /**

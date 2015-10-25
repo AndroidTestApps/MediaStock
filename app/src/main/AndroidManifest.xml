@@ -33,6 +33,10 @@
             />
 
         <activity
+            android:name="com.example.mediastock.activities.FullViewImageActivity"
+            />
+
+        <activity
             android:name="com.example.mediastock.activities.MusicPlayerActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"/>
 

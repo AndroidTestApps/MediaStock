@@ -117,7 +117,8 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
             @Override
             public void onImageClick(View view, int position) {
 
-                goToDisplayImageActivity(adapter.getBeanAt(position));
+                if (isOnline())
+                    goToDisplayImageActivity(adapter.getBeanAt(position));
             }
         });
 
