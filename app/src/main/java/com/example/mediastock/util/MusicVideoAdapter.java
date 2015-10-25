@@ -74,16 +74,23 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
 
         // scrolled to the bottom
         if (position >= getItemCount() - 1) {
-            if (bottomListener != null) {
+
+            switch (loadingType) {
 
                 // recent data
-                if (loadingType == 1)
+                case 1:
                     bottomListener.onBottomLoadMoreData(loadingType, getItemCount() + 30); // load more data
+                    break;
 
-                    // search by key
-                else
+                // search data by key
+                case 2:
                     bottomListener.onBottomLoadMoreData(loadingType, getItemCount() + 20); // load more data
+                    break;
+
+                default:
+                    break;
             }
+
         }
     }
 

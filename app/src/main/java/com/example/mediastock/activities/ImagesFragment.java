@@ -2,6 +2,8 @@ package com.example.mediastock.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -91,6 +93,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         view = inflater.inflate(R.layout.images_fragment, container, false);
         progressBar = (ProgressBar) view.findViewById(R.id.p_img_bar);
         progressBar_bottom = (ProgressBar) view.findViewById(R.id.p_img_bar_bottom);
+        progressBar_bottom.getIndeterminateDrawable().setColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY);
 
         compute();
 
@@ -105,6 +108,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
         // grid images
         recyclerView = (RecyclerView) view.findViewById(R.id.gridView_displayImage);
+        recyclerView.setHasFixedSize(true);
         GridLayoutManager grid = new GridLayoutManager(context, 2);
         recyclerView.setLayoutManager(grid);
         adapter = new ImageAdapter(context, 1);
@@ -126,7 +130,6 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                 // recent images
                 if (loadingType == 1)
                     new WebRequest(fragment, 1, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
                 else
                     startSearching(keyWord1, keyWord2, loadingPageNumber);  // search images by key
             }
@@ -178,6 +181,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         if (!isOnline())
             return;
 
+        adapter.setLoadingType(3);
         showProgressBar();
         deleteItems();
 
@@ -375,6 +379,8 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
             String urlStr = "https://@api.shutterstock.com/v2/images/search?per_page=";
             urlStr += loadingPageNumber + "&added_date=";
             urlStr += Utilities.getDate(day);
+
+            Log.i("url", urlStr);
 
             InputStream is = null;
 

@@ -5,6 +5,8 @@ import android.content.AsyncTaskLoader;
 import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -86,6 +88,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         view = inflater.inflate(R.layout.video_fragment, container, false);
         progressBar = (ProgressBar) view.findViewById(R.id.p_bar);
         progressBar_bottom = (ProgressBar) view.findViewById(R.id.p_bar_bottom);
+        progressBar_bottom.getIndeterminateDrawable().setColorFilter(Color.BLACK, PorterDuff.Mode.MULTIPLY);
         handler = new MyHandler(this);
 
         compute();
@@ -125,6 +128,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
             @Override
             public void onBottomLoadMoreData(int loadingType, int loadingPageNumber) {
+                recyclerView.scrollToPosition(videoAdapter.getItemCount() + 1);
                 progressBar_bottom.setVisibility(View.VISIBLE);
 
                 // recent videos

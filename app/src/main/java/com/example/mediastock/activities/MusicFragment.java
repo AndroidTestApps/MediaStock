@@ -2,6 +2,8 @@ package com.example.mediastock.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -87,6 +89,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         view = inflater.inflate(R.layout.music_fragment, container, false);
         progressBar = (ProgressBar) view.findViewById(R.id.p_bar);
         progressbar_bottom = (ProgressBar) view.findViewById(R.id.p_bar_bottom);
+        progressbar_bottom.getIndeterminateDrawable().setColorFilter(Color.BLACK, PorterDuff.Mode.MULTIPLY);
 
         compute();
 
@@ -182,6 +185,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         if (!isOnline())
             return;
 
+        musicAdapter.setLoadingType(3);
         showProgressBar();
         deleteItems();
 

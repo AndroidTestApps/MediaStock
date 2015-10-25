@@ -15,11 +15,12 @@
 
     <ProgressBar
         android:id="@+id/p_bar_bottom"
-        style="?android:progressBarStyleLarge"
+        style="?android:progressBarStyleInverse"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
+        android:layout_marginBottom="10dp"
         android:visibility="gone"/>
 
     <ProgressBar

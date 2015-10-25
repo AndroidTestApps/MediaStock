@@ -26,7 +26,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
     private OnBottomListener bottom_listener;
     private Context activity;
 
-
     public ImageAdapter(Context context, int type) {
         this.type = type;
         activity = context;
@@ -34,12 +33,13 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
 
         if (type == 2) {
             layout_param = new LinearLayout.LayoutParams(width / 3, width / 3);
-            layout_param.setMargins(0, 0, 3, 0);
+            layout_param.setMargins(0, 2, 2, 2);
 
         } else {
             layout_param = new LinearLayout.LayoutParams(width / 2, width / 2);
-            layout_param.setMargins(1, 1, 1, 0);
+            layout_param.setMargins(3, 2, 0, 2);
         }
+
     }
 
     public void setOnBottomListener(final OnBottomListener listener) {
@@ -62,32 +62,39 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
         ImageBean item = images.get(position);
         holder.ivIcon.setLayoutParams(layout_param);
 
-        if (item.getUrl() != null)
+        if (item.getUrl() != null) {
             if (type == 2)
                 Picasso.with(activity).load(Uri.parse(item.getUrl())).resize(width / 3, width / 3).placeholder(R.drawable.border).centerCrop().into(holder.ivIcon);
             else
                 Picasso.with(activity).load(Uri.parse(item.getUrl())).resize(width / 2, width / 2).placeholder(R.drawable.border).centerCrop().into(holder.ivIcon);
-
+        }
 
         // scrolled to the bottom
         if (position >= getItemCount() - 1) {
-            if (bottom_listener != null) {
+            switch (loadingType) {
 
                 // recent images
-                if (loadingType == 1)
+                case 1:
                     bottom_listener.onBottomLoadMoreData(loadingType, getItemCount() + 50);  // load more data
+                    break;
 
-                    // search images by key
-                else
+                // search images by key
+                case 2:
                     bottom_listener.onBottomLoadMoreData(loadingType, getItemCount() + 30);  // load more data
+                    break;
+
+                default:
+                    break;
             }
         }
     }
+
 
     @Override
     public int getItemCount() {
         return images.size();
     }
+
 
     public ImageBean getBeanAt(int position) {
         return images.get(position);

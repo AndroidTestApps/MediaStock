@@ -82,7 +82,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             // main image
             RelativeLayout relativeLayout = (RelativeLayout) this.findViewById(R.id.Rel_layout);
             ViewGroup.LayoutParams param = relativeLayout.getLayoutParams();
-            param.height = getResources().getDisplayMetrics().widthPixels;
+            param.height = getResources().getDisplayMetrics().widthPixels + 5;
             relativeLayout.setLayoutParams(param);
 
             // similar images
@@ -91,7 +91,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             llm.setOrientation(LinearLayoutManager.HORIZONTAL);
             recyclerView.setLayoutManager(llm);
             ViewGroup.LayoutParams params = recyclerView.getLayoutParams();
-            params.height = getResources().getDisplayMetrics().widthPixels / 3;
+            params.height = (getResources().getDisplayMetrics().widthPixels / 3) + 2;
             recyclerView.setLayoutParams(params);
             adapter = new ImageAdapter(this, 2);
             recyclerView.setAdapter(adapter);
