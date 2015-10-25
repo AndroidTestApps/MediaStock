@@ -70,22 +70,23 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
         }
 
         // scrolled to the bottom
-        if (position >= getItemCount() - 1) {
-            switch (loadingType) {
+        switch (loadingType) {
 
-                // recent images
-                case 1:
+            // recent images
+            case 1:
+                if (position >= 49)
                     bottom_listener.onBottomLoadMoreData(loadingType, getItemCount() + 50);  // load more data
-                    break;
 
-                // search images by key
-                case 2:
+                break;
+
+            // search images by key
+            case 2:
+                if (position >= 29)
                     bottom_listener.onBottomLoadMoreData(loadingType, getItemCount() + 30);  // load more data
-                    break;
+                break;
 
-                default:
-                    break;
-            }
+            default:
+                break;
         }
     }
 
