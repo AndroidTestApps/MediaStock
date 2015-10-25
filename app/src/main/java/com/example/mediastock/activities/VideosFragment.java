@@ -128,7 +128,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
             @Override
             public void onBottomLoadMoreData(int loadingType, int loadingPageNumber) {
-                recyclerView.scrollToPosition(videoAdapter.getItemCount() + 1);
                 progressBar_bottom.setVisibility(View.VISIBLE);
 
                 // recent videos
@@ -344,6 +343,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         @Override
         public Void loadInBackground() {
             activity.get().videoAdapter.setLoadingType(type);
+            activity.get().videoAdapter.setPageNumber(loadingPageNumber);
 
             switch (type) {
 

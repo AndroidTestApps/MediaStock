@@ -22,6 +22,7 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
     private final Drawable icon_music;
     private final Drawable icon_video;
     private int loadingType;
+    private int pageNumber;
     private ArrayList<Bean> list = new ArrayList<>();
     private OnMediaItemClickListener mediaListener;
     private OnBottomListener bottomListener;
@@ -39,6 +40,11 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
                 super.onChanged();
             }
         });
+
+    }
+
+    public void setPageNumber(int number) {
+        pageNumber = number;
     }
 
     public void setLoadingType(int loadingType) {
@@ -53,6 +59,7 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
         this.mediaListener = listener;
     }
 
+
     @Override
     public MyHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View item = LayoutInflater.from(parent.getContext()).inflate(R.layout.grid_music_video, parent, false);
@@ -62,6 +69,7 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
 
     @Override
     public void onBindViewHolder(MyHolder holder, int position) {
+
         if (type == 1) {
             MusicBean item = (MusicBean) list.get(position);
             holder.ivIcon.setImageDrawable(icon_music);
@@ -72,29 +80,33 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
             holder.text.setText(item_video.getDescription());
         }
 
+
         // scrolled to the bottom
         switch (loadingType) {
 
             // recent data
             case 1:
-                if (position >= 29)
-                    bottomListener.onBottomLoadMoreData(loadingType, getItemCount() + 30); // load more data
+                if (position >= pageNumber - 1)
+                    bottomListener.onBottomLoadMoreData(loadingType, pageNumber + 30); // load more data
 
                 break;
 
             // search data by key
             case 2:
-                if (position >= 19)
+                if (position >= pageNumber - 1 && position >= (pageNumber * 2) - 1) {
                     bottomListener.onBottomLoadMoreData(loadingType, getItemCount() + 20); // load more data
-
-                break;
+                    break;
+                }
+                if (position >= pageNumber - 1) {
+                    bottomListener.onBottomLoadMoreData(loadingType, getItemCount() + 20); // load more data
+                    break;
+                }
 
             default:
                 break;
         }
 
     }
-
 
     @Override
     public int getItemCount() {
@@ -126,8 +138,8 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
     }
 
     public static class MyHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        protected ImageView ivIcon;
-        protected TextView text;
+        public ImageView ivIcon;
+        public TextView text;
         private WeakReference<MusicVideoAdapter> ref;
 
         public MyHolder(View itemView, MusicVideoAdapter adapter) {

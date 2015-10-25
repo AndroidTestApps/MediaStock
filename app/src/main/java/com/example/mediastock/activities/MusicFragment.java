@@ -276,6 +276,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         protected void onPreExecute() {
             super.onPreExecute();
             activity.get().musicAdapter.setLoadingType(type);
+            activity.get().musicAdapter.setPageNumber(loadingPageNumber);
         }
 
         @Override

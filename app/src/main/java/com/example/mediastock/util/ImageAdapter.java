@@ -20,11 +20,13 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
     private final int width;
     private final int type;
     private int loadingType;
+    private int pageNumber;
     private ArrayList<ImageBean> images = new ArrayList<>();
     private LinearLayout.LayoutParams layout_param;
     private OnImageClickListener image_listener;
     private OnBottomListener bottom_listener;
     private Context activity;
+
 
     public ImageAdapter(Context context, int type) {
         this.type = type;
@@ -69,25 +71,32 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
                 Picasso.with(activity).load(Uri.parse(item.getUrl())).resize(width / 2, width / 2).placeholder(R.drawable.border).centerCrop().into(holder.ivIcon);
         }
 
+
         // scrolled to the bottom
         switch (loadingType) {
 
             // recent images
             case 1:
-                if (position >= 49)
-                    bottom_listener.onBottomLoadMoreData(loadingType, getItemCount() + 50);  // load more data
+                if (position >= pageNumber - 1)
+                    bottom_listener.onBottomLoadMoreData(loadingType, pageNumber + 50);  // load more data
 
                 break;
 
             // search images by key
             case 2:
-                if (position >= 29)
-                    bottom_listener.onBottomLoadMoreData(loadingType, getItemCount() + 30);  // load more data
-                break;
+                if (position >= pageNumber - 1 && position >= (pageNumber * 2) - 1) {
+                    bottom_listener.onBottomLoadMoreData(loadingType, pageNumber + 30);  // load more data
+                    break;
+                }
+                if (position >= pageNumber - 1) {
+                    bottom_listener.onBottomLoadMoreData(loadingType, pageNumber + 30);  // load more data
+                    break;
+                }
 
             default:
                 break;
         }
+
     }
 
 
@@ -96,9 +105,12 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
         return images.size();
     }
 
-
     public ImageBean getBeanAt(int position) {
         return images.get(position);
+    }
+
+    public void setPageNumber(int number) {
+        this.pageNumber = number;
     }
 
     public void addItem(ImageBean bean) {

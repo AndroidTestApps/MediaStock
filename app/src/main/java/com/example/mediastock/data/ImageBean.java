@@ -14,6 +14,7 @@ public class ImageBean extends Bean{
                     return new ImageBean[size];
                 }
             };
+
     private int  id;
 	private String description;
 	private String url;
@@ -76,6 +77,4 @@ public class ImageBean extends Bean{
 		description = in.readString();
 		url = in.readString();
 	}
-
-
 }

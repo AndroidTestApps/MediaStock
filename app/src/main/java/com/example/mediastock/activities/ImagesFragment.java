@@ -93,7 +93,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         view = inflater.inflate(R.layout.images_fragment, container, false);
         progressBar = (ProgressBar) view.findViewById(R.id.p_img_bar);
         progressBar_bottom = (ProgressBar) view.findViewById(R.id.p_img_bar_bottom);
-        progressBar_bottom.getIndeterminateDrawable().setColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY);
+        progressBar_bottom.getIndeterminateDrawable().setColorFilter(Color.YELLOW, PorterDuff.Mode.MULTIPLY);
 
         compute();
 
@@ -289,6 +289,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         protected void onPreExecute() {
             super.onPreExecute();
             activity.get().adapter.setLoadingType(type);
+            activity.get().adapter.setPageNumber(loadingPageNumber);
         }
 
         @Override
