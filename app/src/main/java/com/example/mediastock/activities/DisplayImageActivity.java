@@ -1,10 +1,9 @@
 package com.example.mediastock.activities;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -22,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mediastock.R;
+import com.example.mediastock.data.Database;
 import com.example.mediastock.data.ImageBean;
 import com.example.mediastock.util.ImageAdapter;
 import com.example.mediastock.util.Utilities;
@@ -48,17 +48,23 @@ import java.util.Iterator;
  */
 public class DisplayImageActivity extends AppCompatActivity implements View.OnClickListener {
     private static Handler handler;
+    private static Bitmap bitmap;
+    private int width;
     private ScrollView sw;
     private ImageView imageView;
     private ImageAdapter adapter;
     private RecyclerView recyclerView;
-    private TextView description, contributorsName;
+    private TextView description, author;
     private FloatingActionButton fab_favorites;
+    private Database db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.display_image_activity);
+        width = getResources().getDisplayMetrics().widthPixels;
+
+        //db = new Database(this);
 
         // handle the threads
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -70,12 +76,12 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         sw = ((ScrollView) findViewById(R.id.scrollViewDisplayImage));
         imageView = (ImageView) this.findViewById(R.id.imageView_displayImage);
         description = (TextView) this.findViewById(R.id.textView_description_displayImage);
-        contributorsName = (TextView) this.findViewById(R.id.TextView_contributor_displayImage);
+        author = (TextView) this.findViewById(R.id.TextView_contributor_displayImage);
 
         // main image
         RelativeLayout relativeLayout = (RelativeLayout) this.findViewById(R.id.Rel_layout);
         ViewGroup.LayoutParams param = relativeLayout.getLayoutParams();
-        param.height = getResources().getDisplayMetrics().widthPixels + 5;
+        param.height = width + 5;
         relativeLayout.setLayoutParams(param);
 
         // similar images
@@ -84,7 +90,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         llm.setOrientation(LinearLayoutManager.HORIZONTAL);
         recyclerView.setLayoutManager(llm);
         ViewGroup.LayoutParams params = recyclerView.getLayoutParams();
-        params.height = (getResources().getDisplayMetrics().widthPixels / 3) + 2;
+        params.height = (width / 3) + 2;
         recyclerView.setLayoutParams(params);
         adapter = new ImageAdapter(this, 2);
         recyclerView.setAdapter(adapter);
@@ -121,8 +127,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         DownloadThread thread2 = new DownloadThread(2);
         thread2.setImageID(getBeanFromIntent().getId());
         new Thread(thread2).start();
-
-
     }
 
     /**
@@ -135,6 +139,9 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
         if (v.getId() == R.id.fab_favorites) {
             fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FF0000")));
+
+            //db.insertData(bitmap, description.getText().toString(), author.getText().toString());
+
             Toast.makeText(this, "Image added to favorites", Toast.LENGTH_SHORT).show();
         }
     }
@@ -143,6 +150,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     public void onDestroy() {
         super.onDestroy();
         imageView.setImageDrawable(null);
+        bitmap = null;
     }
 
     private ImageBean getBeanFromIntent() {
@@ -159,6 +167,12 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         sw.fullScroll(View.FOCUS_UP);
 
         if (bean.getUrl() != null) {
+
+            DownloadThread thread = new DownloadThread(3);
+            thread.setUrl(bean.getUrl());
+            DownloadThread.setContext(this);
+            new Thread(thread).start();
+
             Picasso.with(getApplicationContext()).load(bean.getUrl()).placeholder(R.drawable.border).fit().centerInside().into(imageView);
             imageView.setTag(bean.getUrl());
         }
@@ -189,17 +203,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
 
     /**
-     * Checks if the device is connected to the Internet
-     *
-     * @return true if connected, false otherwise
-     */
-    private boolean isOnline() {
-        ConnectivityManager cm = (ConnectivityManager) this.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
-    }
-
-    /**
      * Handler to update the UI
      */
     private static class MyHandler extends Handler {
@@ -217,7 +220,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
                 // update the UI with the authors name
                 case 1:
-                    context.contributorsName.append(" " + msg.getData().getString("name"));
+                    context.author.append(" " + msg.getData().getString("name"));
                     break;
 
                 // update the UI with the similar images
@@ -242,9 +245,11 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
      * @author Dinu
      */
     private static class DownloadThread implements Runnable {
+        private static WeakReference<DisplayImageActivity> activity;
         private final int type;
         private int authorID;
         private int imageID;
+        private String url;
 
         /**
          * The constructor.
@@ -253,6 +258,10 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
          */
         public DownloadThread(int type) {
             this.type = type;
+        }
+
+        public static void setContext(DisplayImageActivity context) {
+            activity = new WeakReference<DisplayImageActivity>(context);
         }
 
         @Override
@@ -268,12 +277,24 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                     getSimilarImages(imageID);
                     break;
 
+                case 3:
+                    getImage(url);
+
                 default:
                     break;
             }
 
         }
 
+        private void getImage(String url) {
+
+            try {
+                activity.get().bitmap = Picasso.with(activity.get()).load(url).resize(activity.get().width, activity.get().width).get();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         private void getAuthor(int id) {
             String urlStr = "https://@api.shutterstock.com/v2/contributors/";
@@ -320,7 +341,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                 }
             });
         }
-
 
         private void getSimilarImages(int id) {
             String urlStr = "https://@api.shutterstock.com/v2/images/";
@@ -405,6 +425,9 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             this.authorID = authorID;
         }
 
+        public void setUrl(String url) {
+            this.url = url;
+        }
     }
 }
 

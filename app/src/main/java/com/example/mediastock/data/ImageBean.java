@@ -1,5 +1,6 @@
 package com.example.mediastock.data;
 
+import android.graphics.drawable.Drawable;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -19,6 +20,8 @@ public class ImageBean extends Bean{
 	private String description;
 	private String url;
 	private int idContributor;
+    private Drawable image;
+    private String author;
 
 	public ImageBean(){}
 
@@ -58,6 +61,23 @@ public class ImageBean extends Bean{
 		this.idContributor = idContributor;
 	}
 
+    public Drawable getImage() {
+        return image;
+    }
+
+    public void setImage(Drawable image) {
+        this.image = image;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+
 	@Override
 	public int describeContents() {
 		return 0;
@@ -77,4 +97,6 @@ public class ImageBean extends Bean{
 		description = in.readString();
 		url = in.readString();
 	}
+
+
 }

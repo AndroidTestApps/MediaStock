@@ -8,7 +8,6 @@ import android.graphics.PorterDuff;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -95,8 +94,8 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
 
                 @Override
                 public void onClick(View v) {
-                    pause.setTextColor(Color.WHITE);
-                    play.setTextColor(Color.YELLOW);
+                    pause.setTextColor(Color.BLACK);
+                    play.setTextColor(Color.WHITE);
                     playMusic();
                 }
             });
@@ -105,8 +104,8 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
 
                 @Override
                 public void onClick(View v) {
-                    play.setTextColor(Color.WHITE);
-                    pause.setTextColor(Color.YELLOW);
+                    play.setTextColor(Color.BLACK);
+                    pause.setTextColor(Color.WHITE);
                     mediaPlayer.pause();
                     pause.setEnabled(false);
                     play.setEnabled(true);
@@ -126,7 +125,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
 
 
     private void playMusic() {
-        play.setTextColor(Color.YELLOW);
+        play.setTextColor(Color.WHITE);
         finalTime = mediaPlayer.getDuration();
         startTime = mediaPlayer.getCurrentPosition();
 

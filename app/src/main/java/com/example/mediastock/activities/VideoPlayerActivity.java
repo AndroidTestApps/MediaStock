@@ -9,8 +9,6 @@ import android.graphics.PorterDuff;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.SurfaceHolder;
@@ -105,8 +103,8 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
                 @Override
                 public void onClick(View v) {
-                    pause.setTextColor(Color.WHITE);
-                    play.setTextColor(Color.YELLOW);
+                    pause.setTextColor(Color.BLACK);
+                    play.setTextColor(Color.WHITE);
                     playVideo();
                 }
             });
@@ -115,8 +113,8 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
                 @Override
                 public void onClick(View v) {
-                    play.setTextColor(Color.WHITE);
-                    pause.setTextColor(Color.YELLOW);
+                    play.setTextColor(Color.BLACK);
+                    pause.setTextColor(Color.WHITE);
                     mediaPlayer.pause();
                     pause.setEnabled(false);
                     play.setEnabled(true);
@@ -143,7 +141,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
     }
 
     private void playVideo() {
-        play.setTextColor(Color.YELLOW);
+        play.setTextColor(Color.WHITE);
 
         if (mediaPlayer.isPlaying()) {
             mediaPlayer.reset();

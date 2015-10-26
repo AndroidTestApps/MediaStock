@@ -1,8 +1,14 @@
 
 package com.example.mediastock.util;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+
 import org.apache.commons.codec.binary.Base64;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.SimpleDateFormat;
@@ -44,6 +50,22 @@ public class Utilities {
 		String authStringEnc = new String(authEncBytes);
 	
 		return authStringEnc;
-	} 
+    }
+
+    /**
+     * Convert from bitmap to byte array
+     */
+    public static byte[] convertToByteArray(Bitmap bitmap) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 50, stream);
+        return stream.toByteArray();
+    }
+
+    /**
+     * Convert from byte array to bitmap and then to drawable
+     */
+    public static BitmapDrawable convertToBitmap(byte[] image, Context context) {
+        return new BitmapDrawable(context.getResources(), BitmapFactory.decodeByteArray(image, 0, image.length));
+    }
 
 }
