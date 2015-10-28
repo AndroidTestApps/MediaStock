@@ -122,7 +122,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
             }
         });
 
-        // endless list. load more data when reaching the bottom of the view
+        // endless list; load more data when reaching the bottom of the view
         adapter.setOnBottomListener(new ImageAdapter.OnBottomListener() {
             @Override
             public void onBottomLoadMoreData(int loadingType, int loadingPageNumber) {
@@ -132,12 +132,11 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                 if (loadingType == 1)
                     new WebRequest(fragment, 1, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 else
-                    startSearching(keyWord1, keyWord2, loadingPageNumber);  // search images by key
+                    new WebRequest(fragment, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, keyWord1, keyWord2);  // search images by key
             }
         });
 
-        deleteItems();
-        new WebRequest(this, 1, 50).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        getRecentImages();
     }
 
 
@@ -150,7 +149,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
         showProgressBar();
         deleteItems();
-        new WebRequest(this, 1, 50).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new WebRequest(this, 1, 100).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     /**
@@ -162,16 +161,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
         showProgressBar();
         deleteItems();
-        startSearching(key1, key2, 30);
-    }
-
-    private void startSearching(String key1, String key2, int loadingPageNumber) {
-        if (key2 != null) {
-            new WebRequest(this, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key1);
-            new WebRequest(this, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key2);
-
-        } else
-            new WebRequest(this, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key1);
+        new WebRequest(this, 2, 100).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key1, key2);
     }
 
     /**
@@ -256,7 +246,6 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
                 // update UI with the image
                 adapter.addItem(bean);
-
                 break;
 
             case 2:
@@ -299,9 +288,9 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
             if (type == 1)
                 getRecentImages(0, loadingPageNumber);
             else {
-                searchImagesByKey(params[0], loadingPageNumber);
+                searchImagesByKey(params[0], params[1], loadingPageNumber);
 
-                return params[0];
+                return params[1] != null ? params[0] + " " + params[1] : params[0];
             }
 
             return null;
@@ -310,12 +299,16 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         /**
          * Method to search images by a key
          *
-         * @param key the key
+         * @param key1 the key
          */
-        private void searchImagesByKey(String key, int loadingPageNumber) {
+        private void searchImagesByKey(String key1, String key2, int loadingPageNumber) {
             String urlStr = "https://@api.shutterstock.com/v2/images/search?per_page=";
             urlStr += loadingPageNumber + "&query=";
-            urlStr += key;
+
+            if (key2 != null)
+                urlStr += key1 + "/" + key2;
+            else
+                urlStr += key1;
 
             Log.i("url", urlStr + "\n");
 
@@ -343,7 +336,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                 JsonObject assets;
 
                 // get objects
-                for (int i = loadingPageNumber - 30; i < array.size(); i++) {
+                for (int i = loadingPageNumber - 100; i < array.size(); i++) {
                     JsonObject jsonObj = array.get(i).getAsJsonObject();
                     ImageBean ib = null;
 
@@ -407,7 +400,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                 }
 
                 JsonObject assets;
-                for (int i = loadingPageNumber - 50; i < array.size(); i++) {
+                for (int i = loadingPageNumber - 100; i < array.size(); i++) {
                     JsonObject jsonObj = array.get(i).getAsJsonObject();
                     ImageBean ib = null;
                     assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();

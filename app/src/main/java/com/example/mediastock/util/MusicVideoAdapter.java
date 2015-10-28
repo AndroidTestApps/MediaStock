@@ -82,30 +82,8 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
 
 
         // scrolled to the bottom
-        switch (loadingType) {
-
-            // recent data
-            case 1:
-                if (position >= pageNumber - 1)
-                    bottomListener.onBottomLoadMoreData(loadingType, pageNumber + 30); // load more data
-
-                break;
-
-            // search data by key
-            case 2:
-                if (position >= pageNumber - 1 && position >= (pageNumber * 2) - 1) {
-                    bottomListener.onBottomLoadMoreData(loadingType, getItemCount() + 20); // load more data
-                    break;
-                }
-                if (position >= pageNumber - 1) {
-                    bottomListener.onBottomLoadMoreData(loadingType, getItemCount() + 20); // load more data
-                    break;
-                }
-
-            default:
-                break;
-        }
-
+        if (position >= pageNumber - 1)
+            bottomListener.onBottomLoadMoreData(loadingType, pageNumber + 30); // load more data
     }
 
     @Override

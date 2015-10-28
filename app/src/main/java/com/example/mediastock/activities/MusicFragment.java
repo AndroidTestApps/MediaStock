@@ -133,14 +133,11 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                 if (loadingType == 1)
                     new WebRequest(fragment, 1, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 else
-                    startSearching(keyWord1, keyWord2, loadingPageNumber);  // search music by key
+                    new WebRequest(fragment, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, keyWord1, keyWord2); // search music by key
             }
         });
 
-        showProgressBar();
-        deleteItems();
-        new WebRequest(this, 1, 30).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
+        getRecentMusic();
     }
 
     /**
@@ -153,7 +150,6 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         // show progress
         showProgressBar();
         deleteItems();
-
         new WebRequest(this, 1, 30).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
@@ -166,16 +162,9 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
 
         showProgressBar();
         deleteItems();
-        startSearching(key1, key2, 20);
+        new WebRequest(this, 2, 30).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key1, key2);
     }
 
-    private void startSearching(String key1, String key2, int loadingPageNumber) {
-        if (key2 != null) {
-            new WebRequest(this, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key1);
-            new WebRequest(this, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key2);
-        } else
-            new WebRequest(this, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key1);
-    }
 
     /**
      * Start the filter search. The bundle contains alla the users input.
@@ -285,9 +274,9 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
             if (type == 1)
                 getRecentMusic(loadingPageNumber);
             else {
-                searchMusicByKey(params[0], loadingPageNumber);
+                searchMusicByKey(params[0], params[1], loadingPageNumber);
 
-                return params[0];
+                return params[1] != null ? params[0] + " " + params[1] : params[0];
             }
 
             return null;
@@ -354,12 +343,16 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         /**
          * Method to search music by one or two keys or the union.
          *
-         * @param key the key
+         * @param key1 the key
          */
-        private void searchMusicByKey(String key, int loadingPageNumber) {
+        private void searchMusicByKey(String key1, String key2, int loadingPageNumber) {
             String urlStr = "https://@api.shutterstock.com/v2/audio/search?per_page=";
-            urlStr += loadingPageNumber + "&title=";//100&title=";
-            urlStr += key;
+            urlStr += loadingPageNumber + "&title=";
+
+            if (key2 != null)
+                urlStr += key1 + "/" + key2;
+            else
+                urlStr += key1;
 
             Log.i("url", urlStr);
 
@@ -383,7 +376,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                     return;
                 }
 
-                for (int i = loadingPageNumber - 20; i < array.size(); i++) {
+                for (int i = loadingPageNumber - 30; i < array.size(); i++) {
                     JsonElement json2 = array.get(i);
                     JsonObject ob = json2.getAsJsonObject();
 

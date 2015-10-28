@@ -6,9 +6,9 @@
   <!-- Specify a gradient for the background -->  
    <gradient
       android:angle="90"
-      android:startColor="#000000"
       android:centerColor="#000000"
-      android:endColor="#000000" />
+      android:endColor="#000000"
+      android:startColor="#000000"/>
    
    <!-- #808080" -->
   <!-- Specify a dark black border -->
@@ -18,14 +18,17 @@
   
   <!-- Specify the margins that all content inside the drawable must adhere to -->
   <padding
+      android:bottom="1dp"
     android:left="1dp"
     android:right="1dp"
-    android:top="1dp"
-    android:bottom="1dp" />
+      android:top="1dp"/>
   
   <corners
-      android:topLeftRadius="50dp"
-      android:topRightRadius="50dp"
-      android:bottomLeftRadius="50dp"
-      android:bottomRightRadius="50dp" />
+      android:radius="25dp"
+      />
 </shape>
+    <!--
+        android:topLeftRadius="50dp"
+        android:topRightRadius="50dp"
+        android:bottomLeftRadius="50dp"
+        android:bottomRightRadius="50dp" -->

@@ -73,30 +73,10 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
 
 
         // scrolled to the bottom
-        switch (loadingType) {
-
-            // recent images
-            case 1:
-                if (position >= pageNumber - 1)
-                    bottom_listener.onBottomLoadMoreData(loadingType, pageNumber + 50);  // load more data
-
-                break;
-
-            // search images by key
-            case 2:
-                if (position >= pageNumber - 1 && position >= (pageNumber * 2) - 1) {
-                    bottom_listener.onBottomLoadMoreData(loadingType, pageNumber + 30);  // load more data
-                    break;
-                }
-                if (position >= pageNumber - 1) {
-                    bottom_listener.onBottomLoadMoreData(loadingType, pageNumber + 30);  // load more data
-                    break;
-                }
-
-            default:
-                break;
+        if (position >= pageNumber - 1) {
+            if (loadingType == 1 || loadingType == 2)
+                bottom_listener.onBottomLoadMoreData(loadingType, pageNumber + 100);  // load more data
         }
-
     }
 
 

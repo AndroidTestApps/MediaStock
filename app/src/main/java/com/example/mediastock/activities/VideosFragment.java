@@ -134,21 +134,15 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                 if (loadingType == 1) {
                     Bundle bundle = new Bundle();
                     bundle.putInt("pagenumber", loadingPageNumber);
-                    getActivity().getLoaderManager().initLoader(0, bundle, fragment);
+                    getActivity().getLoaderManager().initLoader(1, bundle, fragment);
 
                 } else
-                    startSearching(keyWord1, keyWord2, loadingPageNumber); // search videos by key
+                    startSearching(2, keyWord1, keyWord2, loadingPageNumber); // search videos by key
             }
         });
 
 
-        showProgressBar();
-        deleteItems();
-
-        Bundle bundle = new Bundle();
-        bundle.putInt("pagenumber", 30);
-
-        getActivity().getLoaderManager().initLoader(0, bundle, this);
+        getRecentVideos();
     }
 
 
@@ -165,7 +159,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         Bundle bundle = new Bundle();
         bundle.putInt("pagenumber", 30);
 
-        getActivity().getLoaderManager().initLoader(0, bundle, this);
+        getActivity().getLoaderManager().initLoader(1, bundle, this);
     }
 
 
@@ -178,27 +172,16 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
         showProgressBar();
         deleteItems();
-        startSearching(key1, key2, 20);
+        startSearching(2, key1, key2, 30);
     }
 
-    private void startSearching(String key1, String key2, int loadingPageNumber) {
+    private void startSearching(int loaderType, String key1, String key2, int loadingPageNumber) {
+        Bundle bundle = new Bundle();
+        bundle.putString("key1", key1);
+        bundle.putString("key2", key2);
+        bundle.putInt("pagenumber", loadingPageNumber);
 
-        if (key2 != null) {
-            Bundle bundle1 = new Bundle();
-            bundle1.putString("key", key1);
-            bundle1.putInt("pagenumber", loadingPageNumber);
-            getActivity().getLoaderManager().initLoader(4, bundle1, this);
-
-            Bundle bundle2 = new Bundle();
-            bundle2.putString("key", key2);
-            bundle2.putInt("pagenumber", loadingPageNumber);
-            getActivity().getLoaderManager().initLoader(3, bundle2, this);
-        } else {
-            Bundle bundle = new Bundle();
-            bundle.putString("key", key1);
-            bundle.putInt("pagenumber", loadingPageNumber);
-            getActivity().getLoaderManager().initLoader(4, bundle, this);
-        }
+        getActivity().getLoaderManager().initLoader(loaderType, bundle, this);
     }
 
     /**
@@ -210,7 +193,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
         showProgressBar();
         deleteItems();
-        getActivity().getLoaderManager().initLoader(5, bundle, this);
+        getActivity().getLoaderManager().initLoader(3, bundle, this);
     }
 
 
@@ -245,14 +228,13 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         AsyncTaskLoader<Void> data = null;
         switch (id) {
 
-            case 0:
+            case 1:
                 data = new LoadData(this, 1, bundle);
                 break;
-            case 3:
-            case 4:
+            case 2:
                 data = new LoadData(this, 2, bundle);
                 break;
-            case 5:
+            case 3:
                 data = new LoadData(this, 3, bundle);
                 break;
 
@@ -301,7 +283,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
                 case 2:
                     context.dismissProgressBar();
-                    Toast.makeText(context.getActivity(), "No video was found", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context.getActivity(), "No video with " + msg.getData().getString("error") + " was found", Toast.LENGTH_SHORT).show();
 
                     break;
 
@@ -311,6 +293,12 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
                     if (context.progressBar_bottom.isShown())
                         context.progressBar_bottom.setVisibility(View.GONE);
+
+                    break;
+
+                case 4:
+                    context.dismissProgressBar();
+                    Toast.makeText(context.getActivity(), "No video was found", Toast.LENGTH_SHORT).show();
 
                     break;
 
@@ -410,7 +398,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
                         @Override
                         public void run() {
-                            handler.sendEmptyMessage(2);
+                            handler.sendEmptyMessage(4);
                         }
                     });
                     return;
@@ -492,9 +480,17 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         private void searchVideosByKey(int loadingPageNumber) {
             String urlStr = "https://api.shutterstock.com/v2/videos/search?per_page=";
             urlStr += loadingPageNumber + "&query=";
-            urlStr += bundle.getString("key");
+
+            String key1 = bundle.getString("key1");
+            String key2 = bundle.getString("key2");
+
+            if (key2 != null)
+                urlStr += key1 + "/" + key2;
+            else
+                urlStr += key1;
 
             Log.i("url", urlStr);
+
             InputStream is = null;
 
             try {
@@ -514,17 +510,23 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                 JsonArray array = o.get("data").getAsJsonArray();
 
                 if (array.size() == 0) {
+                    final Message msg = new Message();
+                    final Bundle bundle = new Bundle();
+                    bundle.putString("error", key2 != null ? key1 + " " + key2 : key1);
+                    msg.setData(bundle);
+                    msg.what = 2;
+
                     handler.post(new Runnable() {
 
                         @Override
                         public void run() {
-                            handler.sendEmptyMessage(2);
+                            handler.dispatchMessage(msg);
                         }
                     });
                     return;
                 }
 
-                for (int i = loadingPageNumber - 20; i < array.size(); i++) {
+                for (int i = loadingPageNumber - 30; i < array.size(); i++) {
                     JsonElement json2 = array.get(i);
                     JsonObject ob = json2.getAsJsonObject();
 

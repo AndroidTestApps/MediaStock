@@ -39,8 +39,29 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
     private static String key2;
     private CustomPagerAdapter adapter;
     private ViewPager viewPager;
-    private EditText input;
+    private boolean isFocused = false;
+    private EditText editText;
 
+    /**
+     * We parse the users input
+     * If the user wrote two words, we parse the text and search for the words.
+     *
+     * @param query the editText
+     * @return true if the user wrote two words, false otherwise
+     */
+    private static boolean parseQuery(String query) {
+        if (query.contains(" ")) {
+            for (int i = 0; i < query.length(); i++)
+                if (query.charAt(i) == ' ') {
+                    key1 = query.substring(0, i);
+
+                    key2 = query.substring(i + 1, query.length());
+                    return !key2.isEmpty();
+                }
+        }
+
+        return false;
+    }
 
     @Override
     protected void onCreate(Bundle bundle) {
@@ -86,10 +107,9 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         super.onDestroy();
     }
 
-
     /**
      * Callback method to do a filter search of the images
-     * @param bundle bundle that contains the users input
+     * @param bundle bundle that contains the users editText
      */
     @Override
     public void handleFilterImage(Bundle bundle) {
@@ -98,10 +118,9 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         frag.startFilterSearch(bundle);
     }
 
-
     /**
      * Callback method to do a filter search of the music
-     * @param bundle bundle that contains the users input
+     * @param bundle bundle that contains the users editText
      */
     @Override
     public void handleFilterMusic(Bundle bundle) {
@@ -110,10 +129,9 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         frag.startFilterSearch(bundle);
     }
 
-
     /**
      * Callback method to do a filter search of the videos
-     * @param bundle bundle that contains the users input
+     * @param bundle bundle that contains the users editText
      */
     @Override
     public void handleFilterVideo(Bundle bundle) {
@@ -149,7 +167,6 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         msg.show();
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -168,8 +185,13 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
                 case R.id.item_search:
 
-                    if (viewPager.getCurrentItem() == 0 || viewPager.getCurrentItem() == 1 || viewPager.getCurrentItem() == 2)
-                        openSearch();
+                    if (viewPager.getCurrentItem() == 0 || viewPager.getCurrentItem() == 1 || viewPager.getCurrentItem() == 2) {
+
+                        if (isFocused)
+                            startSearch(editText.getText().toString(), editText);
+                        else
+                            openSearchView();
+                    }
 
                     return true;
 
@@ -202,7 +224,9 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
     /**
      * Search button action bar
      */
-    private void openSearch() {
+    private void openSearchView() {
+        isFocused = true;
+
         setTitle("");
         ActionBar actionBar = this.getSupportActionBar();
         actionBar.setDisplayShowCustomEnabled(true);
@@ -211,38 +235,42 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         View v = inflator.inflate(R.layout.actionbar_search, null);
         actionBar.setCustomView(v);
 
-        input = (EditText) v.findViewById(R.id.actionbar_search);
-        input.requestFocus();
+        editText = (EditText) v.findViewById(R.id.actionbar_search);
+        editText.requestFocus();
         showKeyboard();
 
-        input.setOnTouchListener(new View.OnTouchListener() {
+        editText.setOnTouchListener(new View.OnTouchListener() {
 
             @Override
             public boolean onTouch(View arg0, MotionEvent event) {
 
                 if (event.getAction() == MotionEvent.ACTION_UP) {
 
-                    // icon dismiss inside edit text
-                    if (event.getRawX() >= input.getRight() - input.getTotalPaddingRight()) {
-                        input.setVisibility(View.GONE);
+                    // icon dismiss edit text
+                    if (event.getRawX() >= editText.getRight() - editText.getTotalPaddingRight()) {
+                        isFocused = false;
+                        editText.setVisibility(View.GONE);
                         setTitle("MediaStock");
-                        hideKeyboard(input);
-                        return true;
-                    } else
+                        hideKeyboard(editText);
+
+                    } else {
+                        isFocused = true;
                         showKeyboard();
+                    }
                 }
 
                 return true;
             }
         });
 
-        input.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        // keyboard icon search listener
+        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    startSearch(v.getText().toString(), input);
+                    startSearch(v.getText().toString(), editText);
 
                     return true;
                 }
@@ -252,13 +280,16 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
     }
 
     /**
-     * Method to handle the users input for the search
+     * Method to search for images, music or videos
      */
-    private void startSearch(String search, View view) {
-        input.setVisibility(View.GONE);
+    private void startSearch(String query, View editText) {
+        isFocused = false;
+
+        this.editText.setVisibility(View.GONE);
         setTitle("MediaStock");
-        hideKeyboard(view);
-        boolean twoWords = parseQuery(search);
+        hideKeyboard(editText);
+
+        boolean twoWords = parseQuery(query);
 
         int fragment = viewPager.getCurrentItem();
         switch (fragment) {
@@ -269,7 +300,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
                 if (twoWords)
                     images.searchImagesByKey(key1, key2);
                 else
-                    images.searchImagesByKey(search, null);
+                    images.searchImagesByKey(query, null);
 
                 break;
 
@@ -279,7 +310,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
                 if (twoWords)
                     videos.searchVideosByKey(key1, key2);
                 else
-                    videos.searchVideosByKey(search, null);
+                    videos.searchVideosByKey(query, null);
 
                 break;
 
@@ -289,7 +320,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
                 if (twoWords)
                     music.searchMusicByKey(key1, key2);
                 else
-                    music.searchMusicByKey(search, null);
+                    music.searchMusicByKey(query, null);
 
                 break;
 
@@ -298,34 +329,9 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         }
     }
 
-
-    /**
-     * We parse the users input
-     * If the user wrote two words, we parse the text and search for the words.
-     *
-     * @param query the input
-     * @return true if the user wrote two words, false otherwise
-     */
-    private boolean parseQuery(String query) {
-        if (query.contains(" ")) {
-            for (int i = 0; i < query.length(); i++)
-                if (query.charAt(i) == ' ') {
-                    key1 = query.substring(0, i);
-
-                    key2 = query.substring(i + 1, query.length());
-                    return !key2.isEmpty();
-
-                }
-        }
-
-        return false;
-    }
-
     private void hideKeyboard(View view) {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-
-
     }
 
     private void showKeyboard() {
@@ -339,9 +345,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
      * @return true if connected, false otherwise
      */
     public boolean isOnline() {
-        Context context = getApplicationContext();
-
-        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager cm = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 
         return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
     }
