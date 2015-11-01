@@ -87,9 +87,6 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         super.onCreate(savedInstanceState);
         context = this.getActivity().getApplicationContext();
 
-        if (!isOnline())
-            return null;
-
         view = inflater.inflate(R.layout.images_fragment, container, false);
         progressBar = (ProgressBar) view.findViewById(R.id.p_img_bar);
         progressBar_bottom = (ProgressBar) view.findViewById(R.id.p_img_bar_bottom);
@@ -130,9 +127,9 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
                 // recent images
                 if (loadingType == 1)
-                    new WebRequest(fragment, 1, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    new AsyncWork(fragment, 1, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 else
-                    new WebRequest(fragment, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, keyWord1, keyWord2);  // search images by key
+                    new AsyncWork(fragment, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, keyWord1, keyWord2);  // search images by key
             }
         });
 
@@ -149,7 +146,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
         showProgressBar();
         deleteItems();
-        new WebRequest(this, 1, 100).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new AsyncWork(this, 1, 100).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     /**
@@ -161,7 +158,13 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
         showProgressBar();
         deleteItems();
-        new WebRequest(this, 2, 100).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key1, key2);
+        new AsyncWork(this, 2, 100).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key1, key2);
+    }
+
+    public void displayFavoriteImages() {
+        showProgressBar();
+        deleteItems();
+        new AsyncWork(this, 3, 100).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     /**
@@ -263,16 +266,16 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
      *
      * @author Dinu
      */
-    private static class WebRequest extends AsyncTask<String, ImageBean, String> {
+    private static class AsyncWork extends AsyncTask<String, ImageBean, String> {
         private static WeakReference<ImagesFragment> activity;
         private final int type;
         private final int loadingPageNumber;
         private boolean searchSuccess = true;
 
-        public WebRequest(ImagesFragment activity, int type, int loadingPageNumber) {
+        public AsyncWork(ImagesFragment activity, int type, int loadingPageNumber) {
             this.type = type;
             this.loadingPageNumber = loadingPageNumber;
-            WebRequest.activity = new WeakReference<>(activity);
+            AsyncWork.activity = new WeakReference<>(activity);
         }
 
         @Override
@@ -285,12 +288,22 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         @Override
         protected String doInBackground(String... params) {
 
-            if (type == 1)
-                getRecentImages(0, loadingPageNumber);
-            else {
-                searchImagesByKey(params[0], params[1], loadingPageNumber);
+            switch (type) {
 
-                return params[1] != null ? params[0] + " " + params[1] : params[0];
+                case 1:
+                    getRecentImages(0, loadingPageNumber);
+                    break;
+
+                case 2:
+                    searchImagesByKey(params[0], params[1], loadingPageNumber);
+                    return params[1] != null ? params[0] + " " + params[1] : params[0];
+
+                case 3:
+                    break;
+
+                default:
+                    break;
+
             }
 
             return null;
@@ -309,8 +322,6 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                 urlStr += key1 + "/" + key2;
             else
                 urlStr += key1;
-
-            Log.i("url", urlStr + "\n");
 
             InputStream is = null;
             try {
@@ -344,9 +355,9 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
                     if (assets != null) {
                         ib = new ImageBean();
-                        ib.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsInt());
-                        ib.setDescription(jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString());
-                        ib.setIdContributor(jsonObj.get("contributor") == null ? null : jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
+                        ib.setId(jsonObj.get("id").getAsInt());
+                        ib.setDescription(jsonObj.get("description").getAsString());
+                        ib.setIdContributor(jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
                         ib.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
                     }
 
@@ -407,9 +418,9 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
                     if (assets != null) {
                         ib = new ImageBean();
-                        ib.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsInt());
-                        ib.setDescription(jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString());
-                        ib.setIdContributor(jsonObj.get("contributor") == null ? null : jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
+                        ib.setId(jsonObj.get("id").getAsInt());
+                        ib.setDescription(jsonObj.get("description").getAsString());
+                        ib.setIdContributor(jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
                         ib.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
                     }
 

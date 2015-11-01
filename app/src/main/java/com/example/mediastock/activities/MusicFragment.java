@@ -131,9 +131,9 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
 
                 // recent music
                 if (loadingType == 1)
-                    new WebRequest(fragment, 1, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    new AsyncWork(fragment, 1, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 else
-                    new WebRequest(fragment, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, keyWord1, keyWord2); // search music by key
+                    new AsyncWork(fragment, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, keyWord1, keyWord2); // search music by key
             }
         });
 
@@ -150,7 +150,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         // show progress
         showProgressBar();
         deleteItems();
-        new WebRequest(this, 1, 30).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new AsyncWork(this, 1, 30).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     /**
@@ -162,7 +162,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
 
         showProgressBar();
         deleteItems();
-        new WebRequest(this, 2, 30).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key1, key2);
+        new AsyncWork(this, 2, 30).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key1, key2);
     }
 
 
@@ -249,14 +249,14 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
      *
      * @author Dinu
      */
-    private static class WebRequest extends AsyncTask<String, Bean, String> {
+    private static class AsyncWork extends AsyncTask<String, Bean, String> {
         private static WeakReference<MusicFragment> activity;
         private final int type;
         private final int loadingPageNumber;
         private boolean searchSuccess = true;
 
-        public WebRequest(MusicFragment activity, int type, int loadingPageNumber) {
-            WebRequest.activity = new WeakReference<>(activity);
+        public AsyncWork(MusicFragment activity, int type, int loadingPageNumber) {
+            AsyncWork.activity = new WeakReference<>(activity);
             this.type = type;
             this.loadingPageNumber = loadingPageNumber;
         }
@@ -312,13 +312,12 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                 }
 
                 for (int i = loadingPageNumber - 30; i < array.size(); i++) {
-                    JsonElement json2 = array.get(i);
-                    JsonObject ob = json2.getAsJsonObject();
+                    JsonObject jsonObj = array.get(i).getAsJsonObject();
 
-                    String id = ob.get("id").getAsString();
-                    String title = ob.get("title").getAsString();
-                    JsonObject assets = ob.get("assets").getAsJsonObject();
-                    String preview = assets.get("preview_mp3").getAsJsonObject().get("url").getAsString();
+                    String id = jsonObj.get("id").getAsString();
+                    String title = jsonObj.get("title").getAsString();
+                    JsonObject assets = jsonObj.get("assets").getAsJsonObject();
+                    String preview = assets.get("preview_mp3") == null ? null : assets.get("preview_mp3").getAsJsonObject().get("url").getAsString();
 
                     final MusicBean mBean = new MusicBean();
                     mBean.setId(id);
@@ -377,13 +376,12 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                 }
 
                 for (int i = loadingPageNumber - 30; i < array.size(); i++) {
-                    JsonElement json2 = array.get(i);
-                    JsonObject ob = json2.getAsJsonObject();
+                    JsonObject jsonObj = array.get(i).getAsJsonObject();
 
-                    String id = ob.get("id").getAsString();
-                    String title = ob.get("title").getAsString();
-                    JsonObject assets = ob.get("assets").getAsJsonObject();
-                    String preview = assets.get("preview_mp3").getAsJsonObject().get("url").getAsString();
+                    String id = jsonObj.get("id").getAsString();
+                    String title = jsonObj.get("title").getAsString();
+                    JsonObject assets = jsonObj.get("assets").getAsJsonObject();
+                    String preview = assets.get("preview_mp3") == null ? null : assets.get("preview_mp3").getAsJsonObject().get("url").getAsString();
 
                     final MusicBean mBean = new MusicBean();
                     mBean.setId(id);

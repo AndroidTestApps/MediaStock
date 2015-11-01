@@ -229,13 +229,13 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         switch (id) {
 
             case 1:
-                data = new LoadData(this, 1, bundle);
+                data = new AsyncWork(this, 1, bundle);
                 break;
             case 2:
-                data = new LoadData(this, 2, bundle);
+                data = new AsyncWork(this, 2, bundle);
                 break;
             case 3:
-                data = new LoadData(this, 3, bundle);
+                data = new AsyncWork(this, 3, bundle);
                 break;
 
             default:
@@ -313,13 +313,13 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
      *
      * @author Dinu
      */
-    private static class LoadData extends AsyncTaskLoader<Void> {
+    private static class AsyncWork extends AsyncTaskLoader<Void> {
         private static WeakReference<VideosFragment> activity;
         private final Bundle bundle;
         private final int loadingPageNumber;
         private final int type;
 
-        public LoadData(VideosFragment context, int type, Bundle bundle) {
+        public AsyncWork(VideosFragment context, int type, Bundle bundle) {
             super(context.getActivity());
 
             activity = new WeakReference<>(context);
@@ -405,13 +405,12 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                 }
 
                 for (JsonElement element : array) {
-                    JsonElement json2 = element;
-                    JsonObject ob = json2.getAsJsonObject();
+                    JsonObject jsonObj = element.getAsJsonObject();
 
-                    String id = ob.get("id").getAsString();
-                    String description = ob.get("description").getAsString();
-                    JsonObject assets = ob.get("assets").getAsJsonObject();
-                    String preview = assets.get("preview_mp4").getAsJsonObject().get("url").getAsString();
+                    String id = jsonObj.get("id").getAsString();
+                    String description = jsonObj.get("description").getAsString();
+                    JsonObject assets = jsonObj.get("assets").getAsJsonObject();
+                    String preview = assets.get("preview_mp4") == null ? null : assets.get("preview_mp4").getAsJsonObject().get("url").getAsString();
 
                     final VideoBean vBean = new VideoBean();
 
@@ -527,13 +526,12 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                 }
 
                 for (int i = loadingPageNumber - 30; i < array.size(); i++) {
-                    JsonElement json2 = array.get(i);
-                    JsonObject ob = json2.getAsJsonObject();
+                    JsonObject jsonObj = array.get(i).getAsJsonObject();
 
-                    String id = ob.get("id").getAsString();
-                    String description = ob.get("description").getAsString();
-                    JsonObject assets = ob.get("assets").getAsJsonObject();
-                    String preview = assets.get("preview_mp4").getAsJsonObject().get("url").getAsString();
+                    String id = jsonObj.get("id").getAsString();
+                    String description = jsonObj.get("description").getAsString();
+                    JsonObject assets = jsonObj.get("assets").getAsJsonObject();
+                    String preview = assets.get("preview_mp4") == null ? null : assets.get("preview_mp4").getAsJsonObject().get("url").getAsString();
 
                     final VideoBean vBean = new VideoBean();
 
@@ -636,13 +634,12 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                 }
 
                 for (int i = loadingPageNumber - 30; i < array.size(); i++) {
-                    JsonElement json2 = array.get(i);
-                    JsonObject ob = json2.getAsJsonObject();
+                    JsonObject jsonObj = array.get(i).getAsJsonObject();
 
-                    String id = ob.get("id").getAsString();
-                    String description = ob.get("description").getAsString();
-                    JsonObject assets = ob.get("assets").getAsJsonObject();
-                    String preview = assets.get("preview_mp4").getAsJsonObject().get("url").getAsString();
+                    String id = jsonObj.get("id").getAsString();
+                    String description = jsonObj.get("description").getAsString();
+                    JsonObject assets = jsonObj.get("assets").getAsJsonObject();
+                    String preview = assets.get("preview_mp4") == null ? null : assets.get("preview_mp4").getAsJsonObject().get("url").getAsString();
 
                     final VideoBean vBean = new VideoBean();
 

@@ -187,7 +187,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
                     if (viewPager.getCurrentItem() == 0 || viewPager.getCurrentItem() == 1 || viewPager.getCurrentItem() == 2) {
 
-                        if (isFocused)
+                        if (isFocused) // search view opened
                             startSearch(editText.getText().toString(), editText);
                         else
                             openSearchView();

@@ -48,8 +48,9 @@ import java.util.Iterator;
  */
 public class DisplayImageActivity extends AppCompatActivity implements View.OnClickListener {
     private static Handler handler;
-    private static Bitmap bitmap;
+    private int image_id;
     private int width;
+    private boolean imageDB = false;
     private ScrollView sw;
     private ImageView imageView;
     private ImageAdapter adapter;
@@ -64,7 +65,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         setContentView(R.layout.display_image_activity);
         width = getResources().getDisplayMetrics().widthPixels;
 
-        //db = new Database(this);
+        db = new Database(this);
 
         // handle the threads
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -73,6 +74,13 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         // layouts init
         fab_favorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
         fab_favorites.setOnClickListener(this);
+
+        // if the image is already in the database we change the color of the fab favorites
+        if (db.checkExitingImage(getBeanFromIntent().getId())) {
+            imageDB = true;
+            fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FF0000")));
+        }
+
         sw = ((ScrollView) findViewById(R.id.scrollViewDisplayImage));
         imageView = (ImageView) this.findViewById(R.id.imageView_displayImage);
         description = (TextView) this.findViewById(R.id.textView_description_displayImage);
@@ -111,22 +119,23 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             }
         });
 
-        // to handle the UI updates
+        // handler to handle the UI updates
         handler = new MyHandler(this);
-        sw.fullScroll(View.FOCUS_UP);
 
         // get main image
         getMainImage(getBeanFromIntent());
 
         // get the authors name
-        DownloadThread thread1 = new DownloadThread(1);
+        AsyncWork thread1 = new AsyncWork(1);
         thread1.setAuthorID(getBeanFromIntent().getIdContributor());
         new Thread(thread1).start();
 
-        // get the similar images
-        DownloadThread thread2 = new DownloadThread(2);
+        // get similar images
+        AsyncWork thread2 = new AsyncWork(2);
         thread2.setImageID(getBeanFromIntent().getId());
         new Thread(thread2).start();
+
+        sw.fullScroll(View.FOCUS_UP);
     }
 
     /**
@@ -138,11 +147,24 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     public void onClick(View v) {
 
         if (v.getId() == R.id.fab_favorites) {
-            fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FF0000")));
 
-            //db.insertData(bitmap, description.getText().toString(), author.getText().toString());
+            if (imageDB) {
+                imageDB = false;
+                fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
 
-            Toast.makeText(this, "Image added to favorites", Toast.LENGTH_SHORT).show();
+                // delete img from db
+                db.deleteData(image_id);
+
+            } else {
+                imageDB = true;
+                fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FF0000")));
+
+                // thread used to get the favorite image and then save it to database
+                AsyncWork thread = new AsyncWork(3);
+                thread.setUrl((String) imageView.getTag());
+                AsyncWork.setContext(this);
+                new Thread(thread).start();
+            }
         }
     }
 
@@ -150,7 +172,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     public void onDestroy() {
         super.onDestroy();
         imageView.setImageDrawable(null);
-        bitmap = null;
     }
 
     private ImageBean getBeanFromIntent() {
@@ -164,15 +185,12 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
      * @param bean the image bean
      */
     private void getMainImage(ImageBean bean) {
+        image_id = bean.getId();
         sw.fullScroll(View.FOCUS_UP);
 
         if (bean.getUrl() != null) {
 
-            DownloadThread thread = new DownloadThread(3);
-            thread.setUrl(bean.getUrl());
-            DownloadThread.setContext(this);
-            new Thread(thread).start();
-
+            // get main image
             Picasso.with(getApplicationContext()).load(bean.getUrl()).placeholder(R.drawable.border).fit().centerInside().into(imageView);
             imageView.setTag(bean.getUrl());
         }
@@ -191,12 +209,12 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         getMainImage(bean);
 
         // get the authors name
-        DownloadThread thread1 = new DownloadThread(1);
+        AsyncWork thread1 = new AsyncWork(1);
         thread1.setAuthorID(bean.getIdContributor());
         new Thread(thread1).start();
 
         // get the similar images to the current image
-        DownloadThread thread2 = new DownloadThread(2);
+        AsyncWork thread2 = new AsyncWork(2);
         thread2.setImageID(bean.getId());
         new Thread(thread2).start();
     }
@@ -233,6 +251,12 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                     context.adapter.deleteItems();
                     break;
 
+                // save favorite image to database
+                case 4:
+                    context.db.insertData((Bitmap) msg.getData().getParcelable("img"), context.image_id, context.description.getText().toString(), context.author.getText().toString());
+                    Toast.makeText(context, "Image added to favorites", Toast.LENGTH_SHORT).show();
+                    break;
+
                 default:
                     break;
             }
@@ -240,11 +264,11 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     }
 
     /**
-     * Static inner class to download the authors name and the similar images.
+     * Static inner class to download the authors name , the favorite image and the similar images.
      *
      * @author Dinu
      */
-    private static class DownloadThread implements Runnable {
+    private static class AsyncWork implements Runnable {
         private static WeakReference<DisplayImageActivity> activity;
         private final int type;
         private int authorID;
@@ -256,12 +280,12 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
          *
          * @param type 1-get authors name, 2-get similar images
          */
-        public DownloadThread(int type) {
+        public AsyncWork(int type) {
             this.type = type;
         }
 
         public static void setContext(DisplayImageActivity context) {
-            activity = new WeakReference<DisplayImageActivity>(context);
+            activity = new WeakReference<>(context);
         }
 
         @Override
@@ -287,13 +311,29 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         }
 
         private void getImage(String url) {
+            final Bundle bundle = new Bundle();
+            final Message msg = new Message();
 
             try {
-                activity.get().bitmap = Picasso.with(activity.get()).load(url).resize(activity.get().width, activity.get().width).get();
+
+                bundle.putParcelable("img", Picasso.with(activity.get()).load(url).resize(activity.get().width, activity.get().width).get());
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            msg.setData(bundle);
+            msg.what = 4;
+
+            // alert the handler to save the imgage to database
+            handler.post(new Runnable() {
+
+                @Override
+                public void run() {
+
+                    handler.dispatchMessage(msg);
+                }
+            });
         }
 
         private void getAuthor(int id) {

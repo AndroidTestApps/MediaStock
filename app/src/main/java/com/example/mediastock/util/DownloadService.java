@@ -55,7 +55,6 @@ public class DownloadService extends IntentService {
 
             // show progress dialog on the UI
             publishImageResult(null, 2, receiver);
-
             getImages(url, receiver);
 
             // or get music
@@ -63,7 +62,6 @@ public class DownloadService extends IntentService {
 
             // show progress dialog on the UI
             publishMusicResult(null, 2, receiver);
-
             getMusic(url, receiver);
         }
     }
@@ -163,9 +161,9 @@ public class DownloadService extends IntentService {
 
                 if (assets != null) {
                     ib = new ImageBean();
-                    ib.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsInt());
-                    ib.setDescription(jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString());
-                    ib.setIdContributor(jsonObj.get("contributor") == null ? null : jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
+                    ib.setId(jsonObj.get("id").getAsInt());
+                    ib.setDescription(jsonObj.get("description").getAsString());
+                    ib.setIdContributor(jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
                     ib.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
                 }
 
@@ -215,15 +213,14 @@ public class DownloadService extends IntentService {
             }
 
             for (JsonElement element : array) {
-                JsonElement json2 = element;
-                JsonObject ob = json2.getAsJsonObject();
+                JsonObject jsonObj = element.getAsJsonObject();
 
-                String id = ob.get("id").getAsString();
-                String title = ob.get("title").getAsString();
-                JsonObject assets = ob.get("assets").getAsJsonObject();
-                String preview = assets.get("preview_mp3").getAsJsonObject().get("url").getAsString();
+                String id = jsonObj.get("id").getAsString();
+                String title = jsonObj.get("title").getAsString();
+                JsonObject assets = jsonObj.get("assets").getAsJsonObject();
+                String preview = assets.get("preview_mp3") == null ? null : assets.get("preview_mp3").getAsJsonObject().get("url").getAsString();
 
-                MusicBean mBean = new MusicBean();
+                final MusicBean mBean = new MusicBean();
                 mBean.setId(id);
                 mBean.setPreview(preview);
                 mBean.setTitle(title);

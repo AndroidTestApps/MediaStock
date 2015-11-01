@@ -64,7 +64,7 @@ public class Utilities {
     /**
      * Convert from byte array to bitmap and then to drawable
      */
-    public static BitmapDrawable convertToBitmap(byte[] image, Context context) {
+    public static BitmapDrawable convertToBitmapDrawable(byte[] image, Context context) {
         return new BitmapDrawable(context.getResources(), BitmapFactory.decodeByteArray(image, 0, image.length));
     }
 
