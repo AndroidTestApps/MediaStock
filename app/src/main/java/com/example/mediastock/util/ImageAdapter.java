@@ -75,7 +75,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
         // scrolled to the bottom
         if (position >= pageNumber - 1) {
             if (loadingType == 1 || loadingType == 2)
-                bottom_listener.onBottomLoadMoreData(loadingType, pageNumber + 100);  // load more data
+                bottom_listener.onBottomLoadMoreData(loadingType, pageNumber + 50);  // load more data
         }
     }
 
@@ -95,7 +95,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
 
     public void addItem(ImageBean bean) {
         images.add(bean);
-        notifyDataSetChanged();
+        this.notifyItemInserted(bean.getPos());
     }
 
     public void deleteItems() {

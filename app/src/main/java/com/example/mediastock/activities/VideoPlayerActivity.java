@@ -138,6 +138,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         mediaPlayer = null;
 
         finish();
+        overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
 
     private void playVideo() {

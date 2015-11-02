@@ -146,7 +146,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
         showProgressBar();
         deleteItems();
-        new AsyncWork(this, 1, 100).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new AsyncWork(this, 1, 50).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     /**
@@ -158,14 +158,9 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
         showProgressBar();
         deleteItems();
-        new AsyncWork(this, 2, 100).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key1, key2);
+        new AsyncWork(this, 2, 50).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, key1, key2);
     }
 
-    public void displayFavoriteImages() {
-        showProgressBar();
-        deleteItems();
-        new AsyncWork(this, 3, 100).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-    }
 
     /**
      * Start the filter search. The bundle contains alla the users input.
@@ -232,6 +227,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         intent.putExtra("bean", bundle);
 
         startActivity(intent);
+        getActivity().overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
 
     /**
@@ -298,12 +294,8 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                     searchImagesByKey(params[0], params[1], loadingPageNumber);
                     return params[1] != null ? params[0] + " " + params[1] : params[0];
 
-                case 3:
-                    break;
-
                 default:
                     break;
-
             }
 
             return null;
@@ -347,7 +339,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                 JsonObject assets;
 
                 // get objects
-                for (int i = loadingPageNumber - 100; i < array.size(); i++) {
+                for (int i = loadingPageNumber - 50; i < array.size(); i++) {
                     JsonObject jsonObj = array.get(i).getAsJsonObject();
                     ImageBean ib = null;
 
@@ -359,6 +351,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                         ib.setDescription(jsonObj.get("description").getAsString());
                         ib.setIdContributor(jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
                         ib.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
+                        ib.setPos(i);
                     }
 
                     // update UI
@@ -411,7 +404,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                 }
 
                 JsonObject assets;
-                for (int i = loadingPageNumber - 100; i < array.size(); i++) {
+                for (int i = loadingPageNumber - 50; i < array.size(); i++) {
                     JsonObject jsonObj = array.get(i).getAsJsonObject();
                     ImageBean ib = null;
                     assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
@@ -422,6 +415,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                         ib.setDescription(jsonObj.get("description").getAsString());
                         ib.setIdContributor(jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
                         ib.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
+                        ib.setPos(i);
                     }
 
                     // update UI

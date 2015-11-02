@@ -120,6 +120,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                 intent.putExtra("title", b.getTitle());
 
                 startActivity(intent);
+                getActivity().overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
             }
         });
 
@@ -272,7 +273,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         protected String doInBackground(String... params) {
 
             if (type == 1)
-                getRecentMusic(loadingPageNumber);
+                getRecentMusic(0, loadingPageNumber);
             else {
                 searchMusicByKey(params[0], params[1], loadingPageNumber);
 
@@ -285,9 +286,10 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         /**
          * Method to get the music from the server. It gets the id, the title and the url preview.
          */
-        private void getRecentMusic(int loadingPageNumber) {
+        private void getRecentMusic(int day, int loadingPageNumber) {
             String urlStr = "https://api.shutterstock.com/v2/audio/search?per_page=";
-            urlStr += loadingPageNumber + "&added_date_start=2013-01-01";
+            urlStr += loadingPageNumber + "&added_date_start=";
+            urlStr += Utilities.getDate(day);
 
             Log.i("url", urlStr);
 
@@ -307,8 +309,11 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                 JsonArray array = o.get("data").getAsJsonArray();
 
                 if (array.size() < 1) {
-                    publishProgress((MusicBean) null);
+                    int yesterday = day;
+                    yesterday += 1;
+                    getRecentMusic(yesterday, loadingPageNumber);
                     return;
+                    // publishProgress((MusicBean) null);
                 }
 
                 for (int i = loadingPageNumber - 30; i < array.size(); i++) {
@@ -323,6 +328,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                     mBean.setId(id);
                     mBean.setPreview(preview);
                     mBean.setTitle(title);
+                    mBean.setPos(i);
 
                     // update the UI
                     publishProgress(mBean);
@@ -346,7 +352,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
          */
         private void searchMusicByKey(String key1, String key2, int loadingPageNumber) {
             String urlStr = "https://@api.shutterstock.com/v2/audio/search?per_page=";
-            urlStr += loadingPageNumber + "&title=";
+            urlStr += loadingPageNumber + "&query=";
 
             if (key2 != null)
                 urlStr += key1 + "/" + key2;
@@ -387,6 +393,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                     mBean.setId(id);
                     mBean.setPreview(preview);
                     mBean.setTitle(title);
+                    mBean.setPos(i);
 
                     // update the UI
                     publishProgress(mBean);

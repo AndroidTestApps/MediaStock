@@ -7,7 +7,8 @@ public class MusicBean extends Bean {
 	private String id;
 	private String title;
 	private String preview;
-	
+    private int pos;
+
 
 	public String getPreview() {
 		return preview;
@@ -41,4 +42,13 @@ public class MusicBean extends Bean {
 		dest.writeString(id);
 		dest.writeString(title);
 	}
+
+    @Override
+    public int getPos() {
+        return pos;
+    }
+
+    public void setPos(int pos) {
+        this.pos = pos;
+    }
 }

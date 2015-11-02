@@ -174,6 +174,12 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         imageView.setImageDrawable(null);
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
+    }
+
     private ImageBean getBeanFromIntent() {
         return getIntent().getBundleExtra("bean").getParcelable("bean");
     }
@@ -412,6 +418,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
                 JsonObject assets;
                 Iterator<JsonElement> iterator = array.iterator();
+                int i = 0;
                 while (iterator.hasNext()) {
                     JsonObject jsonObj = iterator.next().getAsJsonObject();
                     ImageBean ib = null;
@@ -424,7 +431,10 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                         ib.setDescription(jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString());
                         ib.setIdContributor(jsonObj.get("contributor") == null ? null : jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
                         ib.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
+                        ib.setPos(i);
                     }
+
+                    i++;
 
                     if (ib != null) {
 

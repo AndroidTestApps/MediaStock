@@ -120,6 +120,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                 intent.putExtra("description", bean.getDescription());
 
                 startActivity(intent);
+                getActivity().overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
             }
         });
 
@@ -377,6 +378,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
             InputStream is = null;
 
+            Log.i("url", urlStr);
             try {
                 URL url = new URL(urlStr);
                 URLConnection conn = url.openConnection();
@@ -404,6 +406,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                     return;
                 }
 
+                int i = 0;
                 for (JsonElement element : array) {
                     JsonObject jsonObj = element.getAsJsonObject();
 
@@ -436,7 +439,9 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
                     vBean.setId(id);
                     vBean.setPreview(preview);
+                    vBean.setPos(i);
                     times++;
+                    i++;
 
                     // dismiss progress
                     handler.post(new Runnable() {
@@ -557,6 +562,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
                     vBean.setId(id);
                     vBean.setPreview(preview);
+                    vBean.setPos(i);
                     times++;
 
                     // dismiss progress
@@ -665,6 +671,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
                     vBean.setId(id);
                     vBean.setPreview(preview);
+                    vBean.setPos(i);
                     times++;
 
                     // dismiss progress

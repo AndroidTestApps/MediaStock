@@ -33,14 +33,6 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
 
         icon_music = context.getResources().getDrawable(R.drawable.music);
         icon_video = context.getResources().getDrawable(R.drawable.video);
-
-        this.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
-            @Override
-            public void onChanged() {
-                super.onChanged();
-            }
-        });
-
     }
 
     public void setPageNumber(int number) {
@@ -83,7 +75,8 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
 
         // scrolled to the bottom
         if (position >= pageNumber - 1)
-            bottomListener.onBottomLoadMoreData(loadingType, pageNumber + 30); // load more data
+            if (loadingType == 1 || loadingType == 2)
+                bottomListener.onBottomLoadMoreData(loadingType, pageNumber + 30); // load more data
     }
 
     @Override
@@ -93,7 +86,7 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
 
     public void addItem(Bean bean) {
         list.add(bean);
-        notifyDataSetChanged();
+        notifyItemInserted(bean.getPos());
     }
 
     public void deleteItems() {

@@ -6,7 +6,8 @@ public class VideoBean extends Bean {
 	private String id;
 	private String description;
 	private String preview;
-	
+    private int pos;
+
 	public String getDescription() {
 		return description;
 	}
@@ -39,4 +40,12 @@ public class VideoBean extends Bean {
 		
 	}
 
+    @Override
+    public int getPos() {
+        return pos;
+    }
+
+    public void setPos(int pos) {
+        this.pos = pos;
+    }
 }

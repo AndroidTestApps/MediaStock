@@ -22,6 +22,7 @@ public class ImageBean extends Bean{
 	private int idContributor;
     private Drawable image;
     private String author;
+    private int pos;
 
 	public ImageBean(){}
 
@@ -99,4 +100,12 @@ public class ImageBean extends Bean{
 	}
 
 
+    @Override
+    public int getPos() {
+        return pos;
+    }
+
+    public void setPos(int pos) {
+        this.pos = pos;
+    }
 }

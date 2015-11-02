@@ -121,6 +121,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
         mediaPlayer.release();
         mediaPlayer = null;
         this.finish();
+        overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
 
 

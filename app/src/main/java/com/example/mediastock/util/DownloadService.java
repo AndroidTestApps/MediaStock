@@ -4,6 +4,7 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.ResultReceiver;
+import android.util.Log;
 
 import com.example.mediastock.activities.FilterImageFragment;
 import com.example.mediastock.activities.FilterMusicFragment;
@@ -134,6 +135,7 @@ public class DownloadService extends IntentService {
     private void getImages(String urlStr, ResultReceiver receiver) {
         InputStream is = null;
 
+        Log.i("url", urlStr);
         try {
             URL url = new URL(urlStr);
             URLConnection conn = url.openConnection();
@@ -152,6 +154,7 @@ public class DownloadService extends IntentService {
                 return;
             }
 
+            int i = 0;
             JsonObject assets;
             for (JsonElement element : array) {
                 JsonObject jsonObj = element.getAsJsonObject();
@@ -165,7 +168,10 @@ public class DownloadService extends IntentService {
                     ib.setDescription(jsonObj.get("description").getAsString());
                     ib.setIdContributor(jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
                     ib.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
+                    ib.setPos(i);
                 }
+
+                i++;
 
                 // update UI
                 if (ib != null)
@@ -194,6 +200,8 @@ public class DownloadService extends IntentService {
     private void getMusic(String urlStr, ResultReceiver receiver) {
         InputStream is = null;
 
+        Log.i("url", urlStr);
+
         try {
             URL url = new URL(urlStr);
             URLConnection conn = url.openConnection();
@@ -212,6 +220,7 @@ public class DownloadService extends IntentService {
                 return;
             }
 
+            int i = 0;
             for (JsonElement element : array) {
                 JsonObject jsonObj = element.getAsJsonObject();
 
@@ -224,6 +233,9 @@ public class DownloadService extends IntentService {
                 mBean.setId(id);
                 mBean.setPreview(preview);
                 mBean.setTitle(title);
+                mBean.setPos(i);
+
+                i++;
 
                 // update the UI
                 publishMusicResult(mBean, 1, receiver);
