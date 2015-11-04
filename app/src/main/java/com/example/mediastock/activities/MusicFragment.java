@@ -148,7 +148,6 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         if (!isOnline())
             return;
 
-        // show progress
         showProgressBar();
         deleteItems();
         new AsyncWork(this, 1, 30).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -205,6 +204,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
      * It shows the progress bar
      */
     private void showProgressBar() {
+        recyclerView.scrollToPosition(0);
         recyclerView.setVisibility(View.GONE);
         progressBar.setVisibility(View.VISIBLE);
     }
@@ -226,7 +226,8 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         switch (resultCode) {
 
             case 1:
-                dismissProgressBar();
+                if (progressBar.isShown())
+                    dismissProgressBar();
 
                 MusicBean bean = resultData.getParcelable(DownloadService.MUSIC_BEAN);
 
@@ -239,6 +240,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                 break;
 
             default:
+                dismissProgressBar();
                 Toast.makeText(context, "Search failed", Toast.LENGTH_LONG).show();
                 break;
         }
@@ -313,7 +315,6 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                     yesterday += 1;
                     getRecentMusic(yesterday, loadingPageNumber);
                     return;
-                    // publishProgress((MusicBean) null);
                 }
 
                 for (int i = loadingPageNumber - 30; i < array.size(); i++) {

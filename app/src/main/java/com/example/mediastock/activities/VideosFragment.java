@@ -209,6 +209,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
      * It shows the progress bar
      */
     private void showProgressBar() {
+        recyclerView.scrollToPosition(0);
         recyclerView.setVisibility(View.GONE);
         progressBar.setVisibility(View.VISIBLE);
     }
@@ -300,7 +301,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                 case 4:
                     context.dismissProgressBar();
                     Toast.makeText(context.getActivity(), "No video was found", Toast.LENGTH_SHORT).show();
-
                     break;
 
                 default:
@@ -360,7 +360,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
             String category = bundle.getString(FilterVideoFragment.CATEGORY);
             String word = bundle.getString(FilterVideoFragment.WORD);
 
-            if (!category.isEmpty())
+            if (!category.equals("None"))
                 url += "&category=" + category.substring(0, 1).toUpperCase() + category.substring(1);
 
             if (!word.isEmpty())
@@ -712,7 +712,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                 }
             }
         }
-
     }
 }
 

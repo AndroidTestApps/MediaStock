@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
      <string-array name="category_array">
+         <item>None</item>
         <item>Transportation</item>
         <item>Animals/Wildlife</item>
         <item>Buildings/Landmarks</item>

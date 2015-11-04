@@ -171,6 +171,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main, menu);
+        menu.getItem(1).setIcon(R.drawable.ic_action_expand);
 
         return super.onCreateOptionsMenu(menu);
     }

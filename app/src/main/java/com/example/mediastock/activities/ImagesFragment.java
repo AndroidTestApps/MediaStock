@@ -2,8 +2,6 @@ package com.example.mediastock.activities;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -90,7 +88,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         view = inflater.inflate(R.layout.images_fragment, container, false);
         progressBar = (ProgressBar) view.findViewById(R.id.p_img_bar);
         progressBar_bottom = (ProgressBar) view.findViewById(R.id.p_img_bar_bottom);
-        progressBar_bottom.getIndeterminateDrawable().setColorFilter(Color.YELLOW, PorterDuff.Mode.MULTIPLY);
+        //progressBar_bottom.getIndeterminateDrawable().setColorFilter(Color.YELLOW, PorterDuff.Mode.MULTIPLY);
 
         compute();
 
@@ -201,6 +199,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
      * It shows the progress bar
      */
     private void showProgressBar() {
+        recyclerView.scrollToPosition(0);
         recyclerView.setVisibility(View.GONE);
         progressBar.setVisibility(View.VISIBLE);
     }
@@ -252,6 +251,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                 break;
 
             default:
+                dismissProgressBar();
                 Toast.makeText(context, "Search failed", Toast.LENGTH_LONG).show();
                 break;
         }

@@ -99,8 +99,10 @@ public class DownloadService extends IntentService {
             String url = "https://@api.shutterstock.com/v2/images/search?safe=true";
 
             url += "&per_page=" + bundle.getString(FilterImageFragment.PER_PAGE);
-            url += "&category=" + bundle.getString(FilterImageFragment.CATEGORY);
             url += "&sort=" + bundle.getString(FilterImageFragment.SORT_BY).toLowerCase();
+
+            if (!bundle.getString(FilterImageFragment.CATEGORY).equals("None"))
+                url += "&category=" + bundle.getString(FilterImageFragment.CATEGORY);
 
             if (!bundle.getString(FilterImageFragment.ORIENTATION).equals("All"))
                 url += "&orientation=" + bundle.getString(FilterImageFragment.ORIENTATION).toLowerCase();
