@@ -83,26 +83,27 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         super.onCreate(savedInstanceState);
         context = this.getActivity().getApplicationContext();
 
-        if (!isOnline())
-            return null;
-
         view = inflater.inflate(R.layout.music_fragment, container, false);
-        progressBar = (ProgressBar) view.findViewById(R.id.p_bar);
-        progressbar_bottom = (ProgressBar) view.findViewById(R.id.p_bar_bottom);
-        progressbar_bottom.getIndeterminateDrawable().setColorFilter(Color.BLACK, PorterDuff.Mode.MULTIPLY);
-
-        compute();
 
         return view;
     }
 
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        compute();
+    }
+
     /**
-     * Initialize the UI components and get the recent music
+     * Method to initialize the UI components and get the recent music.
      */
     private void compute() {
         final MusicFragment fragment = this;
 
-        // music list
+        progressBar = (ProgressBar) view.findViewById(R.id.p_bar);
+        progressbar_bottom = (ProgressBar) view.findViewById(R.id.p_bar_bottom);
+        progressbar_bottom.getIndeterminateDrawable().setColorFilter(Color.BLACK, PorterDuff.Mode.MULTIPLY);
         recyclerView = (RecyclerView) view.findViewById(R.id.list_music_galery);
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager llm = new LinearLayoutManager(context);
@@ -296,7 +297,6 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
             Log.i("url", urlStr);
 
             InputStream is = null;
-
             try {
                 URL url = new URL(urlStr);
                 URLConnection conn = url.openConnection();
@@ -319,20 +319,19 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
 
                 for (int i = loadingPageNumber - 30; i < array.size(); i++) {
                     JsonObject jsonObj = array.get(i).getAsJsonObject();
-
-                    String id = jsonObj.get("id").getAsString();
-                    String title = jsonObj.get("title").getAsString();
                     JsonObject assets = jsonObj.get("assets").getAsJsonObject();
-                    String preview = assets.get("preview_mp3") == null ? null : assets.get("preview_mp3").getAsJsonObject().get("url").getAsString();
+                    final MusicBean bean = new MusicBean();
 
-                    final MusicBean mBean = new MusicBean();
-                    mBean.setId(id);
-                    mBean.setPreview(preview);
-                    mBean.setTitle(title);
-                    mBean.setPos(i);
+                    if (assets != null) {
+                        bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
+                        bean.setTitle(jsonObj.get("title") == null ? null : jsonObj.get("title").getAsString());
+                        bean.setPreview(assets.get("preview_mp3") == null ? null : assets.get("preview_mp3").getAsJsonObject().get("url").getAsString());
+                    }
+
+                    bean.setPos(i);
 
                     // update the UI
-                    publishProgress(mBean);
+                    publishProgress(bean);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -384,20 +383,19 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
 
                 for (int i = loadingPageNumber - 30; i < array.size(); i++) {
                     JsonObject jsonObj = array.get(i).getAsJsonObject();
-
-                    String id = jsonObj.get("id").getAsString();
-                    String title = jsonObj.get("title").getAsString();
                     JsonObject assets = jsonObj.get("assets").getAsJsonObject();
-                    String preview = assets.get("preview_mp3") == null ? null : assets.get("preview_mp3").getAsJsonObject().get("url").getAsString();
+                    final MusicBean bean = new MusicBean();
 
-                    final MusicBean mBean = new MusicBean();
-                    mBean.setId(id);
-                    mBean.setPreview(preview);
-                    mBean.setTitle(title);
-                    mBean.setPos(i);
+                    if (assets != null) {
+                        bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
+                        bean.setTitle(jsonObj.get("title") == null ? null : jsonObj.get("title").getAsString());
+                        bean.setPreview(assets.get("preview_mp3") == null ? null : assets.get("preview_mp3").getAsJsonObject().get("url").getAsString());
+                    }
+
+                    bean.setPos(i);
 
                     // update the UI
-                    publishProgress(mBean);
+                    publishProgress(bean);
                 }
             } catch (IOException e) {
                 e.printStackTrace();

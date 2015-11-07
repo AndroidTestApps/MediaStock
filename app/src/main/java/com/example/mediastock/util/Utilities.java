@@ -2,9 +2,11 @@
 package com.example.mediastock.util;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
+
+import com.example.mediastock.R;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -64,8 +66,20 @@ public class Utilities {
     /**
      * Convert from byte array to bitmap and then to drawable
      */
-    public static BitmapDrawable convertToBitmapDrawable(byte[] image, Context context) {
-        return new BitmapDrawable(context.getResources(), BitmapFactory.decodeByteArray(image, 0, image.length));
+    public static Bitmap convertToBitmap(byte[] image) {
+        return BitmapFactory.decodeByteArray(image, 0, image.length);
     }
 
+    public static int getToolbarHeight(Context context) {
+        final TypedArray styledAttributes = context.getTheme().obtainStyledAttributes(
+                new int[]{R.attr.actionBarSize});
+        int toolbarHeight = (int) styledAttributes.getDimension(0, 0);
+        styledAttributes.recycle();
+
+        return toolbarHeight;
+    }
+
+    public static int getTabsHeight(Context context) {
+        return (int) context.getResources().getDimension(R.dimen.tabsHeight);
+    }
 }

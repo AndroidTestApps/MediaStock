@@ -3,10 +3,12 @@ package com.example.mediastock.activities;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
@@ -41,6 +43,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
     private ViewPager viewPager;
     private boolean isFocused = false;
     private EditText editText;
+    private FloatingActionButton favorites;
 
     /**
      * We parse the users input
@@ -73,6 +76,8 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         if (!isOnline())
             showAlertDialog();
 
+        //LeakCanary.install(getApplication());
+
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         tabLayout.setTabTextColors(ColorStateList.valueOf(Color.parseColor("#e7ff5800")));
         tabLayout.setSelectedTabIndicatorColor(Color.WHITE);
@@ -83,6 +88,8 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         tabLayout.addTab(tabLayout.newTab().setText("Filter videos"));
         tabLayout.addTab(tabLayout.newTab().setText("Filter music"));
 
+        favorites = (FloatingActionButton) this.findViewById(R.id.fab_fav);
+        favorites.bringToFront();
         viewPager = (ViewPager) findViewById(R.id.pager);
         adapter = new CustomPagerAdapter(getSupportFragmentManager(), tabLayout.getTabCount(), getFragments());
         viewPager.setAdapter(adapter);
@@ -96,8 +103,60 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
             }
+
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
+            }
+        });
+
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                switch (position) {
+
+                    case 0:
+                    case 1:
+                    case 2:
+                        favorites.setVisibility(View.VISIBLE);
+                        break;
+
+                    case 3:
+                    case 4:
+                    case 5:
+                        favorites.setVisibility(View.GONE);
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+        });
+
+
+        favorites.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                switch (viewPager.getCurrentItem()) {
+
+                    // Images
+                    case 0:
+                        Intent intent = new Intent(getApplicationContext(), FavoriteImagesActivity.class);
+                        startActivity(intent);
+                        overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
+                        break;
+
+                    default:
+                        break;
+                }
             }
         });
     }
@@ -109,7 +168,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
     /**
      * Callback method to do a filter search of the images
-     * @param bundle bundle that contains the users editText
+     * @param bundle bundle that contains the users input
      */
     @Override
     public void handleFilterImage(Bundle bundle) {
@@ -120,7 +179,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
     /**
      * Callback method to do a filter search of the music
-     * @param bundle bundle that contains the users editText
+     * @param bundle bundle that contains the users input
      */
     @Override
     public void handleFilterMusic(Bundle bundle) {
@@ -131,7 +190,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
     /**
      * Callback method to do a filter search of the videos
-     * @param bundle bundle that contains the users editText
+     * @param bundle bundle that contains the users input
      */
     @Override
     public void handleFilterVideo(Bundle bundle) {
@@ -171,7 +230,6 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main, menu);
-        menu.getItem(1).setIcon(R.drawable.ic_action_expand);
 
         return super.onCreateOptionsMenu(menu);
     }
@@ -350,5 +408,4 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
         return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
     }
-
 }

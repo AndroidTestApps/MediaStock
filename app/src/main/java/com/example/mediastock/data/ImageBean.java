@@ -1,6 +1,5 @@
 package com.example.mediastock.data;
 
-import android.graphics.drawable.Drawable;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -20,11 +19,13 @@ public class ImageBean extends Bean{
 	private String description;
 	private String url;
 	private int idContributor;
-    private Drawable image;
+    private byte[] image;
     private String author;
     private int pos;
+    private int byteArrayLength;
 
-	public ImageBean(){}
+    public ImageBean() {
+    }
 
 	public ImageBean(Parcel in) {
 		readFromParcel(in);
@@ -62,11 +63,11 @@ public class ImageBean extends Bean{
 		this.idContributor = idContributor;
 	}
 
-    public Drawable getImage() {
+    public byte[] getImage() {
         return image;
     }
 
-    public void setImage(Drawable image) {
+    public void setImage(byte[] image) {
         this.image = image;
     }
 
@@ -90,6 +91,10 @@ public class ImageBean extends Bean{
 		dest.writeInt(idContributor);
 		dest.writeString(description);
 		dest.writeString(url);
+        dest.writeString(author);
+        dest.writeInt(byteArrayLength);
+        dest.writeByteArray(image);
+
 	}
 
 	private void readFromParcel(Parcel in) {
@@ -97,6 +102,14 @@ public class ImageBean extends Bean{
 		idContributor = in.readInt();
 		description = in.readString();
 		url = in.readString();
+        author = in.readString();
+        byteArrayLength = in.readInt();
+
+        if (byteArrayLength > 0) {
+            image = new byte[byteArrayLength];
+            in.readByteArray(image);
+        }
+
 	}
 
 
@@ -107,5 +120,13 @@ public class ImageBean extends Bean{
 
     public void setPos(int pos) {
         this.pos = pos;
+    }
+
+    public int getByteArrayLength() {
+        return byteArrayLength;
+    }
+
+    public void setByteArrayLength(int byteArrayLength) {
+        this.byteArrayLength = byteArrayLength;
     }
 }

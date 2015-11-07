@@ -66,17 +66,10 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         super.onSaveInstanceState(outState);
     }
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
     }
 
 
@@ -86,22 +79,25 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         context = this.getActivity().getApplicationContext();
 
         view = inflater.inflate(R.layout.images_fragment, container, false);
-        progressBar = (ProgressBar) view.findViewById(R.id.p_img_bar);
-        progressBar_bottom = (ProgressBar) view.findViewById(R.id.p_img_bar_bottom);
-        //progressBar_bottom.getIndeterminateDrawable().setColorFilter(Color.YELLOW, PorterDuff.Mode.MULTIPLY);
-
-        compute();
 
         return view;
     }
 
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        compute();
+    }
+
     /**
-     * Initialize the UI components and get the recent images
+     * Method to initialize the UI components and get the recent images.
      */
     private void compute() {
         final ImagesFragment fragment = this;
 
-        // grid images
+        progressBar = (ProgressBar) view.findViewById(R.id.p_img_bar);
+        progressBar_bottom = (ProgressBar) view.findViewById(R.id.p_img_bar_bottom);
         recyclerView = (RecyclerView) view.findViewById(R.id.gridView_displayImage);
         recyclerView.setHasFixedSize(true);
         GridLayoutManager grid = new GridLayoutManager(context, 2);
@@ -117,7 +113,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
             }
         });
 
-        // endless list; load more data when reaching the bottom of the view
+        // endless list which loads more data when reaching the bottom of the view
         adapter.setOnBottomListener(new ImageAdapter.OnBottomListener() {
             @Override
             public void onBottomLoadMoreData(int loadingType, int loadingPageNumber) {
@@ -214,14 +210,13 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
 
     /**
-     * Method which redirects the user to DisplayImageActivity
+     * Method which redirects the user to DisplayImageActivity to see the details of the image.
      *
      * @param bean the image bean
      */
     private void goToDisplayImageActivity(ImageBean bean) {
         Intent intent = new Intent(context, DisplayImageActivity.class);
-
-        Bundle bundle = new Bundle();
+        final Bundle bundle = new Bundle();
         bundle.putParcelable("bean", bean);
         intent.putExtra("bean", bundle);
 
@@ -336,27 +331,23 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                     return;
                 }
 
-                JsonObject assets;
-
                 // get objects
                 for (int i = loadingPageNumber - 50; i < array.size(); i++) {
                     JsonObject jsonObj = array.get(i).getAsJsonObject();
-                    ImageBean ib = null;
-
-                    assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
+                    JsonObject assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
+                    final ImageBean bean = new ImageBean();
 
                     if (assets != null) {
-                        ib = new ImageBean();
-                        ib.setId(jsonObj.get("id").getAsInt());
-                        ib.setDescription(jsonObj.get("description").getAsString());
-                        ib.setIdContributor(jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
-                        ib.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
-                        ib.setPos(i);
+                        bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsInt());
+                        bean.setDescription(jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString());
+                        bean.setIdContributor(jsonObj.get("contributor") == null ? null : jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
+                        bean.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
                     }
 
+                    bean.setPos(i);
+
                     // update UI
-                    if (ib != null)
-                        publishProgress(ib);
+                    publishProgress(bean);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -403,24 +394,22 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                     return;
                 }
 
-                JsonObject assets;
                 for (int i = loadingPageNumber - 50; i < array.size(); i++) {
                     JsonObject jsonObj = array.get(i).getAsJsonObject();
-                    ImageBean ib = null;
-                    assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
+                    JsonObject assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
+                    final ImageBean bean = new ImageBean();
 
                     if (assets != null) {
-                        ib = new ImageBean();
-                        ib.setId(jsonObj.get("id").getAsInt());
-                        ib.setDescription(jsonObj.get("description").getAsString());
-                        ib.setIdContributor(jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
-                        ib.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
-                        ib.setPos(i);
+                        bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsInt());
+                        bean.setDescription(jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString());
+                        bean.setIdContributor(jsonObj.get("contributor") == null ? null : jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
+                        bean.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
                     }
 
+                    bean.setPos(i);
+
                     // update UI
-                    if (ib != null)
-                        publishProgress(ib);
+                    publishProgress(bean);
                 }
             } catch (IOException e) {
                 e.printStackTrace();

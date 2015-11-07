@@ -4,7 +4,6 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.ResultReceiver;
-import android.util.Log;
 
 import com.example.mediastock.activities.FilterImageFragment;
 import com.example.mediastock.activities.FilterMusicFragment;
@@ -137,7 +136,6 @@ public class DownloadService extends IntentService {
     private void getImages(String urlStr, ResultReceiver receiver) {
         InputStream is = null;
 
-        Log.i("url", urlStr);
         try {
             URL url = new URL(urlStr);
             URLConnection conn = url.openConnection();
@@ -157,27 +155,23 @@ public class DownloadService extends IntentService {
             }
 
             int i = 0;
-            JsonObject assets;
             for (JsonElement element : array) {
                 JsonObject jsonObj = element.getAsJsonObject();
-                ImageBean ib = null;
-
-                assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
+                JsonObject assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
+                final ImageBean bean = new ImageBean();
 
                 if (assets != null) {
-                    ib = new ImageBean();
-                    ib.setId(jsonObj.get("id").getAsInt());
-                    ib.setDescription(jsonObj.get("description").getAsString());
-                    ib.setIdContributor(jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
-                    ib.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
-                    ib.setPos(i);
+                    bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsInt());
+                    bean.setDescription(jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString());
+                    bean.setIdContributor(jsonObj.get("contributor") == null ? null : jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
+                    bean.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
                 }
 
+                bean.setPos(i);
                 i++;
 
                 // update UI
-                if (ib != null)
-                    publishImageResult(ib, 1, receiver);
+                publishImageResult(bean, 1, receiver);
 
             }
         } catch (IOException e) {
@@ -202,8 +196,6 @@ public class DownloadService extends IntentService {
     private void getMusic(String urlStr, ResultReceiver receiver) {
         InputStream is = null;
 
-        Log.i("url", urlStr);
-
         try {
             URL url = new URL(urlStr);
             URLConnection conn = url.openConnection();
@@ -225,22 +217,20 @@ public class DownloadService extends IntentService {
             int i = 0;
             for (JsonElement element : array) {
                 JsonObject jsonObj = element.getAsJsonObject();
-
-                String id = jsonObj.get("id").getAsString();
-                String title = jsonObj.get("title").getAsString();
                 JsonObject assets = jsonObj.get("assets").getAsJsonObject();
-                String preview = assets.get("preview_mp3") == null ? null : assets.get("preview_mp3").getAsJsonObject().get("url").getAsString();
+                final MusicBean bean = new MusicBean();
 
-                final MusicBean mBean = new MusicBean();
-                mBean.setId(id);
-                mBean.setPreview(preview);
-                mBean.setTitle(title);
-                mBean.setPos(i);
+                if (assets != null) {
+                    bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
+                    bean.setTitle(jsonObj.get("title") == null ? null : jsonObj.get("title").getAsString());
+                    bean.setPreview(assets.get("preview_mp3") == null ? null : assets.get("preview_mp3").getAsJsonObject().get("url").getAsString());
+                }
 
+                bean.setPos(i);
                 i++;
 
                 // update the UI
-                publishMusicResult(mBean, 1, receiver);
+                publishMusicResult(bean, 1, receiver);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -252,7 +242,6 @@ public class DownloadService extends IntentService {
                 e.printStackTrace();
             }
         }
-
     }
 
     /**

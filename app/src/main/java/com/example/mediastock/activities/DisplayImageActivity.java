@@ -55,7 +55,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     private ImageView imageView;
     private ImageAdapter adapter;
     private RecyclerView recyclerView;
-    private TextView description, author;
+    private TextView description, author, similarImg;
     private FloatingActionButton fab_favorites;
     private Database db;
 
@@ -74,26 +74,57 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         // layouts init
         fab_favorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
         fab_favorites.setOnClickListener(this);
-
-        // if the image is already in the database we change the color of the fab favorites
-        if (db.checkExitingImage(getBeanFromIntent().getId())) {
-            imageDB = true;
-            fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FF0000")));
-        }
-
         sw = ((ScrollView) findViewById(R.id.scrollViewDisplayImage));
         imageView = (ImageView) this.findViewById(R.id.imageView_displayImage);
         description = (TextView) this.findViewById(R.id.textView_description_displayImage);
+        similarImg = (TextView) this.findViewById(R.id.TextView_similar_displayImage);
         author = (TextView) this.findViewById(R.id.TextView_contributor_displayImage);
+        recyclerView = (RecyclerView) this.findViewById(R.id.image_home_ScrollView);
 
-        // main image
+        // main image layout
         RelativeLayout relativeLayout = (RelativeLayout) this.findViewById(R.id.Rel_layout);
         ViewGroup.LayoutParams param = relativeLayout.getLayoutParams();
         param.height = width + 5;
         relativeLayout.setLayoutParams(param);
 
-        // similar images
-        recyclerView = (RecyclerView) this.findViewById(R.id.image_home_ScrollView);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(DisplayImageActivity.this, FullViewImageActivity.class);
+                intent.putExtra("image", (String) imageView.getTag());
+                startActivity(intent);
+            }
+        });
+
+        // if offline
+        if (getIntentType() == 2)
+            computeOfflineWork();
+        else
+            computeOnlineWork();
+    }
+
+    /**
+     * Compute the offline work. It gets from the local database the favorite image, the description and the authors name.
+     */
+    private void computeOfflineWork() {
+        recyclerView.setVisibility(View.GONE);
+        similarImg.setVisibility(View.GONE);
+
+        ImageBean bean = getBeanFromIntent();
+        image_id = bean.getId();
+        checkExistingImageInDB(image_id);
+
+        imageView.setImageBitmap(Utilities.convertToBitmap(bean.getImage()));
+        description.setText(bean.getDescription());
+        author.setText(bean.getAuthor());
+    }
+
+    /**
+     * Compute the online work. It gets from the server the main image, the authors name, the description and the similar images.
+     */
+    private void computeOnlineWork() {
+
+        // layout for the similar images
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.HORIZONTAL);
         recyclerView.setLayoutManager(llm);
@@ -107,15 +138,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             public void onImageClick(View view, int position) {
 
                 updateUI(adapter.getBeanAt(position));
-            }
-        });
-
-        imageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(DisplayImageActivity.this, FullViewImageActivity.class);
-                intent.putExtra("image", (String) imageView.getTag());
-                startActivity(intent);
             }
         });
 
@@ -134,9 +156,8 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         AsyncWork thread2 = new AsyncWork(2);
         thread2.setImageID(getBeanFromIntent().getId());
         new Thread(thread2).start();
-
-        sw.fullScroll(View.FOCUS_UP);
     }
+
 
     /**
      * Favorites action button
@@ -148,16 +169,21 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
         if (v.getId() == R.id.fab_favorites) {
 
+            // if the image is already in the database
             if (imageDB) {
                 imageDB = false;
                 fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
+                fab_favorites.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_important));
 
                 // delete img from db
-                db.deleteData(image_id);
+                db.deleteImage(image_id);
+                Toast.makeText(getApplicationContext(), "Image removed from favorites", Toast.LENGTH_SHORT).show();
 
+                // if not
             } else {
                 imageDB = true;
-                fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FF0000")));
+                fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+                fab_favorites.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_important_yel));
 
                 // thread used to get the favorite image and then save it to database
                 AsyncWork thread = new AsyncWork(3);
@@ -180,10 +206,26 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
 
+    private int getIntentType() {
+        return getIntent().getBundleExtra("bean").getInt("type");
+    }
+
     private ImageBean getBeanFromIntent() {
         return getIntent().getBundleExtra("bean").getParcelable("bean");
     }
 
+    /**
+     * Method to check in the local database to an existing image.
+     *
+     * @param id the id of the image
+     */
+    private void checkExistingImageInDB(int id) {
+        if (db.checkExitingImage(id)) {
+            imageDB = true;
+            fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+            fab_favorites.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_important_yel));
+        }
+    }
 
     /**
      * It downloads the main image from the server
@@ -193,6 +235,9 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     private void getMainImage(ImageBean bean) {
         image_id = bean.getId();
         sw.fullScroll(View.FOCUS_UP);
+
+        // if the image is already in the database we change the color of the fab favorites
+        checkExistingImageInDB(image_id);
 
         if (bean.getUrl() != null) {
 
@@ -206,11 +251,13 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     }
 
     /**
-     * Method which updates the UI with the new image, authors name and similar images
+     * Method which updates the UI with the new image, authors name and the similar images.
      *
      * @param bean the image bean
      */
     private void updateUI(ImageBean bean) {
+        checkExistingImageInDB(bean.getId());
+
         // get image
         getMainImage(bean);
 
@@ -259,7 +306,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
                 // save favorite image to database
                 case 4:
-                    context.db.insertData((Bitmap) msg.getData().getParcelable("img"), context.image_id, context.description.getText().toString(), context.author.getText().toString());
+                    context.db.insertImage((Bitmap) msg.getData().getParcelable("img"), context.image_id, context.description.getText().toString(), context.author.getText().toString());
                     Toast.makeText(context, "Image added to favorites", Toast.LENGTH_SHORT).show();
                     break;
 
@@ -270,7 +317,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     }
 
     /**
-     * Static inner class to download the authors name , the favorite image and the similar images.
+     * Static inner class to download the authors name, the favorite image and the similar images.
      *
      * @author Dinu
      */
@@ -308,7 +355,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                     break;
 
                 case 3:
-                    getImage(url);
+                    getFavoriteImage(url);
 
                 default:
                     break;
@@ -316,7 +363,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
         }
 
-        private void getImage(String url) {
+        private void getFavoriteImage(String url) {
             final Bundle bundle = new Bundle();
             final Message msg = new Message();
 
@@ -421,39 +468,35 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                 int i = 0;
                 while (iterator.hasNext()) {
                     JsonObject jsonObj = iterator.next().getAsJsonObject();
-                    ImageBean ib = null;
-
+                    ImageBean ib = new ImageBean();
                     assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
 
                     if (assets != null) {
-                        ib = new ImageBean();
+
                         ib.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsInt());
                         ib.setDescription(jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString());
                         ib.setIdContributor(jsonObj.get("contributor") == null ? null : jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
                         ib.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
-                        ib.setPos(i);
                     }
 
+                    ib.setPos(i);
                     i++;
 
-                    if (ib != null) {
+                    // update the UI with the image
+                    final Bundle bundle = new Bundle();
+                    final Message msg = new Message();
+                    bundle.putParcelable("bean", ib);
+                    msg.setData(bundle);
+                    msg.what = 2;
 
-                        // update the UI with the image
-                        final Bundle bundle = new Bundle();
-                        final Message msg = new Message();
-                        bundle.putParcelable("bean", ib);
-                        msg.setData(bundle);
-                        msg.what = 2;
+                    // update the UI with the new similar images
+                    handler.post(new Runnable() {
 
-                        // update the UI with the new similar images
-                        handler.post(new Runnable() {
-
-                            @Override
-                            public void run() {
-                                handler.dispatchMessage(msg);
-                            }
-                        });
-                    }
+                        @Override
+                        public void run() {
+                            handler.dispatchMessage(msg);
+                        }
+                    });
                 }
             } catch (IOException e) {
                 e.printStackTrace();

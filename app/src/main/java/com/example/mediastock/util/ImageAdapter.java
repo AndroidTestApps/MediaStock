@@ -7,7 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 import com.example.mediastock.R;
 import com.example.mediastock.data.ImageBean;
@@ -22,7 +22,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
     private int loadingType;
     private int pageNumber;
     private ArrayList<ImageBean> images = new ArrayList<>();
-    private LinearLayout.LayoutParams layout_param;
+    private RelativeLayout.LayoutParams layout_param;
     private OnImageClickListener image_listener;
     private OnBottomListener bottom_listener;
     private Context activity;
@@ -30,26 +30,18 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
 
     public ImageAdapter(Context context, int type) {
         this.type = type;
-        activity = context;
-        width = context.getResources().getDisplayMetrics().widthPixels;
+        this.activity = context;
+        this.width = context.getResources().getDisplayMetrics().widthPixels;
 
         if (type == 2) {
-            layout_param = new LinearLayout.LayoutParams(width / 3, width / 3);
+            layout_param = new RelativeLayout.LayoutParams(width / 3, width / 3);
             layout_param.setMargins(0, 2, 2, 2);
 
         } else {
-            layout_param = new LinearLayout.LayoutParams(width / 2, width / 2);
+            layout_param = new RelativeLayout.LayoutParams(width / 2, width / 2);
             layout_param.setMargins(3, 2, 0, 2);
         }
 
-    }
-
-    public void setOnBottomListener(final OnBottomListener listener) {
-        this.bottom_listener = listener;
-    }
-
-    public void setOnImageClickListener(final OnImageClickListener listener) {
-        this.image_listener = listener;
     }
 
     @Override
@@ -62,14 +54,14 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
     @Override
     public void onBindViewHolder(MyHolder holder, int position) {
         ImageBean item = images.get(position);
-        holder.ivIcon.setLayoutParams(layout_param);
 
         if (item.getUrl() != null) {
             if (type == 2)
                 Picasso.with(activity).load(Uri.parse(item.getUrl())).resize(width / 3, width / 3).placeholder(R.drawable.border).centerCrop().into(holder.ivIcon);
             else
                 Picasso.with(activity).load(Uri.parse(item.getUrl())).resize(width / 2, width / 2).placeholder(R.drawable.border).centerCrop().into(holder.ivIcon);
-        }
+        } else
+            holder.ivIcon.setBackgroundResource(R.drawable.border);
 
 
         // scrolled to the bottom
@@ -83,6 +75,14 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
     @Override
     public int getItemCount() {
         return images.size();
+    }
+
+    public void setOnBottomListener(final OnBottomListener listener) {
+        this.bottom_listener = listener;
+    }
+
+    public void setOnImageClickListener(final OnImageClickListener listener) {
+        this.image_listener = listener;
     }
 
     public ImageBean getBeanAt(int position) {
@@ -109,11 +109,16 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
         this.loadingType = loading_type;
     }
 
+    /**
+     * Interface used to load more data when reaching the end of the current list of images
+     */
     public interface OnBottomListener {
         void onBottomLoadMoreData(int loadingType, int loadingPageNumber);
     }
 
-
+    /**
+     * Interface used to signal a click on the image
+     */
     public interface OnImageClickListener {
         void onImageClick(View view, int position);
     }
@@ -127,6 +132,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
 
             ref = new WeakReference<>(adapter);
             ivIcon = (ImageView) itemView.findViewById(R.id.ivIcon);
+            ivIcon.setLayoutParams(ref.get().layout_param);
             ivIcon.setOnClickListener(this);
         }
 

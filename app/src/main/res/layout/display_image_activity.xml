@@ -5,7 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/theme"
+    android:background="#ff7300"
     android:isScrollContainer="true"
     android:orientation="vertical">
 
@@ -88,7 +88,9 @@
                 android:layout_alignParentRight="true"
                 android:layout_alignParentStart="false"
                 android:src="@drawable/abc_btn_rating_star_on_mtrl_alpha"
-                app:backgroundTint="#838383"></android.support.design.widget.FloatingActionButton>
+                app:backgroundTint="#838383"
+                app:borderWidth="0dp"
+                app:elevation="6dp"/>
 
         </RelativeLayout>
     </RelativeLayout>

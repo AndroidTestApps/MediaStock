@@ -82,27 +82,28 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         super.onCreate(savedInstanceState);
         context = this.getActivity().getApplicationContext();
 
-        if (!isOnline())
-            return null;
-
         view = inflater.inflate(R.layout.video_fragment, container, false);
-        progressBar = (ProgressBar) view.findViewById(R.id.p_bar);
-        progressBar_bottom = (ProgressBar) view.findViewById(R.id.p_bar_bottom);
-        progressBar_bottom.getIndeterminateDrawable().setColorFilter(Color.BLACK, PorterDuff.Mode.MULTIPLY);
-        handler = new MyHandler(this);
-
-        compute();
 
         return view;
     }
 
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        compute();
+    }
+
     /**
-     * Initialize the UI components and get the recent videos
+     * Method to initialize the UI components and get the recent videos.
      */
     private void compute() {
         final VideosFragment fragment = this;
 
-        // video list
+        handler = new MyHandler(this);
+        progressBar = (ProgressBar) view.findViewById(R.id.p_bar);
+        progressBar_bottom = (ProgressBar) view.findViewById(R.id.p_bar_bottom);
+        progressBar_bottom.getIndeterminateDrawable().setColorFilter(Color.BLACK, PorterDuff.Mode.MULTIPLY);
         recyclerView = (RecyclerView) view.findViewById(R.id.list_video_galery);
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager llm = new LinearLayoutManager(context);
@@ -385,9 +386,6 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                 conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
                 is = conn.getInputStream();
 
-                String temp = "";
-                int times = 1;
-
                 BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
                 String jsonText = Utilities.readAll(rd);
 
@@ -406,41 +404,35 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                     return;
                 }
 
+                StringBuilder temp = new StringBuilder();
+                temp.append("");
+                int times = 2;
                 int i = 0;
+
                 for (JsonElement element : array) {
                     JsonObject jsonObj = element.getAsJsonObject();
-
-                    String id = jsonObj.get("id").getAsString();
-                    String description = jsonObj.get("description").getAsString();
                     JsonObject assets = jsonObj.get("assets").getAsJsonObject();
-                    String preview = assets.get("preview_mp4") == null ? null : assets.get("preview_mp4").getAsJsonObject().get("url").getAsString();
+                    final VideoBean bean = new VideoBean();
 
-                    final VideoBean vBean = new VideoBean();
+                    if (assets != null) {
+                        bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
+                        bean.setPreview(assets.get("preview_mp4") == null ? null : assets.get("preview_mp4").getAsJsonObject().get("url").getAsString());
+                        String description = jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString();
 
-                    if (temp.length() == 0) {
-                        temp = description;
-                        vBean.setDescription(description);
+                        if (description != null) {
+                            if (temp.toString().equals(description)) {
+                                bean.setDescription(description + " - " + times);
+                                times++;
 
-                    } else {
-
-                        if (temp.equals(description)) {
-                            StringBuilder s = new StringBuilder();
-                            s.append(description + " - " + times);
-                            vBean.setDescription(s.toString());
-
-                        } else {
-                            StringBuilder s = new StringBuilder();
-                            s.append(description + " - " + "1");
-                            vBean.setDescription(s.toString());
-                            temp = description;
-                            times = 1;
+                            } else {
+                                bean.setDescription(description);
+                                temp.replace(0, temp.length(), description);
+                                times = 2;
+                            }
                         }
                     }
 
-                    vBean.setId(id);
-                    vBean.setPreview(preview);
-                    vBean.setPos(i);
-                    times++;
+                    bean.setPos(i);
                     i++;
 
                     // dismiss progress
@@ -456,7 +448,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                     final Message msg = new Message();
 
                     // set the video bean
-                    bundle.putParcelable("bean", vBean);
+                    bundle.putParcelable("bean", bean);
                     msg.setData(bundle);
                     msg.what = 1;
 
@@ -496,15 +488,11 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
             Log.i("url", urlStr);
 
             InputStream is = null;
-
             try {
                 URL url = new URL(urlStr);
                 URLConnection conn = url.openConnection();
                 conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
                 is = conn.getInputStream();
-
-                String temp = "";
-                int times = 1;
 
                 BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
                 String jsonText = Utilities.readAll(rd);
@@ -530,40 +518,34 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                     return;
                 }
 
+                StringBuilder temp = new StringBuilder();
+                temp.append("");
+                int times = 2;
+
                 for (int i = loadingPageNumber - 30; i < array.size(); i++) {
                     JsonObject jsonObj = array.get(i).getAsJsonObject();
-
-                    String id = jsonObj.get("id").getAsString();
-                    String description = jsonObj.get("description").getAsString();
                     JsonObject assets = jsonObj.get("assets").getAsJsonObject();
-                    String preview = assets.get("preview_mp4") == null ? null : assets.get("preview_mp4").getAsJsonObject().get("url").getAsString();
+                    final VideoBean bean = new VideoBean();
 
-                    final VideoBean vBean = new VideoBean();
+                    if (assets != null) {
+                        bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
+                        bean.setPreview(assets.get("preview_mp4") == null ? null : assets.get("preview_mp4").getAsJsonObject().get("url").getAsString());
+                        String description = jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString();
 
-                    if (temp.length() == 0) {
-                        temp = description;
-                        vBean.setDescription(description);
+                        if (description != null) {
+                            if (temp.toString().equals(description)) {
+                                bean.setDescription(description + " - " + times);
+                                times++;
 
-                    } else {
-
-                        if (temp.equals(description)) {
-                            StringBuilder s = new StringBuilder();
-                            s.append(description + " - " + times);
-                            vBean.setDescription(s.toString());
-
-                        } else {
-                            StringBuilder s = new StringBuilder();
-                            s.append(description + " - " + "1");
-                            vBean.setDescription(s.toString());
-                            temp = description;
-                            times = 1;
+                            } else {
+                                bean.setDescription(description);
+                                temp.replace(0, temp.length(), description);
+                                times = 2;
+                            }
                         }
                     }
 
-                    vBean.setId(id);
-                    vBean.setPreview(preview);
-                    vBean.setPos(i);
-                    times++;
+                    bean.setPos(i);
 
                     // dismiss progress
                     handler.post(new Runnable() {
@@ -578,7 +560,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                     final Message msg = new Message();
 
                     // set the video bean
-                    bundle.putParcelable("bean", vBean);
+                    bundle.putParcelable("bean", bean);
                     msg.setData(bundle);
                     msg.what = 1;
 
@@ -615,15 +597,11 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
             Log.i("url", urlStr);
 
             InputStream is = null;
-
             try {
                 URL url = new URL(urlStr);
                 URLConnection conn = url.openConnection();
                 conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
                 is = conn.getInputStream();
-
-                String temp = "";
-                int times = 1;
 
                 BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
                 String jsonText = Utilities.readAll(rd);
@@ -639,40 +617,35 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                     return;
                 }
 
+                StringBuilder temp = new StringBuilder();
+                temp.append("");
+                int times = 2;
+
                 for (int i = loadingPageNumber - 30; i < array.size(); i++) {
                     JsonObject jsonObj = array.get(i).getAsJsonObject();
-
-                    String id = jsonObj.get("id").getAsString();
-                    String description = jsonObj.get("description").getAsString();
                     JsonObject assets = jsonObj.get("assets").getAsJsonObject();
-                    String preview = assets.get("preview_mp4") == null ? null : assets.get("preview_mp4").getAsJsonObject().get("url").getAsString();
+                    final VideoBean bean = new VideoBean();
 
-                    final VideoBean vBean = new VideoBean();
+                    if (assets != null) {
+                        bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
+                        bean.setPreview(assets.get("preview_mp4") == null ? null : assets.get("preview_mp4").getAsJsonObject().get("url").getAsString());
+                        String description = jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString();
 
-                    if (temp.length() == 0) {
-                        temp = description;
-                        vBean.setDescription(description);
+                        if (description != null) {
 
-                    } else {
+                            if (temp.toString().equals(description)) {
+                                bean.setDescription(description + " - " + times);
+                                times++;
 
-                        if (temp.equals(description)) {
-                            StringBuilder s = new StringBuilder();
-                            s.append(description + " - " + times);
-                            vBean.setDescription(s.toString());
-
-                        } else {
-                            StringBuilder s = new StringBuilder();
-                            s.append(description + " - " + "1");
-                            vBean.setDescription(s.toString());
-                            temp = description;
-                            times = 1;
+                            } else {
+                                bean.setDescription(description);
+                                temp.replace(0, temp.length(), description);
+                                times = 2;
+                            }
                         }
                     }
 
-                    vBean.setId(id);
-                    vBean.setPreview(preview);
-                    vBean.setPos(i);
-                    times++;
+                    bean.setPos(i);
 
                     // dismiss progress
                     handler.post(new Runnable() {
@@ -687,7 +660,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                     final Message msg = new Message();
 
                     // set the video bean
-                    bundle.putParcelable("bean", vBean);
+                    bundle.putParcelable("bean", bean);
                     msg.setData(bundle);
                     msg.what = 1;
 

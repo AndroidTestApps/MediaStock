@@ -145,4 +145,5 @@ public class FilterImageFragment extends AbstractFragment implements OnItemSelec
     public interface FilterImageMessage {
         void handleFilterImage(Bundle bundle);
     }
+
 }

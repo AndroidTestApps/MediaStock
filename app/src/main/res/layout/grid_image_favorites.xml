@@ -6,10 +6,21 @@
                 android:orientation="vertical">
 
     <ImageView
-        android:id="@+id/ivIcon"
+        android:id="@+id/ivIconn"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_gravity="center"
         android:adjustViewBounds="true"
-        android:scaleType="centerCrop"/>
+        android:scaleType="centerCrop"
+        />
+
+
+    <ImageView
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_alignBottom="@+id/ivIconn"
+        android:layout_alignEnd="@+id/ivIconn"
+        android:layout_gravity="right"
+        android:src="@drawable/ic_action_important_yel"/>
 
 </RelativeLayout>
