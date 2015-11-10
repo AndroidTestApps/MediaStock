@@ -5,7 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ff7300"
+    android:background="#ffffff"
     android:isScrollContainer="true"
     android:orientation="vertical">
 
@@ -14,85 +14,106 @@
         android:layout_height="match_parent"
         >
 
-        <TextView
-            android:id="@+id/textView_description_displayImage"
-            android:layout_width="fill_parent"
+        <RelativeLayout
+            android:id="@+id/textViews"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/Rel_layout"
-            android:layout_marginTop="2dp"
-            android:background="@drawable/shape"
-            android:padding="10dp"
-            android:text="Description:"
-            android:textColor="#ffffff"/>
+            android:layout_below="@+id/Rel_layout">
 
-        <TextView
-            android:id="@+id/TextView_contributor_displayImage"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/textView_description_displayImage"
-            android:layout_marginTop="2dp"
-            android:background="@drawable/shape"
-            android:padding="10dp"
-            android:text="Author:"
-            android:textColor="#ffffff"/>
+            <TextView
+                android:id="@+id/textView_description_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:paddingStart="10dp"
+                android:text="Description"
+                android:textColor="#DE000000"
+                />
 
-        <TextView
-            android:id="@+id/TextView_similar_displayImage"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/TextView_contributor_displayImage"
-            android:layout_marginTop="2dp"
-            android:background="@drawable/shape"
-            android:padding="10dp"
-            android:text="@string/similar"
-            android:textColor="#ffffff"/>
+            <TextView
+                android:id="@+id/textView_description_displayImage"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/textView_description_label"
+                android:paddingBottom="10dp"
+                android:paddingEnd="5dp"
+                android:paddingStart="10dp"
+                android:paddingTop="4dp"
+                android:text="text"
+                android:textColor="#8A000000"/>
 
+            <TextView
+                android:id="@+id/TextView_contributor_label"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/textView_description_displayImage"
+                android:layout_marginTop="5dp"
+                android:paddingStart="10dp"
+                android:text="Author"
+                android:textColor="#DE000000"/>
+
+            <TextView
+                android:id="@+id/TextView_contributor_displayImage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/TextView_contributor_label"
+                android:paddingBottom="10dp"
+                android:paddingEnd="5dp"
+                android:paddingStart="10dp"
+                android:paddingTop="4dp"
+                android:text="John"
+                android:textColor="#8A000000"/>
+
+            <TextView
+                android:id="@+id/TextView_similar_displayImage"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/TextView_contributor_displayImage"
+                android:layout_marginTop="5dp"
+                android:paddingBottom="10dp"
+                android:paddingStart="10dp"
+                android:text="@string/similar"
+                android:textColor="#DE000000"/>
+        </RelativeLayout>
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/image_home_ScrollView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
-            android:layout_below="@+id/TextView_similar_displayImage"
+            android:layout_below="@+id/textViews"
             android:layout_marginBottom="4dp"
             android:layout_marginLeft="1dp"
             android:layout_marginRight="1dp"
             android:background="#000000">
-
         </android.support.v7.widget.RecyclerView>
+
 
         <RelativeLayout
             android:id="@+id/Rel_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
             android:background="#000000"
             >
-
             <ImageView
                 android:id="@+id/imageView_displayImage"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_alignParentTop="true"
-                android:layout_centerHorizontal="true"
-                android:layout_margin="1dp"
                 />
-
-
-            <android.support.design.widget.FloatingActionButton
-                android:id="@+id/fab_favorites"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentEnd="false"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentStart="false"
-                android:src="@drawable/abc_btn_rating_star_on_mtrl_alpha"
-                app:backgroundTint="#838383"
-                app:borderWidth="0dp"
-                app:elevation="6dp"/>
-
         </RelativeLayout>
-    </RelativeLayout>
 
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab_favorites"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/Rel_layout"
+            android:layout_alignParentRight="true"
+            android:layout_marginBottom="-32dp"
+            android:clickable="true"
+            android:src="@drawable/abc_btn_rating_star_on_mtrl_alpha"
+            app:backgroundTint="#838383"
+            app:borderWidth="0dp"
+            />
+    </RelativeLayout>
 </ScrollView>
+

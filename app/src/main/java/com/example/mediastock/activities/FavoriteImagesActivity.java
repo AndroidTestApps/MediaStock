@@ -7,7 +7,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ProgressBar;
 
@@ -31,9 +30,6 @@ public class FavoriteImagesActivity extends AppCompatActivity {
         db = new Database(this);
 
         // layout init
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setTitle("Favorite images");
         recyclerView = (RecyclerView) this.findViewById(R.id.gridView_fav_images);
         recyclerView.setHasFixedSize(true);
         progressBar = (ProgressBar) this.findViewById(R.id.p_img_bar);
@@ -56,11 +52,11 @@ public class FavoriteImagesActivity extends AppCompatActivity {
     /**
      * Method to start the DisplayImageActivity to see the details of the image selected.
      *
-     * @param cursor   the cursor of the query database
-     * @param position the position in the adapter
+     * @param cursor the cursor of the query
+     * @param position the position of the selected image
      */
     private void goToDisplayImageActivity(Cursor cursor, int position) {
-        ImageBean bean = new ImageBean();
+        final ImageBean bean = new ImageBean();
         cursor.moveToPosition(position);
 
         bean.setId(cursor.getInt(cursor.getColumnIndex(Database.IMG_ID)));

@@ -40,27 +40,14 @@ public class Database extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void deleteTableFavorites() {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_FAVORITES);
-    }
-
-    public void createTable() {
-        SQLiteDatabase db = this.getWritableDatabase();
-        final String db_create = "create table " + TABLE_FAVORITES +
-                "(_id integer primary key, " + IMAGE + " blob, " + IMG_ID + " integer, " + DESCRIPTION + " text, " + AUTHOR + " text)";
-
-        db.execSQL(db_create);
-    }
 
 
     public Cursor getImages() {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res = db.rawQuery("select * from " + TABLE_FAVORITES, null);
-        res.moveToFirst();
-        db.close();
+        Cursor cursor = db.rawQuery("select * from " + TABLE_FAVORITES, null);
+        cursor.moveToFirst();
 
-        return res;
+        return cursor;
     }
 
 
@@ -73,7 +60,7 @@ public class Database extends SQLiteOpenHelper {
     }
 
 
-    public long insertImage(Bitmap image, int imgId, String description, String author) {
+    public void insertImage(Bitmap image, int imgId, String description, String author) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
 
@@ -82,10 +69,8 @@ public class Database extends SQLiteOpenHelper {
         contentValues.put(DESCRIPTION, description);
         contentValues.put(AUTHOR, author);
 
-        long id = db.insert(TABLE_FAVORITES, null, contentValues);
+        db.insert(TABLE_FAVORITES, null, contentValues);
         db.close();
-
-        return id;
     }
 
 
@@ -103,6 +88,19 @@ public class Database extends SQLiteOpenHelper {
         return false;
     }
 
+
+    public void deleteTableFavorites() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_FAVORITES);
+    }
+
+    public void createTable() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        final String db_create = "create table " + TABLE_FAVORITES +
+                "(_id integer primary key, " + IMAGE + " blob, " + IMG_ID + " integer, " + DESCRIPTION + " text, " + AUTHOR + " text)";
+
+        db.execSQL(db_create);
+    }
 
 }
 

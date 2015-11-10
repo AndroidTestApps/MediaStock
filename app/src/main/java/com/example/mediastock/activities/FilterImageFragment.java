@@ -49,25 +49,25 @@ public class FilterImageFragment extends AbstractFragment implements OnItemSelec
         initList();
 
         Spinner category = (Spinner) view.findViewById(R.id.spinner_category);
-        ArrayAdapter<CharSequence> adapter_category = ArrayAdapter.createFromResource(context, R.array.category_array, android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> adapter_category = ArrayAdapter.createFromResource(context, R.array.category_array, R.layout.spinner_item);
         adapter_category.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         category.setAdapter(adapter_category);
         category.setOnItemSelectedListener(this);
 
         Spinner orientation = (Spinner) view.findViewById(R.id.spinner_orientation);
-        ArrayAdapter<String> adapter_orientation =  new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, orientation_list);
+        ArrayAdapter<String> adapter_orientation = new ArrayAdapter<>(context, R.layout.spinner_item, orientation_list);
         adapter_orientation.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         orientation.setAdapter(adapter_orientation);
         orientation.setOnItemSelectedListener(this);
 
         Spinner sortBy = (Spinner) view.findViewById(R.id.spinner_sortBy);
-        ArrayAdapter<CharSequence> adapter_sortBy = ArrayAdapter.createFromResource(context, R.array.sortby_array, android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> adapter_sortBy = ArrayAdapter.createFromResource(context, R.array.sortby_array, R.layout.spinner_item);
         adapter_sortBy.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sortBy.setAdapter(adapter_sortBy);
         sortBy.setOnItemSelectedListener(this);
 
         Spinner page = (Spinner) view.findViewById(R.id.spinner_per_page);
-        ArrayAdapter<CharSequence> adapter_page = ArrayAdapter.createFromResource(context, R.array.per_page_array, android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> adapter_page = ArrayAdapter.createFromResource(context, R.array.per_page_array, R.layout.spinner_item);
         adapter_page.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         page.setAdapter(adapter_page);
         page.setOnItemSelectedListener(this);

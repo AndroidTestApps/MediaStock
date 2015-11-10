@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+
 import com.example.mediastock.R;
 
 
@@ -48,19 +49,19 @@ public class FilterVideoFragment extends AbstractFragment implements OnItemSelec
         word = (EditText) view.findViewById(R.id.editTextVideo_word);
 
         Spinner category = (Spinner) view.findViewById(R.id.spinnerVideo_category);
-        ArrayAdapter<CharSequence> adapter_category = ArrayAdapter.createFromResource(context, R.array.category_array, android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> adapter_category = ArrayAdapter.createFromResource(context, R.array.category_array, R.layout.spinner_item);
         adapter_category.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         category.setAdapter(adapter_category);
         category.setOnItemSelectedListener(this);
 
         Spinner sort = (Spinner) view.findViewById(R.id.spinnerVideo_sort);
-        ArrayAdapter<CharSequence> adapter_sort = ArrayAdapter.createFromResource(context, R.array.sortby_array, android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> adapter_sort = ArrayAdapter.createFromResource(context, R.array.sortby_array, R.layout.spinner_item);
         adapter_sort.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sort.setAdapter(adapter_sort);
         sort.setOnItemSelectedListener(this);
 
         Spinner page = (Spinner) view.findViewById(R.id.spinnerVideo_per_page);
-        ArrayAdapter<CharSequence> adapter_page = ArrayAdapter.createFromResource(context, R.array.per_page_array, android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> adapter_page = ArrayAdapter.createFromResource(context, R.array.per_page_array, R.layout.spinner_item);
         adapter_page.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         page.setAdapter(adapter_page);
         page.setOnItemSelectedListener(this);

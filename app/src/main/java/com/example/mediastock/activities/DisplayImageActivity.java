@@ -84,7 +84,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         // main image layout
         RelativeLayout relativeLayout = (RelativeLayout) this.findViewById(R.id.Rel_layout);
         ViewGroup.LayoutParams param = relativeLayout.getLayoutParams();
-        param.height = width + 5;
+        param.height = width;
         relativeLayout.setLayoutParams(param);
 
         imageView.setOnClickListener(new View.OnClickListener() {
@@ -173,7 +173,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             if (imageDB) {
                 imageDB = false;
                 fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
-                fab_favorites.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_important));
 
                 // delete img from db
                 db.deleteImage(image_id);
@@ -183,7 +182,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             } else {
                 imageDB = true;
                 fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
-                fab_favorites.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_important_yel));
 
                 // thread used to get the favorite image and then save it to database
                 AsyncWork thread = new AsyncWork(3);
@@ -223,7 +221,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         if (db.checkExitingImage(id)) {
             imageDB = true;
             fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
-            fab_favorites.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_important_yel));
         }
     }
 
@@ -242,12 +239,12 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         if (bean.getUrl() != null) {
 
             // get main image
-            Picasso.with(getApplicationContext()).load(bean.getUrl()).placeholder(R.drawable.border).fit().centerInside().into(imageView);
+            Picasso.with(getApplicationContext()).load(bean.getUrl()).resize(width, width).placeholder(R.drawable.border).centerCrop().into(imageView);
             imageView.setTag(bean.getUrl());
         }
 
         // set description of the image
-        description.append(" " + bean.getDescription());
+        description.setText(bean.getDescription());
     }
 
     /**
@@ -291,7 +288,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
                 // update the UI with the authors name
                 case 1:
-                    context.author.append(" " + msg.getData().getString("name"));
+                    context.author.setText(msg.getData().getString("name"));
                     break;
 
                 // update the UI with the similar images

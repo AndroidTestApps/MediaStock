@@ -66,10 +66,12 @@ public class FavoriteImageAdapter extends RecyclerView.Adapter<FavoriteImageAdap
         cursorAdapter.bindView(holder.ivIcon, context, cursorAdapter.getCursor());
     }
 
+
     @Override
     public int getItemCount() {
         return cursorAdapter.getCount();
     }
+
 
     public void setOnImageClickListener(final OnImageClickListener listener) {
         this.image_listener = listener;

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#000000"
-    android:baselineAligned="false"
-    android:orientation="horizontal">
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             android:background="#f1f1f1"
+             android:orientation="horizontal">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/list_music_galery"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="#e2e2e2">
 
     </android.support.v7.widget.RecyclerView>
 
@@ -33,4 +33,4 @@
         android:layout_gravity="center"
         android:visibility="gone"/>
 
-</RelativeLayout>
+</FrameLayout>

@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/theme"
+            android:background="#f2f2f2"
             android:focusable="true"
             android:focusableInTouchMode="true">
 
@@ -49,7 +49,7 @@
                 android:gravity="center|top"
                 android:text="text"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:textColor="@color/black"/>
+                android:textColor="#DE000000"/>
         </LinearLayout>
 
         <TextView
@@ -62,7 +62,7 @@
             android:layout_marginLeft="10dp"
             android:text="0min, 0sec"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="#000000"/>
+            android:textColor="#8A000000"/>
 
         <TextView
             android:id="@+id/textView3_music"
@@ -75,7 +75,7 @@
             android:layout_marginTop="160dp"
             android:text="0min, 0sec"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="#000000"/>
+            android:textColor="#8A000000"/>
 
         <LinearLayout
             android:id="@+id/lin"
@@ -103,7 +103,7 @@
                     android:layout_marginRight="5dp"
                     android:background="@drawable/gradient_edittext"
                     android:text="@string/pause"
-                    android:textColor="#000000"/>
+                    android:textColor="#f4000000"/>
 
                 <Button
                     android:id="@+id/button_mediaPlayer_play"
@@ -114,7 +114,7 @@
                     android:layout_toEndOf="@+id/textView2_music"
                     android:background="@drawable/gradient_edittext"
                     android:text="@string/play"
-                    android:textColor="#000000"/>
+                    android:textColor="#f4000000"/>
             </LinearLayout>
         </LinearLayout>
     </RelativeLayout>

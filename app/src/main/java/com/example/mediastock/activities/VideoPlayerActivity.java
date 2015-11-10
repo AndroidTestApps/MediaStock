@@ -34,9 +34,9 @@ import java.util.concurrent.TimeUnit;
 public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callback, OnSeekBarChangeListener {
     private static Handler myHandler = new Handler();
     public int oneTimeOnly = 0;
+    private WeakReference<SurfaceHolder> surfaceHolder;
     private MediaPlayer mediaPlayer;
     private SurfaceView surfaceView;
-    private SurfaceHolder surfaceHolder;
     private Button play, pause;
     private double startTime = 0;
     private double finalTime = 0;
@@ -95,16 +95,16 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
             getWindow().setFormat(PixelFormat.UNKNOWN);
             surfaceView = (SurfaceView) findViewById(R.id.surfaceview);
-            surfaceHolder = surfaceView.getHolder();
-            surfaceHolder.addCallback(this);
-            surfaceHolder.setSizeFromLayout();
+            surfaceHolder = new WeakReference<>(surfaceView.getHolder());
+            surfaceHolder.get().addCallback(this);
+            surfaceHolder.get().setSizeFromLayout();
 
             play.setOnClickListener(new View.OnClickListener() {
 
                 @Override
                 public void onClick(View v) {
                     pause.setTextColor(Color.BLACK);
-                    play.setTextColor(Color.WHITE);
+                    play.setTextColor(Color.RED);
                     playVideo();
                 }
             });
@@ -114,7 +114,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                 @Override
                 public void onClick(View v) {
                     play.setTextColor(Color.BLACK);
-                    pause.setTextColor(Color.WHITE);
+                    pause.setTextColor(Color.RED);
                     mediaPlayer.pause();
                     pause.setEnabled(false);
                     play.setEnabled(true);
@@ -126,30 +126,45 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
     @Override
     public void onDestroy() {
         super.onDestroy();
-        surfaceView.getHolder().getSurface().release();
-        surfaceView.destroyDrawingCache();
-        surfaceView = null;
+
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+
+        if (surfaceView != null) {
+            surfaceView.getHolder().getSurface().release();
+            surfaceView.destroyDrawingCache();
+            surfaceView = null;
+            surfaceHolder = null;
+        }
     }
 
     @Override
     public void onBackPressed() {
+        super.onBackPressed();
         mediaPlayer.stop();
         mediaPlayer.release();
         mediaPlayer = null;
+
+        surfaceView.destroyDrawingCache();
+        surfaceView = null;
+        surfaceHolder = null;
 
         finish();
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
 
     private void playVideo() {
-        play.setTextColor(Color.WHITE);
+        play.setTextColor(Color.RED);
 
         if (mediaPlayer.isPlaying()) {
             mediaPlayer.reset();
         }
 
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mediaPlayer.setDisplay(surfaceHolder);
+        mediaPlayer.setDisplay(surfaceHolder.get());
 
         finalTime = mediaPlayer.getDuration();
         startTime = mediaPlayer.getCurrentPosition();

@@ -95,7 +95,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
                 @Override
                 public void onClick(View v) {
                     pause.setTextColor(Color.BLACK);
-                    play.setTextColor(Color.WHITE);
+                    play.setTextColor(Color.RED);
                     playMusic();
                 }
             });
@@ -105,7 +105,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
                 @Override
                 public void onClick(View v) {
                     play.setTextColor(Color.BLACK);
-                    pause.setTextColor(Color.WHITE);
+                    pause.setTextColor(Color.RED);
                     mediaPlayer.pause();
                     pause.setEnabled(false);
                     play.setEnabled(true);
@@ -114,6 +114,10 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 
     @Override
     public void onBackPressed() {
@@ -126,7 +130,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
 
 
     private void playMusic() {
-        play.setTextColor(Color.WHITE);
+        play.setTextColor(Color.RED);
         finalTime = mediaPlayer.getDuration();
         startTime = mediaPlayer.getCurrentPosition();
 

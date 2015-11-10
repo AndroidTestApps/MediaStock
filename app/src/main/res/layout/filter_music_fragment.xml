@@ -2,16 +2,15 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/theme"
+            android:background="#e2e2e2"
             android:focusable="true"
             android:focusableInTouchMode="true">
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="500dp"
-        android:layout_gravity="center|top"
-        android:focusable="true">
-
+        android:layout_height="match_parent"
+        android:paddingBottom="30dp"
+        >
 
         <LinearLayout
             android:id="@+id/linearLayoutFilterMusic"
@@ -19,8 +18,8 @@
             android:layout_height="match_parent"
             android:layout_alignParentLeft="true"
             android:layout_alignParentRight="true"
-            android:layout_below="@+id/toolbar"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingBottom="50dp">
 
             <TextView
                 android:id="@+id/filterMusic_artist"
@@ -29,12 +28,12 @@
                 android:layout_gravity="center"
                 android:layout_marginLeft="40dp"
                 android:layout_marginRight="40dp"
-                android:layout_marginTop="40dp"
-                android:background="@drawable/shape"
-                android:gravity="center"
-                android:padding="4dp"
+                android:layout_marginTop="30dp"
+                android:paddingBottom="4dp"
+                android:paddingTop="4dp"
                 android:text="Artist"
-                android:textColor="#ffffff" />
+                android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+                android:textColor="#DE000000"/>
 
             <EditText
                 android:id="@+id/editTextMusic_artist"
@@ -43,10 +42,11 @@
                 android:layout_gravity="center"
                 android:layout_marginLeft="40dp"
                 android:layout_marginRight="40dp"
-                android:background="@drawable/gradient_edittext"
                 android:hint="artist"
-                android:padding="7dp"
-                android:textColor="@color/black" />
+                android:padding="10dp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textColor="#80000000"
+                android:textColorHint="#80000000"/>
 
             <TextView
                 android:id="@+id/filterMusic_title"
@@ -56,11 +56,11 @@
                 android:layout_marginLeft="40dp"
                 android:layout_marginRight="40dp"
                 android:layout_marginTop="15dp"
-                android:background="@drawable/shape"
-                android:gravity="center"
-                android:padding="4dp"
+                android:paddingBottom="4dp"
+                android:paddingTop="4dp"
                 android:text="Title"
-                android:textColor="#ffffff" />
+                android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+                android:textColor="#DE000000"/>
 
             <EditText
                 android:id="@+id/editTextMusic_title"
@@ -69,10 +69,10 @@
                 android:layout_gravity="center"
                 android:layout_marginLeft="40dp"
                 android:layout_marginRight="40dp"
-                android:background="@drawable/gradient_edittext"
                 android:hint="title"
-                android:padding="7dp"
-                android:textColor="@color/black" />
+                android:padding="10dp"
+                android:textColor="#80000000"
+                android:textColorHint="#80000000"/>
 
             <TextView
                 android:id="@+id/filterMusic_genre"
@@ -82,20 +82,20 @@
                 android:layout_marginLeft="40dp"
                 android:layout_marginRight="40dp"
                 android:layout_marginTop="15dp"
-                android:background="@drawable/shape"
-                android:gravity="center"
-                android:padding="4dp"
+                android:paddingBottom="4dp"
+                android:paddingTop="4dp"
                 android:text="Genre"
-                android:textColor="#ffffff" />
+                android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+                android:textColor="#DE000000"/>
 
             <Spinner
                 android:id="@+id/spinnerMusic_genre"
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginLeft="40dp"
                 android:layout_marginRight="40dp"
-                android:background="@drawable/gradient_spinner" />
+                />
 
             <TextView
                 android:id="@+id/filterMusic_per_page"
@@ -105,20 +105,20 @@
                 android:layout_marginLeft="40dp"
                 android:layout_marginRight="40dp"
                 android:layout_marginTop="15dp"
-                android:background="@drawable/shape"
-                android:gravity="center"
-                android:padding="4dp"
+                android:paddingBottom="4dp"
+                android:paddingTop="4dp"
                 android:text="Number of songs"
-                android:textColor="#ffffff" />
+                android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+                android:textColor="#DE000000"/>
 
             <Spinner
                 android:id="@+id/spinnerMusic_per_page"
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginLeft="40dp"
                 android:layout_marginRight="40dp"
-                android:background="@drawable/gradient_spinner" />
+                />
 
             <Button
                 android:id="@+id/filterMusic_button"
@@ -129,7 +129,8 @@
                 android:background="@drawable/shape"
                 android:gravity="center"
                 android:text="Search"
-                android:textColor="@color/color_change"/>
+                android:textColor="@color/color_change"
+                />
         </LinearLayout>
     </RelativeLayout>
 

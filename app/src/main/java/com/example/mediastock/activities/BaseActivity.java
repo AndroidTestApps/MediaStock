@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
@@ -79,7 +78,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         //LeakCanary.install(getApplication());
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
-        tabLayout.setTabTextColors(ColorStateList.valueOf(Color.parseColor("#e7ff5800")));
+        tabLayout.setTabTextColors(Color.parseColor("#FF9F9F9F"), Color.parseColor("#ff453f"));
         tabLayout.setSelectedTabIndicatorColor(Color.WHITE);
         tabLayout.addTab(tabLayout.newTab().setText("Images"));
         tabLayout.addTab(tabLayout.newTab().setText("Videos"));

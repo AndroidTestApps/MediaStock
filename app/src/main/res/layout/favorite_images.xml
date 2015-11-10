@@ -1,48 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    android:id="@+id/main_layout"
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorPrimary"
+    android:background="#000000"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
     >
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:background="?attr/colorPrimary"
-        android:minHeight="?attr/actionBarSize"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
-
-    <RelativeLayout
-        android:id="@+id/frame_fav_images"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/gridView_fav_images"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/toolbar"
-        android:background="#000000">
+        >
 
+    </android.support.v7.widget.RecyclerView>
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/gridView_fav_images"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-        </android.support.v7.widget.RecyclerView>
-
-
-        <ProgressBar
-            android:id="@+id/p_img_bar"
-            style="?android:progressBarStyleLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="gone"/>
-
-    </RelativeLayout>
+    <ProgressBar
+        android:id="@+id/p_img_bar"
+        style="?android:progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab_fav_img_search"
@@ -52,11 +33,10 @@
         android:layout_alignParentEnd="false"
         android:layout_alignParentRight="true"
         android:layout_alignParentStart="false"
-        android:layout_marginBottom="20dp"
-        android:layout_marginRight="5dp"
+        android:layout_gravity="right|bottom"
+        android:layout_marginBottom="6dp"
         android:src="@drawable/abc_ic_menu_moreoverflow_mtrl_alpha"
-        app:backgroundTint="#fa0004"
+        app:backgroundTint="#e2e70b0b"
         app:borderWidth="0dp"
         app:elevation="6dp"/>
-
-</RelativeLayout>
+</FrameLayout>

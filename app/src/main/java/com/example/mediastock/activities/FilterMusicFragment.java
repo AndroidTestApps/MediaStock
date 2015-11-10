@@ -49,13 +49,13 @@ public class FilterMusicFragment extends AbstractFragment implements OnItemSelec
         title = (EditText) view.findViewById(R.id.editTextMusic_title);
 
         Spinner genre = (Spinner) view.findViewById(R.id.spinnerMusic_genre);
-        ArrayAdapter<CharSequence> adapter_genre = ArrayAdapter.createFromResource(context, R.array.genre_array, android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> adapter_genre = ArrayAdapter.createFromResource(context, R.array.genre_array, R.layout.spinner_item);
         adapter_genre.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         genre.setAdapter(adapter_genre);
         genre.setOnItemSelectedListener(this);
 
         Spinner page = (Spinner) view.findViewById(R.id.spinnerMusic_per_page);
-        ArrayAdapter<CharSequence> adapter_page = ArrayAdapter.createFromResource(context, R.array.per_page_array, android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> adapter_page = ArrayAdapter.createFromResource(context, R.array.per_page_array, R.layout.spinner_item);
         adapter_page.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         page.setAdapter(adapter_page);
         page.setOnItemSelectedListener(this);
