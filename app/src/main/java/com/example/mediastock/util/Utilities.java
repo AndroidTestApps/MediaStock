@@ -83,4 +83,5 @@ public class Utilities {
         return (int) context.getResources().getDimension(R.dimen.tabsHeight);
     }
 
+
 }

@@ -2,6 +2,8 @@ package com.example.mediastock.activities;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +16,9 @@ import com.example.mediastock.R;
 import com.example.mediastock.data.Database;
 import com.example.mediastock.data.ImageBean;
 import com.example.mediastock.util.FavoriteImageAdapter;
+import com.example.mediastock.util.Utilities;
+
+import java.lang.ref.WeakReference;
 
 public class FavoriteImagesActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -21,6 +26,7 @@ public class FavoriteImagesActivity extends AppCompatActivity {
     private FavoriteImageAdapter adapter;
     private ProgressBar progressBar;
     private Database db;
+    private Cursor cursor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +34,7 @@ public class FavoriteImagesActivity extends AppCompatActivity {
         setContentView(R.layout.favorite_images);
 
         db = new Database(this);
+        cursor = db.getImages();
 
         // layout init
         recyclerView = (RecyclerView) this.findViewById(R.id.gridView_fav_images);
@@ -37,25 +44,25 @@ public class FavoriteImagesActivity extends AppCompatActivity {
         fab_filter = (FloatingActionButton) this.findViewById(R.id.fab_fav_img_search);
         GridLayoutManager grid = new GridLayoutManager(getApplicationContext(), 2);
         recyclerView.setLayoutManager(grid);
-        adapter = new FavoriteImageAdapter(getApplicationContext(), db.getImages());
+        adapter = new FavoriteImageAdapter(getApplicationContext());
         recyclerView.setAdapter(adapter);
         adapter.setOnImageClickListener(new FavoriteImageAdapter.OnImageClickListener() {
             @Override
             public void onImageClick(View view, int position) {
 
-                goToDisplayImageActivity(adapter.getCursorAdapter().getCursor(), position);
+                goToDisplayImageActivity(position + 1);
             }
         });
 
+        new AsyncWork(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     /**
      * Method to start the DisplayImageActivity to see the details of the image selected.
      *
-     * @param cursor the cursor of the query
      * @param position the position of the selected image
      */
-    private void goToDisplayImageActivity(Cursor cursor, int position) {
+    private void goToDisplayImageActivity(int position) {
         final ImageBean bean = new ImageBean();
         cursor.moveToPosition(position);
 
@@ -78,6 +85,7 @@ public class FavoriteImagesActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        moveTaskToBack(false);
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
 
@@ -86,16 +94,50 @@ public class FavoriteImagesActivity extends AppCompatActivity {
         super.onStop();
 
         // close the cursor
-        adapter.closeCursor();
+        cursor.close();
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
 
-        if (adapter != null && adapter.getCursorAdapter().getCursor().isClosed()) {
+        if (cursor != null && cursor.isClosed()) {
             adapter.notifyDataSetChanged();
-            adapter.getCursorAdapter().changeCursor(db.getImages());
+            cursor = db.getImages();
+        }
+    }
+
+
+    private static class AsyncWork extends AsyncTask<Void, Bitmap, Void> {
+        private static WeakReference<FavoriteImagesActivity> activity;
+        private int pos = 0;
+
+        public AsyncWork(FavoriteImagesActivity context) {
+            activity = new WeakReference<>(context);
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+
+            while (activity.get().cursor.moveToNext())
+                publishProgress(Utilities.convertToBitmap(activity.get().cursor.getBlob(activity.get().cursor.getColumnIndex(Database.IMAGE))));
+
+            return null;
+        }
+
+
+        @Override
+        protected void onProgressUpdate(Bitmap... values) {
+            super.onProgressUpdate(values);
+
+            activity.get().adapter.addItem(values[0], pos);
+            pos++;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            activity = null;
         }
     }
 }

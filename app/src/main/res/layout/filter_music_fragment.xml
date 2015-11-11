@@ -42,7 +42,7 @@
                 android:layout_gravity="center"
                 android:layout_marginLeft="40dp"
                 android:layout_marginRight="40dp"
-                android:hint="artist"
+                android:hint="Artist"
                 android:padding="10dp"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:textColor="#80000000"
@@ -69,7 +69,7 @@
                 android:layout_gravity="center"
                 android:layout_marginLeft="40dp"
                 android:layout_marginRight="40dp"
-                android:hint="title"
+                android:hint="Title"
                 android:padding="10dp"
                 android:textColor="#80000000"
                 android:textColorHint="#80000000"/>

@@ -1,77 +1,66 @@
 package com.example.mediastock.util;
 
 import android.content.Context;
-import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.example.mediastock.R;
-import com.example.mediastock.data.Database;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 
 
 public class FavoriteImageAdapter extends RecyclerView.Adapter<FavoriteImageAdapter.ViewHolder> {
     private final int width;
     private final Context context;
-    private final CursorAdapter cursorAdapter;
     private final RelativeLayout.LayoutParams layout_param;
     private OnImageClickListener image_listener;
+    private ArrayList<Bitmap> list = new ArrayList<>();
 
-    public FavoriteImageAdapter(final Context context, Cursor cursor) {
+    public FavoriteImageAdapter(final Context context) {
         this.context = context;
         this.width = context.getResources().getDisplayMetrics().widthPixels;
         this.layout_param = new RelativeLayout.LayoutParams(width / 2, width / 2);
         this.layout_param.setMargins(3, 2, 0, 2);
-
-        this.cursorAdapter = new CursorAdapter(context, cursor, 0) {
-
-            @Override
-            public View newView(Context context, Cursor cursor, ViewGroup parent) {
-                return LayoutInflater.from(context).inflate(R.layout.grid_image_favorites, parent, false);
-            }
-
-            @Override
-            public void bindView(View view, Context context, Cursor cursor) {
-                ((ImageView) view).setImageBitmap(
-                        Utilities.convertToBitmap(cursor.getBlob(cursor.getColumnIndex(Database.IMAGE))));
-            }
-        };
-    }
-
-
-    public CursorAdapter getCursorAdapter() {
-        return cursorAdapter;
-    }
-
-    public void closeCursor() {
-        cursorAdapter.getCursor().close();
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = cursorAdapter.newView(context, cursorAdapter.getCursor(), parent);
+        View view = LayoutInflater.from(context).inflate(R.layout.grid_image_favorites, parent, false);
 
         return new ViewHolder(view, this);
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        cursorAdapter.getCursor().moveToPosition(position);
-        cursorAdapter.bindView(holder.ivIcon, context, cursorAdapter.getCursor());
+        Bitmap bitmap = list.get(position);
+        holder.ivIcon.setImageBitmap(Bitmap.createScaledBitmap(bitmap, width / 2, width / 2, false));
+        holder.ivIcon.setTag(position);
+        holder.ivIcon.setTag(bitmap);
     }
 
 
     @Override
     public int getItemCount() {
-        return cursorAdapter.getCount();
+        return list.size();
     }
 
+    public void addItem(Bitmap blob, int pos) {
+        list.add(blob);
+        notifyItemInserted(pos);
+    }
+
+    public void deleteItems() {
+        if (!list.isEmpty()) {
+            list.clear();
+            notifyDataSetChanged();
+        }
+    }
 
     public void setOnImageClickListener(final OnImageClickListener listener) {
         this.image_listener = listener;
