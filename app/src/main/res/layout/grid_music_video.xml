@@ -4,30 +4,31 @@
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-                android:layout_marginBottom="2dp"
-                android:layout_marginEnd="4dp"
-                android:layout_marginStart="4dp"
+                android:layout_marginEnd="6dp"
+                android:layout_marginStart="6dp"
                 android:layout_marginTop="2dp">
 
     <android.support.v7.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        card_view:cardBackgroundColor="#f6f6f6"
-        card_view:cardCornerRadius="8dp">
+        card_view:cardBackgroundColor="#fffafafa"
+        card_view:cardCornerRadius="6dp"
+        card_view:cardElevation="4dp"
+        card_view:cardUseCompatPadding="true">
 
         <LinearLayout
             android:id="@+id/l_music"
             android:layout_width="fill_parent"
             android:layout_height="70dp"
-            android:layout_margin="4dp"
+            android:layout_margin="2dp"
             android:gravity="center"
             android:orientation="horizontal"
-            android:padding="3dp">
+            >
 
             <ImageView
                 android:id="@+id/ivIcon_music_video"
                 android:layout_width="60dp"
-                android:layout_height="60dp" />
+                android:layout_height="70dp"/>
 
             <TextView
                 android:id="@+id/textView_grid_music_video"

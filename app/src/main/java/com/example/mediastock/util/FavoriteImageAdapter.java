@@ -19,8 +19,9 @@ public class FavoriteImageAdapter extends RecyclerView.Adapter<FavoriteImageAdap
     private final int width;
     private final Context context;
     private final RelativeLayout.LayoutParams layout_param;
+    private final ArrayList<Bitmap> list = new ArrayList<>();
     private OnImageClickListener image_listener;
-    private ArrayList<Bitmap> list = new ArrayList<>();
+
 
     public FavoriteImageAdapter(final Context context) {
         this.context = context;
@@ -39,7 +40,7 @@ public class FavoriteImageAdapter extends RecyclerView.Adapter<FavoriteImageAdap
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         Bitmap bitmap = list.get(position);
-        holder.ivIcon.setImageBitmap(Bitmap.createScaledBitmap(bitmap, width / 2, width / 2, false));
+        holder.ivIcon.setImageBitmap(bitmap);
         holder.ivIcon.setTag(position);
         holder.ivIcon.setTag(bitmap);
     }
@@ -50,8 +51,8 @@ public class FavoriteImageAdapter extends RecyclerView.Adapter<FavoriteImageAdap
         return list.size();
     }
 
-    public void addItem(Bitmap blob, int pos) {
-        list.add(blob);
+    public void addItem(Bitmap image, int pos) {
+        list.add(image);
         notifyItemInserted(pos);
     }
 
@@ -60,6 +61,11 @@ public class FavoriteImageAdapter extends RecyclerView.Adapter<FavoriteImageAdap
             list.clear();
             notifyDataSetChanged();
         }
+    }
+
+    public void deleteItemAt(int position) {
+        list.remove(position);
+        notifyItemRemoved(position);
     }
 
     public void setOnImageClickListener(final OnImageClickListener listener) {

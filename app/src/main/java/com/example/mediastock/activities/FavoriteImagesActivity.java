@@ -9,6 +9,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 
@@ -27,6 +28,8 @@ public class FavoriteImagesActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private Database db;
     private Cursor cursor;
+    private int width;
+    private int imageID_temp = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +40,7 @@ public class FavoriteImagesActivity extends AppCompatActivity {
         cursor = db.getImages();
 
         // layout init
+        width = getResources().getDisplayMetrics().widthPixels;
         recyclerView = (RecyclerView) this.findViewById(R.id.gridView_fav_images);
         recyclerView.setHasFixedSize(true);
         progressBar = (ProgressBar) this.findViewById(R.id.p_img_bar);
@@ -55,6 +59,8 @@ public class FavoriteImagesActivity extends AppCompatActivity {
         });
 
         new AsyncWork(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+        Log.i("favorites", " invocato onCreate");
     }
 
     /**
@@ -77,6 +83,9 @@ public class FavoriteImagesActivity extends AppCompatActivity {
         bundle.putInt("type", 2);
         bundle.putParcelable("bean", bean);
         intent.putExtra("bean", bundle);
+
+        // save the images position in the adapter in case the image will be removed from favorites
+        imageID_temp = position - 1;
 
         startActivity(intent);
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
@@ -102,11 +111,15 @@ public class FavoriteImagesActivity extends AppCompatActivity {
         super.onRestart();
 
         if (cursor != null && cursor.isClosed()) {
-            adapter.notifyDataSetChanged();
+            int numElements = cursor.getCount();
+
             cursor = db.getImages();
+
+            // item has been removed
+            if (numElements != cursor.getCount())
+                adapter.deleteItemAt(imageID_temp);
         }
     }
-
 
     private static class AsyncWork extends AsyncTask<Void, Bitmap, Void> {
         private static WeakReference<FavoriteImagesActivity> activity;
@@ -119,8 +132,13 @@ public class FavoriteImagesActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... params) {
 
-            while (activity.get().cursor.moveToNext())
-                publishProgress(Utilities.convertToBitmap(activity.get().cursor.getBlob(activity.get().cursor.getColumnIndex(Database.IMAGE))));
+            while (activity.get().cursor.moveToNext()) {
+
+                // scale image and send it to the adapter
+                publishProgress(Bitmap.createScaledBitmap(
+                        Utilities.convertToBitmap(activity.get().cursor.getBlob(activity.get().cursor.getColumnIndex(Database.IMAGE)))
+                        , activity.get().width / 2, activity.get().width / 2, false));
+            }
 
             return null;
         }

@@ -27,7 +27,7 @@
                 android:layout_marginTop="20dp"
                 android:paddingStart="10dp"
                 android:text="Description"
-                android:textColor="#DE000000"
+                android:textColor="#d6000000"
                 />
 
             <TextView
@@ -40,7 +40,8 @@
                 android:paddingStart="10dp"
                 android:paddingTop="4dp"
                 android:text="text"
-                android:textColor="#8A000000"/>
+                android:textColor="#8A000000"
+                />
 
             <TextView
                 android:id="@+id/TextView_contributor_label"
@@ -50,7 +51,7 @@
                 android:layout_marginTop="5dp"
                 android:paddingStart="10dp"
                 android:text="Author"
-                android:textColor="#DE000000"/>
+                android:textColor="#d6000000"/>
 
             <TextView
                 android:id="@+id/TextView_contributor_displayImage"
@@ -70,10 +71,10 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/TextView_contributor_displayImage"
                 android:layout_marginTop="5dp"
-                android:paddingBottom="10dp"
+                android:paddingBottom="7dp"
                 android:paddingStart="10dp"
                 android:text="@string/similar"
-                android:textColor="#DE000000"/>
+                android:textColor="#d6000000"/>
         </RelativeLayout>
 
         <android.support.v7.widget.RecyclerView

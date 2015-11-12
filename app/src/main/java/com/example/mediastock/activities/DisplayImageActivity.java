@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -72,6 +73,12 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         StrictMode.setThreadPolicy(policy);
 
         // layouts init
+        TextView labelDescription = (TextView) this.findViewById(R.id.textView_description_label);
+        labelDescription.setTypeface(null, Typeface.BOLD);
+        TextView labelAuthor = (TextView) this.findViewById(R.id.TextView_contributor_label);
+        labelAuthor.setTypeface(null, Typeface.BOLD);
+        TextView labelSimilarImg = (TextView) this.findViewById(R.id.TextView_similar_displayImage);
+        labelSimilarImg.setTypeface(null, Typeface.BOLD);
         fab_favorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
         fab_favorites.setOnClickListener(this);
         sw = ((ScrollView) findViewById(R.id.scrollViewDisplayImage));
@@ -91,7 +98,19 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(DisplayImageActivity.this, FullViewImageActivity.class);
-                intent.putExtra("image", (String) imageView.getTag());
+                final Bundle bundle = new Bundle();
+
+
+                if (getIntentType() == 2) {
+                    bundle.putInt("type", 2);
+                    bundle.putParcelable("bean", getBeanFromIntent());
+
+                } else {
+                    bundle.putInt("type", 1);
+                    intent.putExtra("image", (String) imageView.getTag());
+                }
+
+                intent.putExtra("bean", bundle);
                 startActivity(intent);
             }
         });
@@ -114,7 +133,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         image_id = bean.getId();
         checkExistingImageInDB(image_id);
 
-        imageView.setImageBitmap(Utilities.convertToBitmap(bean.getImage()));
+        imageView.setImageBitmap(Bitmap.createScaledBitmap(Utilities.convertToBitmap(bean.getImage()), width, width, true));
         description.setText(bean.getDescription());
         author.setText(bean.getAuthor());
     }
