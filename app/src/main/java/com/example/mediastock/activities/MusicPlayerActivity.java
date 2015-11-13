@@ -117,6 +117,12 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
     }
 
     @Override
@@ -141,13 +147,13 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
             oneTimeOnly = 1;
         }
 
-        tx2.setText(String.format("%d min, %d sec",
+        tx2.setText(String.format("%d:%d",
                         TimeUnit.MILLISECONDS.toMinutes((long) finalTime),
                         TimeUnit.MILLISECONDS.toSeconds((long) finalTime) -
                                 TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) finalTime)))
         );
 
-        tx1.setText(String.format("%d min, %d sec",
+        tx1.setText(String.format("%d:%d",
                         TimeUnit.MILLISECONDS.toMinutes((long) startTime),
                         TimeUnit.MILLISECONDS.toSeconds((long) startTime) -
                                 TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) startTime)))
@@ -197,7 +203,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
 
             if (activity.get().mediaPlayer != null && activity.get().mediaPlayer.isPlaying()) {
                 activity.get().startTime = activity.get().mediaPlayer.getCurrentPosition();
-                activity.get().tx1.setText(String.format("%d min, %d sec",
+                activity.get().tx1.setText(String.format("%d:%d",
                         TimeUnit.MILLISECONDS.toMinutes((long) activity.get().startTime),
                         TimeUnit.MILLISECONDS.toSeconds((long) activity.get().startTime) -
                                 TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) activity.get().startTime))));

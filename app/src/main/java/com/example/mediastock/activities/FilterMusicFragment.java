@@ -21,7 +21,7 @@ public class FilterMusicFragment extends AbstractFragment implements OnItemSelec
     public static final String TITLE = "title";
     public static final String GENRE = "genre";
     public static final String PER_PAGE = "perpage";
-    private SparseArray<String> query = new SparseArray<>();
+    private final SparseArray<String> query = new SparseArray<>();
     private EditText artist, title;
     private Context context;
     private FilterMusicMessage filterMusicMessage;

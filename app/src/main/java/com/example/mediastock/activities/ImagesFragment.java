@@ -30,13 +30,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.Charset;
 
 
 /**
- * Activity which displays a gridView with images.
+ * Fragment which displays a gallery of images.
  *
  * @author Dinu
  */
@@ -91,7 +91,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
     }
 
     /**
-     * Method to initialize the UI components and get the recent images.
+     * Method to initialize the UI components and to get the recent images.
      */
     private void compute() {
         final ImagesFragment fragment = this;
@@ -297,9 +297,11 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         }
 
         /**
-         * Method to search images by a key
+         * Method to search images by one or two keys
          *
-         * @param key1 the key
+         * @param key1 the first key
+         * @param key2 the second key
+         * @param loadingPageNumber the number of items to get
          */
         private void searchImagesByKey(String key1, String key2, int loadingPageNumber) {
             String urlStr = "https://@api.shutterstock.com/v2/images/search?per_page=";
@@ -313,42 +315,49 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
             InputStream is = null;
             try {
                 URL url = new URL(urlStr);
-                URLConnection conn = url.openConnection();
-                conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 
-                // get stream
-                is = conn.getInputStream();
-                BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-                String jsonText = Utilities.readAll(rd);
+                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    is = con.getInputStream();
 
-                // parse json text
-                JsonElement json = new JsonParser().parse(jsonText);
-                JsonObject o = json.getAsJsonObject();
-                JsonArray array = o.get("data").getAsJsonArray();
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+                    String jsonText = Utilities.readAll(rd);
+                    rd.close();
 
-                if (array.size() == 0) {
-                    searchSuccess = false;
-                    return;
-                }
+                    // parse json text
+                    JsonElement json = new JsonParser().parse(jsonText);
+                    JsonObject o = json.getAsJsonObject();
+                    JsonArray array = o.get("data").getAsJsonArray();
 
-                // get objects
-                for (int i = loadingPageNumber - 50; i < array.size(); i++) {
-                    JsonObject jsonObj = array.get(i).getAsJsonObject();
-                    JsonObject assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
-                    final ImageBean bean = new ImageBean();
-
-                    if (assets != null) {
-                        bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsInt());
-                        bean.setDescription(jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString());
-                        bean.setIdContributor(jsonObj.get("contributor") == null ? null : jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
-                        bean.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
+                    if (array.size() == 0) {
+                        searchSuccess = false;
+                        con.disconnect();
+                        return;
                     }
 
-                    bean.setPos(i);
+                    // get objects
+                    for (int i = loadingPageNumber - 50; i < array.size(); i++) {
+                        JsonObject jsonObj = array.get(i).getAsJsonObject();
+                        JsonObject assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
+                        final ImageBean bean = new ImageBean();
 
-                    // update UI
-                    publishProgress(bean);
+                        if (assets != null) {
+                            bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsInt());
+                            bean.setDescription(jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString());
+                            bean.setIdContributor(jsonObj.get("contributor") == null ? null : jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
+                            bean.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
+                        }
+
+                        bean.setPos(i);
+
+                        // update UI
+                        publishProgress(bean);
+                    }
                 }
+
+                con.disconnect();
+
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -362,8 +371,10 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         }
 
         /**
-         * Method to get the recent images.
-         * We get the description of the image, id of the image, url for the preview, and id of the contributor.
+         * Method to get the recent images
+         *
+         * @param day it represents the day
+         * @param loadingPageNumber the number of items to get
          */
         private void getRecentImages(int day, int loadingPageNumber) {
             String urlStr = "https://@api.shutterstock.com/v2/images/search?per_page=";
@@ -376,41 +387,50 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
             try {
                 URL url = new URL(urlStr);
-                URLConnection conn = url.openConnection();
-                conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
-                is = conn.getInputStream();
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 
-                BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-                String jsonText = Utilities.readAll(rd);
+                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    is = con.getInputStream();
 
-                JsonElement json = new JsonParser().parse(jsonText);
-                JsonObject o = json.getAsJsonObject();
-                JsonArray array = o.get("data").getAsJsonArray();
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+                    String jsonText = Utilities.readAll(rd);
+                    rd.close();
 
-                if (array.size() == 0) {
-                    int yesterday = day;
-                    yesterday += 1;
-                    getRecentImages(yesterday, loadingPageNumber);
-                    return;
-                }
+                    JsonElement json = new JsonParser().parse(jsonText);
+                    JsonObject o = json.getAsJsonObject();
+                    JsonArray array = o.get("data").getAsJsonArray();
 
-                for (int i = loadingPageNumber - 50; i < array.size(); i++) {
-                    JsonObject jsonObj = array.get(i).getAsJsonObject();
-                    JsonObject assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
-                    final ImageBean bean = new ImageBean();
+                    if (array.size() == 0) {
+                        int yesterday = day;
+                        yesterday += 1;
+                        con.disconnect();
 
-                    if (assets != null) {
-                        bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsInt());
-                        bean.setDescription(jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString());
-                        bean.setIdContributor(jsonObj.get("contributor") == null ? null : jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
-                        bean.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
+                        getRecentImages(yesterday, loadingPageNumber);
+                        return;
                     }
 
-                    bean.setPos(i);
+                    for (int i = loadingPageNumber - 50; i < array.size(); i++) {
+                        JsonObject jsonObj = array.get(i).getAsJsonObject();
+                        JsonObject assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
+                        final ImageBean bean = new ImageBean();
 
-                    // update UI
-                    publishProgress(bean);
+                        if (assets != null) {
+                            bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsInt());
+                            bean.setDescription(jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString());
+                            bean.setIdContributor(jsonObj.get("contributor") == null ? null : jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
+                            bean.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
+                        }
+
+                        bean.setPos(i);
+
+                        // update UI
+                        publishProgress(bean);
+                    }
                 }
+
+                con.disconnect();
+
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#ffeeeeee"
+            android:background="#fdfdfd"
             android:focusable="true"
             android:focusableInTouchMode="true">
 
@@ -19,16 +20,6 @@
             android:layout_centerHorizontal="true"
             android:layout_marginTop="40dp"
             android:src="@drawable/music"/>
-
-
-        <SeekBar
-            android:id="@+id/seekBar_music"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/textView2_music"
-            android:layout_alignRight="@+id/textView3_music"
-            android:layout_alignTop="@+id/linearLayout2"
-            android:layout_marginTop="200dp"/>
 
         <LinearLayout
             android:id="@+id/linearLayout2"
@@ -52,15 +43,23 @@
                 android:textColor="#DE000000"/>
         </LinearLayout>
 
+
+        <SeekBar
+            android:id="@+id/seekBar_music"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/linearLayout2"
+            android:layout_marginTop="200dp"/>
+
+
         <TextView
             android:id="@+id/textView2_music"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignBottom="@+id/textView3_music"
             android:layout_alignParentLeft="true"
-            android:layout_alignTop="@+id/textView3_music"
-            android:layout_marginLeft="10dp"
-            android:text="0min, 0sec"
+            android:layout_marginLeft="20dp"
+            android:text="0:0"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="#8A000000"/>
 
@@ -70,10 +69,9 @@
             android:layout_height="wrap_content"
             android:layout_above="@+id/lin"
             android:layout_alignParentEnd="true"
-            android:layout_alignTop="@+id/linearLayout2"
-            android:layout_marginRight="10dp"
-            android:layout_marginTop="160dp"
-            android:text="0min, 0sec"
+            android:layout_marginBottom="10dp"
+            android:layout_marginRight="20dp"
+            android:text="0:0"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="#8A000000"/>
 
@@ -85,8 +83,9 @@
             android:layout_alignTop="@+id/seekBar_music"
             android:layout_below="@+id/linearLayout2"
             android:layout_marginBottom="10dp"
-            android:layout_marginTop="50dp"
+            android:layout_marginTop="30dp"
             android:orientation="vertical">
+
 
 
             <LinearLayout
@@ -117,6 +116,20 @@
                     android:textColor="#f4000000"/>
             </LinearLayout>
         </LinearLayout>
+
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab_favorites"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/textView2_music"
+            android:layout_centerHorizontal="true"
+            android:clickable="true"
+            android:elevation="6dp"
+            android:src="@drawable/abc_btn_rating_star_on_mtrl_alpha"
+            app:backgroundTint="#838383"
+            app:borderWidth="0dp"
+            app:fabSize="normal"/>
     </RelativeLayout>
 
 </ScrollView>

@@ -21,9 +21,9 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
     private final int type;
     private final Drawable icon_music;
     private final Drawable icon_video;
+    private final ArrayList<Bean> list = new ArrayList<>();
     private int loadingType;
     private int pageNumber;
-    private ArrayList<Bean> list = new ArrayList<>();
     private OnMediaItemClickListener mediaListener;
     private OnBottomListener bottomListener;
 

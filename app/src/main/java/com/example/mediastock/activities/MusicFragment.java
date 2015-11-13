@@ -33,12 +33,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.Charset;
 
 /**
- * Activity which displays a listView with music.
+ * Fragment which displays a list of music
  *
  * @author Dinu
  */
@@ -96,7 +96,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
     }
 
     /**
-     * Method to initialize the UI components and get the recent music.
+     * Method to initialize the UI components and to get the recent music.
      */
     private void compute() {
         final MusicFragment fragment = this;
@@ -287,7 +287,10 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         }
 
         /**
-         * Method to get the music from the server. It gets the id, the title and the url preview.
+         * Method to get the recent music
+         *
+         * @param day it represents the day
+         * @param loadingPageNumber the number of items to get
          */
         private void getRecentMusic(int day, int loadingPageNumber) {
             String urlStr = "https://api.shutterstock.com/v2/audio/search?per_page=";
@@ -299,40 +302,49 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
             InputStream is = null;
             try {
                 URL url = new URL(urlStr);
-                URLConnection conn = url.openConnection();
-                conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
-                is = conn.getInputStream();
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 
-                BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-                String jsonText = Utilities.readAll(rd);
+                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    is = con.getInputStream();
 
-                JsonElement json = new JsonParser().parse(jsonText);
-                JsonObject o = json.getAsJsonObject();
-                JsonArray array = o.get("data").getAsJsonArray();
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+                    String jsonText = Utilities.readAll(rd);
+                    rd.close();
 
-                if (array.size() < 1) {
-                    int yesterday = day;
-                    yesterday += 1;
-                    getRecentMusic(yesterday, loadingPageNumber);
-                    return;
-                }
+                    JsonElement json = new JsonParser().parse(jsonText);
+                    JsonObject o = json.getAsJsonObject();
+                    JsonArray array = o.get("data").getAsJsonArray();
 
-                for (int i = loadingPageNumber - 30; i < array.size(); i++) {
-                    JsonObject jsonObj = array.get(i).getAsJsonObject();
-                    JsonObject assets = jsonObj.get("assets").getAsJsonObject();
-                    final MusicBean bean = new MusicBean();
+                    if (array.size() < 1) {
+                        int yesterday = day;
+                        yesterday += 1;
+                        con.disconnect();
 
-                    if (assets != null) {
-                        bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
-                        bean.setTitle(jsonObj.get("title") == null ? null : jsonObj.get("title").getAsString());
-                        bean.setPreview(assets.get("preview_mp3") == null ? null : assets.get("preview_mp3").getAsJsonObject().get("url").getAsString());
+                        getRecentMusic(yesterday, loadingPageNumber);
+                        return;
                     }
 
-                    bean.setPos(i);
+                    for (int i = loadingPageNumber - 30; i < array.size(); i++) {
+                        JsonObject jsonObj = array.get(i).getAsJsonObject();
+                        JsonObject assets = jsonObj.get("assets").getAsJsonObject();
+                        final MusicBean bean = new MusicBean();
 
-                    // update the UI
-                    publishProgress(bean);
+                        if (assets != null) {
+                            bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
+                            bean.setTitle(jsonObj.get("title") == null ? null : jsonObj.get("title").getAsString());
+                            bean.setPreview(assets.get("preview_mp3") == null ? null : assets.get("preview_mp3").getAsJsonObject().get("url").getAsString());
+                        }
+
+                        bean.setPos(i);
+
+                        // update the UI
+                        publishProgress(bean);
+                    }
                 }
+
+                con.disconnect();
+
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -346,9 +358,11 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         }
 
         /**
-         * Method to search music by one or two keys or the union.
+         * Method to search music by one or two keys
          *
-         * @param key1 the key
+         * @param key1 the first key
+         * @param key2 the second key
+         * @param loadingPageNumber the number of items to get
          */
         private void searchMusicByKey(String key1, String key2, int loadingPageNumber) {
             String urlStr = "https://@api.shutterstock.com/v2/audio/search?per_page=";
@@ -365,38 +379,47 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
 
             try {
                 URL url = new URL(urlStr);
-                URLConnection conn = url.openConnection();
-                conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
-                is = conn.getInputStream();
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 
-                BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-                String jsonText = Utilities.readAll(rd);
+                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    is = con.getInputStream();
 
-                JsonElement json = new JsonParser().parse(jsonText);
-                JsonObject o = json.getAsJsonObject();
-                JsonArray array = o.get("data").getAsJsonArray();
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+                    String jsonText = Utilities.readAll(rd);
+                    rd.close();
 
-                if (array.size() == 0) {
-                    searchSuccess = false;
-                    return;
-                }
+                    JsonElement json = new JsonParser().parse(jsonText);
+                    JsonObject o = json.getAsJsonObject();
+                    JsonArray array = o.get("data").getAsJsonArray();
 
-                for (int i = loadingPageNumber - 30; i < array.size(); i++) {
-                    JsonObject jsonObj = array.get(i).getAsJsonObject();
-                    JsonObject assets = jsonObj.get("assets").getAsJsonObject();
-                    final MusicBean bean = new MusicBean();
+                    if (array.size() == 0) {
+                        searchSuccess = false;
 
-                    if (assets != null) {
-                        bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
-                        bean.setTitle(jsonObj.get("title") == null ? null : jsonObj.get("title").getAsString());
-                        bean.setPreview(assets.get("preview_mp3") == null ? null : assets.get("preview_mp3").getAsJsonObject().get("url").getAsString());
+                        con.disconnect();
+                        return;
                     }
 
-                    bean.setPos(i);
+                    for (int i = loadingPageNumber - 30; i < array.size(); i++) {
+                        JsonObject jsonObj = array.get(i).getAsJsonObject();
+                        JsonObject assets = jsonObj.get("assets").getAsJsonObject();
+                        final MusicBean bean = new MusicBean();
 
-                    // update the UI
-                    publishProgress(bean);
+                        if (assets != null) {
+                            bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
+                            bean.setTitle(jsonObj.get("title") == null ? null : jsonObj.get("title").getAsString());
+                            bean.setPreview(assets.get("preview_mp3") == null ? null : assets.get("preview_mp3").getAsJsonObject().get("url").getAsString());
+                        }
+
+                        bean.setPos(i);
+
+                        // update the UI
+                        publishProgress(bean);
+                    }
                 }
+
+                con.disconnect();
+
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {

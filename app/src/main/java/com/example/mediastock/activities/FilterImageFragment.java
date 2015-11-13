@@ -22,8 +22,8 @@ public class FilterImageFragment extends AbstractFragment implements OnItemSelec
 	public static final String ORIENTATION = "orientation";
 	public static final String SORT_BY = "sortby";
 	public static final String PER_PAGE = "perpage";
-    private ArrayList<String> orientation_list = new ArrayList<>();
-    private SparseArray<String> query = new SparseArray<>();
+    private final ArrayList<String> orientation_list = new ArrayList<>();
+    private final SparseArray<String> query = new SparseArray<>();
     private Context context;
     private FilterImageMessage imageMessage;
 

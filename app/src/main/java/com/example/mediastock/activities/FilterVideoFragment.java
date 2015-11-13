@@ -22,7 +22,7 @@ public class FilterVideoFragment extends AbstractFragment implements OnItemSelec
     public static final String WORD = "word";
     public static final String SORT = "sort";
     public static final String PER_PAGE = "perpage";
-    private SparseArray<String> query = new SparseArray<>();
+    private final SparseArray<String> query = new SparseArray<>();
     private EditText word;
     private Context context;
     private FilterVideoMessage filterVideoMessage;

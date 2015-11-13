@@ -22,7 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mediastock.R;
-import com.example.mediastock.data.Database;
+import com.example.mediastock.data.DBController;
 import com.example.mediastock.data.ImageBean;
 import com.example.mediastock.util.ImageAdapter;
 import com.example.mediastock.util.Utilities;
@@ -37,8 +37,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 
@@ -58,7 +58,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     private RecyclerView recyclerView;
     private TextView description, author, similarImg;
     private FloatingActionButton fab_favorites;
-    private Database db;
+    private DBController db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +66,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         setContentView(R.layout.display_image_activity);
         width = getResources().getDisplayMetrics().widthPixels;
 
-        db = new Database(this);
+        db = new DBController(this);
 
         // handle the threads
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -195,7 +195,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
                 // delete img from db
                 db.deleteImage(image_id);
-                Toast.makeText(getApplicationContext(), "Image removed from favorites", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Image removed from favorites", Toast.LENGTH_SHORT).show();
 
                 // if not
             } else {
@@ -214,12 +214,24 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     @Override
     public void onDestroy() {
         super.onDestroy();
-        imageView.setImageDrawable(null);
+        imageView = null;
+        db.close();
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+
+        if (!db.isOpened())
+            db.reopen(this);
     }
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        imageView = null;
+        db.close();
+
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
 
@@ -250,7 +262,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
      */
     private void getMainImage(ImageBean bean) {
         image_id = bean.getId();
-        sw.fullScroll(View.FOCUS_UP);
 
         // if the image is already in the database we change the color of the fab favorites
         checkExistingImageInDB(image_id);
@@ -317,6 +328,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
                 // remove the old similar images
                 case 3:
+                    context.sw.fullScroll(View.FOCUS_UP);
                     context.adapter.deleteItems();
                     break;
 
@@ -347,7 +359,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         /**
          * The constructor.
          *
-         * @param type 1-get authors name, 2-get similar images
+         * @param type 1-get authors name, 2-get similar images 3-get favorite image
          */
         public AsyncWork(int type) {
             this.type = type;
@@ -410,18 +422,25 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             urlStr += id;
 
             InputStream is = null;
-            String author = null;
+            String author = " - ";
             try {
                 URL url = new URL(urlStr);
-                URLConnection conn = url.openConnection();
-                conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
-                is = conn.getInputStream();
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 
-                BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-                String jsonText = Utilities.readAll(rd);
+                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    is = con.getInputStream();
 
-                JsonElement json = new JsonParser().parse(jsonText);
-                author = json.getAsJsonObject().get("display_name") == null ? " - " : json.getAsJsonObject().get("display_name").getAsString();
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+                    String jsonText = Utilities.readAll(rd);
+                    rd.close();
+
+                    JsonElement json = new JsonParser().parse(jsonText);
+                    author = json.getAsJsonObject().get("display_name") == null ? " - " : json.getAsJsonObject().get("display_name").getAsString();
+
+                }
+
+                con.disconnect();
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -465,55 +484,64 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             });
 
             InputStream is = null;
-
             try {
                 URL url = new URL(urlStr);
-                URLConnection conn = url.openConnection();
-                conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
-                is = conn.getInputStream();
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 
-                BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-                String jsonText = Utilities.readAll(rd);
+                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
 
-                JsonElement json = new JsonParser().parse(jsonText);
-                JsonObject o = json.getAsJsonObject();
-                JsonArray array = o.get("data").getAsJsonArray();
+                    is = con.getInputStream();
 
-                JsonObject assets;
-                Iterator<JsonElement> iterator = array.iterator();
-                int i = 0;
-                while (iterator.hasNext()) {
-                    JsonObject jsonObj = iterator.next().getAsJsonObject();
-                    ImageBean ib = new ImageBean();
-                    assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+                    String jsonText = Utilities.readAll(rd);
+                    rd.close();
 
-                    if (assets != null) {
+                    JsonElement json = new JsonParser().parse(jsonText);
+                    JsonObject o = json.getAsJsonObject();
+                    JsonArray array = o.get("data").getAsJsonArray();
 
-                        ib.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsInt());
-                        ib.setDescription(jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString());
-                        ib.setIdContributor(jsonObj.get("contributor") == null ? null : jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
-                        ib.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
+                    JsonObject assets;
+                    Iterator<JsonElement> iterator = array.iterator();
+                    int i = 0;
+                    while (iterator.hasNext()) {
+                        JsonObject jsonObj = iterator.next().getAsJsonObject();
+                        ImageBean ib = new ImageBean();
+                        assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
+
+                        if (assets != null) {
+
+                            ib.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsInt());
+                            ib.setDescription(jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString());
+                            ib.setIdContributor(jsonObj.get("contributor") == null ? null : jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
+                            ib.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
+                        }
+
+                        ib.setPos(i);
+                        i++;
+
+                        // update the UI with the image
+                        final Bundle bundle = new Bundle();
+                        final Message msg = new Message();
+                        bundle.putParcelable("bean", ib);
+                        msg.setData(bundle);
+                        msg.what = 2;
+
+                        // update the UI with the new similar images
+                        handler.post(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                handler.dispatchMessage(msg);
+                            }
+                        });
                     }
 
-                    ib.setPos(i);
-                    i++;
 
-                    // update the UI with the image
-                    final Bundle bundle = new Bundle();
-                    final Message msg = new Message();
-                    bundle.putParcelable("bean", ib);
-                    msg.setData(bundle);
-                    msg.what = 2;
-
-                    // update the UI with the new similar images
-                    handler.post(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            handler.dispatchMessage(msg);
-                        }
-                    });
                 }
+
+                con.disconnect();
+
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {

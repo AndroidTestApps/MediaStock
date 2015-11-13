@@ -20,8 +20,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.Charset;
 
 /**
@@ -138,42 +138,51 @@ public class DownloadService extends IntentService {
 
         try {
             URL url = new URL(urlStr);
-            URLConnection conn = url.openConnection();
-            conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
-            is = conn.getInputStream();
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-            String jsonText = Utilities.readAll(rd);
+            if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                is = con.getInputStream();
 
-            JsonElement json = new JsonParser().parse(jsonText);
-            JsonObject o = json.getAsJsonObject();
-            JsonArray array = o.get("data").getAsJsonArray();
+                BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+                String jsonText = Utilities.readAll(rd);
+                rd.close();
 
-            if (array.size() == 0) {
-                publishImageResult(null, 3, receiver);
-                return;
-            }
+                JsonElement json = new JsonParser().parse(jsonText);
+                JsonObject o = json.getAsJsonObject();
+                JsonArray array = o.get("data").getAsJsonArray();
 
-            int i = 0;
-            for (JsonElement element : array) {
-                JsonObject jsonObj = element.getAsJsonObject();
-                JsonObject assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
-                final ImageBean bean = new ImageBean();
+                if (array.size() == 0) {
+                    publishImageResult(null, 3, receiver);
 
-                if (assets != null) {
-                    bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsInt());
-                    bean.setDescription(jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString());
-                    bean.setIdContributor(jsonObj.get("contributor") == null ? null : jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
-                    bean.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
+                    con.disconnect();
+                    return;
                 }
 
-                bean.setPos(i);
-                i++;
+                int i = 0;
+                for (JsonElement element : array) {
+                    JsonObject jsonObj = element.getAsJsonObject();
+                    JsonObject assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
+                    final ImageBean bean = new ImageBean();
 
-                // update UI
-                publishImageResult(bean, 1, receiver);
+                    if (assets != null) {
+                        bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsInt());
+                        bean.setDescription(jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString());
+                        bean.setIdContributor(jsonObj.get("contributor") == null ? null : jsonObj.get("contributor").getAsJsonObject().get("id").getAsInt());
+                        bean.setUrl(assets.get("preview") == null ? null : assets.get("preview").getAsJsonObject().get("url").getAsString());
+                    }
 
+                    bean.setPos(i);
+                    i++;
+
+                    // update UI
+                    publishImageResult(bean, 1, receiver);
+
+                }
             }
+
+            con.disconnect();
+
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -198,40 +207,48 @@ public class DownloadService extends IntentService {
 
         try {
             URL url = new URL(urlStr);
-            URLConnection conn = url.openConnection();
-            conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
-            is = conn.getInputStream();
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-            String jsonText = Utilities.readAll(rd);
+            if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                is = con.getInputStream();
 
-            JsonElement json = new JsonParser().parse(jsonText);
-            JsonObject o = json.getAsJsonObject();
-            JsonArray array = o.get("data").getAsJsonArray();
+                BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+                String jsonText = Utilities.readAll(rd);
 
-            if (array.size() == 0) {
-                publishMusicResult(null, 3, receiver);
-                return;
-            }
+                JsonElement json = new JsonParser().parse(jsonText);
+                JsonObject o = json.getAsJsonObject();
+                JsonArray array = o.get("data").getAsJsonArray();
 
-            int i = 0;
-            for (JsonElement element : array) {
-                JsonObject jsonObj = element.getAsJsonObject();
-                JsonObject assets = jsonObj.get("assets").getAsJsonObject();
-                final MusicBean bean = new MusicBean();
+                if (array.size() == 0) {
+                    publishMusicResult(null, 3, receiver);
 
-                if (assets != null) {
-                    bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
-                    bean.setTitle(jsonObj.get("title") == null ? null : jsonObj.get("title").getAsString());
-                    bean.setPreview(assets.get("preview_mp3") == null ? null : assets.get("preview_mp3").getAsJsonObject().get("url").getAsString());
+                    con.disconnect();
+                    return;
                 }
 
-                bean.setPos(i);
-                i++;
+                int i = 0;
+                for (JsonElement element : array) {
+                    JsonObject jsonObj = element.getAsJsonObject();
+                    JsonObject assets = jsonObj.get("assets").getAsJsonObject();
+                    final MusicBean bean = new MusicBean();
 
-                // update the UI
-                publishMusicResult(bean, 1, receiver);
+                    if (assets != null) {
+                        bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
+                        bean.setTitle(jsonObj.get("title") == null ? null : jsonObj.get("title").getAsString());
+                        bean.setPreview(assets.get("preview_mp3") == null ? null : assets.get("preview_mp3").getAsJsonObject().get("url").getAsString());
+                    }
+
+                    bean.setPos(i);
+                    i++;
+
+                    // update the UI
+                    publishMusicResult(bean, 1, receiver);
+                }
             }
+
+            con.disconnect();
+
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

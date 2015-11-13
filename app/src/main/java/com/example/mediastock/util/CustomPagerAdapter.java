@@ -14,8 +14,8 @@ import com.example.mediastock.activities.FilterVideoFragment;
 import java.util.List;
 
 public class CustomPagerAdapter extends FragmentStatePagerAdapter {
-    private List<AbstractFragment> fragments;
-    private int numTabs;
+    private final List<AbstractFragment> fragments;
+    private final int numTabs;
 
 
     public CustomPagerAdapter(FragmentManager fm, int numTabs, List<AbstractFragment> fragments) {

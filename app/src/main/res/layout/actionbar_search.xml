@@ -12,8 +12,8 @@
         android:hint="@string/search"
         android:imeOptions="actionSearch"
         android:inputType="text"
-        android:textColor="@color/white"
-        android:textColorHint="#f49712">
+        android:textColor="#ffffff"
+        android:textColorHint="#deff0000">
         <requestFocus />
     </EditText>
 

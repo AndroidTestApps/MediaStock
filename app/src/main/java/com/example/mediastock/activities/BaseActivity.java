@@ -28,6 +28,7 @@ import android.widget.TextView;
 
 import com.example.mediastock.R;
 import com.example.mediastock.util.CustomPagerAdapter;
+import com.squareup.leakcanary.LeakCanary;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,7 +76,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         if (!isOnline())
             showAlertDialog();
 
-        //LeakCanary.install(getApplication());
+        LeakCanary.install(getApplication());
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         tabLayout.setTabTextColors(Color.parseColor("#FF9F9F9F"), Color.parseColor("#ff453f"));

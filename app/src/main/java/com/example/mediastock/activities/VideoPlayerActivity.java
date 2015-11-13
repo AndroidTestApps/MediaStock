@@ -175,13 +175,13 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
             oneTimeOnly = 1;
         }
 
-        tx2.setText(String.format("%d min, %d sec",
+        tx2.setText(String.format("%d:%d",
                         TimeUnit.MILLISECONDS.toMinutes((long) finalTime),
                         TimeUnit.MILLISECONDS.toSeconds((long) finalTime) -
                                 TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) finalTime)))
         );
 
-        tx1.setText(String.format("%d min, %d sec",
+        tx1.setText(String.format("%d:%d",
                         TimeUnit.MILLISECONDS.toMinutes((long) startTime),
                         TimeUnit.MILLISECONDS.toSeconds((long) startTime) -
                                 TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) startTime)))
@@ -245,7 +245,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
             if (activity.get().mediaPlayer != null && activity.get().mediaPlayer.isPlaying()) {
                 activity.get().startTime = activity.get().mediaPlayer.getCurrentPosition();
-                activity.get().tx1.setText(String.format("%d min, %d sec",
+                activity.get().tx1.setText(String.format("%d:%d",
                         TimeUnit.MILLISECONDS.toMinutes((long) activity.get().startTime),
                         TimeUnit.MILLISECONDS.toSeconds((long) activity.get().startTime) -
                                 TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) activity.get().startTime))));

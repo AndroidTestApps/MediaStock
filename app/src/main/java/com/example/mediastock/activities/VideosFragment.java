@@ -33,12 +33,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.Charset;
 
 /**
- * Activity which displays a listView with videos.
+ * Fragment which displays a list of videos.
  *
  * @author Dinu
  */
@@ -95,7 +95,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
     }
 
     /**
-     * Method to initialize the UI components and get the recent videos.
+     * Method to initialize the UI components and to get the recent videos.
      */
     private void compute() {
         final VideosFragment fragment = this;
@@ -373,7 +373,9 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
             return url;
         }
 
-
+        /**
+         * Method to do a filter search of the videos
+         */
         private void filterVideos() {
             String urlStr = parseUrlFilterSearch();
 
@@ -382,85 +384,94 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
             Log.i("url", urlStr);
             try {
                 URL url = new URL(urlStr);
-                URLConnection conn = url.openConnection();
-                conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
-                is = conn.getInputStream();
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 
-                BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-                String jsonText = Utilities.readAll(rd);
+                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    is = con.getInputStream();
 
-                JsonElement json = new JsonParser().parse(jsonText);
-                JsonObject o = json.getAsJsonObject();
-                JsonArray array = o.get("data").getAsJsonArray();
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+                    String jsonText = Utilities.readAll(rd);
+                    rd.close();
 
-                if (array.size() == 0) {
-                    handler.post(new Runnable() {
+                    JsonElement json = new JsonParser().parse(jsonText);
+                    JsonObject o = json.getAsJsonObject();
+                    JsonArray array = o.get("data").getAsJsonArray();
 
-                        @Override
-                        public void run() {
-                            handler.sendEmptyMessage(4);
-                        }
-                    });
-                    return;
-                }
+                    if (array.size() == 0) {
+                        handler.post(new Runnable() {
 
-                StringBuilder temp = new StringBuilder();
-                temp.append("");
-                int times = 2;
-                int i = 0;
-
-                for (JsonElement element : array) {
-                    JsonObject jsonObj = element.getAsJsonObject();
-                    JsonObject assets = jsonObj.get("assets").getAsJsonObject();
-                    final VideoBean bean = new VideoBean();
-
-                    if (assets != null) {
-                        bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
-                        bean.setPreview(assets.get("preview_mp4") == null ? null : assets.get("preview_mp4").getAsJsonObject().get("url").getAsString());
-                        String description = jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString();
-
-                        if (description != null) {
-                            if (temp.toString().equals(description)) {
-                                bean.setDescription(description + " - " + times);
-                                times++;
-
-                            } else {
-                                bean.setDescription(description);
-                                temp.replace(0, temp.length(), description);
-                                times = 2;
+                            @Override
+                            public void run() {
+                                handler.sendEmptyMessage(4);
                             }
-                        }
+                        });
+
+                        con.disconnect();
+                        return;
                     }
 
-                    bean.setPos(i);
-                    i++;
+                    StringBuilder temp = new StringBuilder();
+                    temp.append("");
+                    int times = 2;
+                    int i = 0;
 
-                    // dismiss progress
-                    handler.post(new Runnable() {
+                    for (JsonElement element : array) {
+                        JsonObject jsonObj = element.getAsJsonObject();
+                        JsonObject assets = jsonObj.get("assets").getAsJsonObject();
+                        final VideoBean bean = new VideoBean();
 
-                        @Override
-                        public void run() {
-                            handler.sendEmptyMessage(3);
+                        if (assets != null) {
+                            bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
+                            bean.setPreview(assets.get("preview_mp4") == null ? null : assets.get("preview_mp4").getAsJsonObject().get("url").getAsString());
+                            String description = jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString();
+
+                            if (description != null) {
+                                if (temp.toString().equals(description)) {
+                                    bean.setDescription(description + " - " + times);
+                                    times++;
+
+                                } else {
+                                    bean.setDescription(description);
+                                    temp.replace(0, temp.length(), description);
+                                    times = 2;
+                                }
+                            }
                         }
-                    });
 
-                    final Bundle bundle = new Bundle();
-                    final Message msg = new Message();
+                        bean.setPos(i);
+                        i++;
 
-                    // set the video bean
-                    bundle.putParcelable("bean", bean);
-                    msg.setData(bundle);
-                    msg.what = 1;
+                        // dismiss progress
+                        handler.post(new Runnable() {
 
-                    // update the UI with the video
-                    handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                handler.sendEmptyMessage(3);
+                            }
+                        });
 
-                        @Override
-                        public void run() {
-                            handler.dispatchMessage(msg);
-                        }
-                    });
+                        final Bundle bundle = new Bundle();
+                        final Message msg = new Message();
+
+                        // set the video bean
+                        bundle.putParcelable("bean", bean);
+                        msg.setData(bundle);
+                        msg.what = 1;
+
+                        // update the UI with the video
+                        handler.post(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                handler.dispatchMessage(msg);
+                            }
+                        });
+                    }
                 }
+
+                con.disconnect();
+
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -473,6 +484,11 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
             }
         }
 
+        /**
+         * Method to search videos by one or two keys
+         *
+         * @param loadingPageNumber the number of items to get
+         */
         private void searchVideosByKey(int loadingPageNumber) {
             String urlStr = "https://api.shutterstock.com/v2/videos/search?per_page=";
             urlStr += loadingPageNumber + "&query=";
@@ -490,90 +506,99 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
             InputStream is = null;
             try {
                 URL url = new URL(urlStr);
-                URLConnection conn = url.openConnection();
-                conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
-                is = conn.getInputStream();
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 
-                BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-                String jsonText = Utilities.readAll(rd);
+                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    is = con.getInputStream();
 
-                JsonElement json = new JsonParser().parse(jsonText);
-                JsonObject o = json.getAsJsonObject();
-                JsonArray array = o.get("data").getAsJsonArray();
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+                    String jsonText = Utilities.readAll(rd);
+                    rd.close();
 
-                if (array.size() == 0) {
-                    final Message msg = new Message();
-                    final Bundle bundle = new Bundle();
-                    bundle.putString("error", key2 != null ? key1 + " " + key2 : key1);
-                    msg.setData(bundle);
-                    msg.what = 2;
+                    JsonElement json = new JsonParser().parse(jsonText);
+                    JsonObject o = json.getAsJsonObject();
+                    JsonArray array = o.get("data").getAsJsonArray();
 
-                    handler.post(new Runnable() {
+                    if (array.size() == 0) {
+                        final Message msg = new Message();
+                        final Bundle bundle = new Bundle();
+                        bundle.putString("error", key2 != null ? key1 + " " + key2 : key1);
+                        msg.setData(bundle);
+                        msg.what = 2;
 
-                        @Override
-                        public void run() {
-                            handler.dispatchMessage(msg);
-                        }
-                    });
-                    return;
-                }
+                        handler.post(new Runnable() {
 
-                StringBuilder temp = new StringBuilder();
-                temp.append("");
-                int times = 2;
-
-                for (int i = loadingPageNumber - 30; i < array.size(); i++) {
-                    JsonObject jsonObj = array.get(i).getAsJsonObject();
-                    JsonObject assets = jsonObj.get("assets").getAsJsonObject();
-                    final VideoBean bean = new VideoBean();
-
-                    if (assets != null) {
-                        bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
-                        bean.setPreview(assets.get("preview_mp4") == null ? null : assets.get("preview_mp4").getAsJsonObject().get("url").getAsString());
-                        String description = jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString();
-
-                        if (description != null) {
-                            if (temp.toString().equals(description)) {
-                                bean.setDescription(description + " - " + times);
-                                times++;
-
-                            } else {
-                                bean.setDescription(description);
-                                temp.replace(0, temp.length(), description);
-                                times = 2;
+                            @Override
+                            public void run() {
+                                handler.dispatchMessage(msg);
                             }
-                        }
+                        });
+
+                        con.disconnect();
+                        return;
                     }
 
-                    bean.setPos(i);
+                    StringBuilder temp = new StringBuilder();
+                    temp.append("");
+                    int times = 2;
 
-                    // dismiss progress
-                    handler.post(new Runnable() {
+                    for (int i = loadingPageNumber - 30; i < array.size(); i++) {
+                        JsonObject jsonObj = array.get(i).getAsJsonObject();
+                        JsonObject assets = jsonObj.get("assets").getAsJsonObject();
+                        final VideoBean bean = new VideoBean();
 
-                        @Override
-                        public void run() {
-                            handler.sendEmptyMessage(3);
+                        if (assets != null) {
+                            bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
+                            bean.setPreview(assets.get("preview_mp4") == null ? null : assets.get("preview_mp4").getAsJsonObject().get("url").getAsString());
+                            String description = jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString();
+
+                            if (description != null) {
+                                if (temp.toString().equals(description)) {
+                                    bean.setDescription(description + " - " + times);
+                                    times++;
+
+                                } else {
+                                    bean.setDescription(description);
+                                    temp.replace(0, temp.length(), description);
+                                    times = 2;
+                                }
+                            }
                         }
-                    });
 
-                    final Bundle bundle = new Bundle();
-                    final Message msg = new Message();
+                        bean.setPos(i);
 
-                    // set the video bean
-                    bundle.putParcelable("bean", bean);
-                    msg.setData(bundle);
-                    msg.what = 1;
+                        // dismiss progress
+                        handler.post(new Runnable() {
 
-                    // update the UI with the video
-                    handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                handler.sendEmptyMessage(3);
+                            }
+                        });
 
-                        @Override
-                        public void run() {
-                            handler.dispatchMessage(msg);
-                        }
-                    });
+                        final Bundle bundle = new Bundle();
+                        final Message msg = new Message();
 
+                        // set the video bean
+                        bundle.putParcelable("bean", bean);
+                        msg.setData(bundle);
+                        msg.what = 1;
+
+                        // update the UI with the video
+                        handler.post(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                handler.dispatchMessage(msg);
+                            }
+                        });
+
+                    }
                 }
+
+                con.disconnect();
+
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -587,7 +612,10 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         }
 
         /**
-         * Method to get the videos from the server. It gets the id, description and the url for the preview.
+         * Method to get the recent videos
+         *
+         * @param day it represents the day
+         * @param loadingPageNumber the number of items to get
          */
         private void getRecentVideos(int day, int loadingPageNumber) {
             String urlStr = "https://api.shutterstock.com/v2/videos/search?per_page=";
@@ -599,81 +627,90 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
             InputStream is = null;
             try {
                 URL url = new URL(urlStr);
-                URLConnection conn = url.openConnection();
-                conn.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
-                is = conn.getInputStream();
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 
-                BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-                String jsonText = Utilities.readAll(rd);
+                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    is = con.getInputStream();
 
-                JsonElement json = new JsonParser().parse(jsonText);
-                JsonObject o = json.getAsJsonObject();
-                JsonArray array = o.get("data").getAsJsonArray();
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+                    String jsonText = Utilities.readAll(rd);
+                    rd.close();
 
-                if (array.size() == 0) {
-                    int yesterday = day;
-                    yesterday += 1;
-                    getRecentVideos(yesterday, loadingPageNumber);
-                    return;
-                }
+                    JsonElement json = new JsonParser().parse(jsonText);
+                    JsonObject o = json.getAsJsonObject();
+                    JsonArray array = o.get("data").getAsJsonArray();
 
-                StringBuilder temp = new StringBuilder();
-                temp.append("");
-                int times = 2;
+                    if (array.size() == 0) {
+                        int yesterday = day;
+                        yesterday += 1;
+                        con.disconnect();
 
-                for (int i = loadingPageNumber - 30; i < array.size(); i++) {
-                    JsonObject jsonObj = array.get(i).getAsJsonObject();
-                    JsonObject assets = jsonObj.get("assets").getAsJsonObject();
-                    final VideoBean bean = new VideoBean();
-
-                    if (assets != null) {
-                        bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
-                        bean.setPreview(assets.get("preview_mp4") == null ? null : assets.get("preview_mp4").getAsJsonObject().get("url").getAsString());
-                        String description = jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString();
-
-                        if (description != null) {
-
-                            if (temp.toString().equals(description)) {
-                                bean.setDescription(description + " - " + times);
-                                times++;
-
-                            } else {
-                                bean.setDescription(description);
-                                temp.replace(0, temp.length(), description);
-                                times = 2;
-                            }
-                        }
+                        getRecentVideos(yesterday, loadingPageNumber);
+                        return;
                     }
 
-                    bean.setPos(i);
+                    StringBuilder temp = new StringBuilder();
+                    temp.append("");
+                    int times = 2;
 
-                    // dismiss progress
-                    handler.post(new Runnable() {
+                    for (int i = loadingPageNumber - 30; i < array.size(); i++) {
+                        JsonObject jsonObj = array.get(i).getAsJsonObject();
+                        JsonObject assets = jsonObj.get("assets").getAsJsonObject();
+                        final VideoBean bean = new VideoBean();
 
-                        @Override
-                        public void run() {
-                            handler.sendEmptyMessage(3);
+                        if (assets != null) {
+                            bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
+                            bean.setPreview(assets.get("preview_mp4") == null ? null : assets.get("preview_mp4").getAsJsonObject().get("url").getAsString());
+                            String description = jsonObj.get("description") == null ? null : jsonObj.get("description").getAsString();
+
+                            if (description != null) {
+
+                                if (temp.toString().equals(description)) {
+                                    bean.setDescription(description + " - " + times);
+                                    times++;
+
+                                } else {
+                                    bean.setDescription(description);
+                                    temp.replace(0, temp.length(), description);
+                                    times = 2;
+                                }
+                            }
                         }
-                    });
 
-                    final Bundle bundle = new Bundle();
-                    final Message msg = new Message();
+                        bean.setPos(i);
 
-                    // set the video bean
-                    bundle.putParcelable("bean", bean);
-                    msg.setData(bundle);
-                    msg.what = 1;
+                        // dismiss progress
+                        handler.post(new Runnable() {
 
-                    // update the UI with the video
-                    handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                handler.sendEmptyMessage(3);
+                            }
+                        });
 
-                        @Override
-                        public void run() {
-                            handler.dispatchMessage(msg);
-                        }
-                    });
+                        final Bundle bundle = new Bundle();
+                        final Message msg = new Message();
 
+                        // set the video bean
+                        bundle.putParcelable("bean", bean);
+                        msg.setData(bundle);
+                        msg.what = 1;
+
+                        // update the UI with the video
+                        handler.post(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                handler.dispatchMessage(msg);
+                            }
+                        });
+
+                    }
                 }
+
+                con.disconnect();
+
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {

@@ -14,7 +14,8 @@ import android.view.View;
 import android.widget.ProgressBar;
 
 import com.example.mediastock.R;
-import com.example.mediastock.data.Database;
+import com.example.mediastock.data.DBController;
+import com.example.mediastock.data.DBHelper;
 import com.example.mediastock.data.ImageBean;
 import com.example.mediastock.util.FavoriteImageAdapter;
 import com.example.mediastock.util.Utilities;
@@ -26,7 +27,7 @@ public class FavoriteImagesActivity extends AppCompatActivity {
     private FloatingActionButton fab_filter;
     private FavoriteImageAdapter adapter;
     private ProgressBar progressBar;
-    private Database db;
+    private DBController db;
     private Cursor cursor;
     private int width;
     private int imageID_temp = 0;
@@ -36,7 +37,7 @@ public class FavoriteImagesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.favorite_images);
 
-        db = new Database(this);
+        db = new DBController(this);
         cursor = db.getImages();
 
         // layout init
@@ -72,11 +73,11 @@ public class FavoriteImagesActivity extends AppCompatActivity {
         final ImageBean bean = new ImageBean();
         cursor.moveToPosition(position);
 
-        bean.setId(cursor.getInt(cursor.getColumnIndex(Database.IMG_ID)));
-        bean.setDescription(cursor.getString(cursor.getColumnIndex(Database.DESCRIPTION)));
-        bean.setAuthor(cursor.getString(cursor.getColumnIndex(Database.AUTHOR)));
-        bean.setByteArrayLength(cursor.getBlob(cursor.getColumnIndex(Database.IMAGE)).length);
-        bean.setImage(cursor.getBlob(cursor.getColumnIndex(Database.IMAGE)));
+        bean.setId(cursor.getInt(cursor.getColumnIndex(DBHelper.IMG_ID)));
+        bean.setDescription(cursor.getString(cursor.getColumnIndex(DBHelper.DESCRIPTION)));
+        bean.setAuthor(cursor.getString(cursor.getColumnIndex(DBHelper.AUTHOR)));
+        bean.setByteArrayLength(cursor.getBlob(cursor.getColumnIndex(DBHelper.IMAGE)).length);
+        bean.setImage(cursor.getBlob(cursor.getColumnIndex(DBHelper.IMAGE)));
 
         Intent intent = new Intent(getApplicationContext(), DisplayImageActivity.class);
         final Bundle bundle = new Bundle();
@@ -107,17 +108,31 @@ public class FavoriteImagesActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // close the database
+        db.close();
+        Log.i("on destroy fav", "si");
+    }
+
+    @Override
     protected void onRestart() {
         super.onRestart();
 
-        if (cursor != null && cursor.isClosed()) {
-            int numElements = cursor.getCount();
+        if (!db.isOpened())
+            db.reopen(this);
 
-            cursor = db.getImages();
+        if (cursor != null) {
 
-            // item has been removed
-            if (numElements != cursor.getCount())
-                adapter.deleteItemAt(imageID_temp);
+            if (cursor.isClosed()) {
+                int numElements = cursor.getCount();
+                cursor = db.getImages();
+
+                // some image has been removed from favorites
+                if (numElements != cursor.getCount())
+                    adapter.deleteItemAt(imageID_temp);
+            }
         }
     }
 
@@ -136,7 +151,7 @@ public class FavoriteImagesActivity extends AppCompatActivity {
 
                 // scale image and send it to the adapter
                 publishProgress(Bitmap.createScaledBitmap(
-                        Utilities.convertToBitmap(activity.get().cursor.getBlob(activity.get().cursor.getColumnIndex(Database.IMAGE)))
+                        Utilities.convertToBitmap(activity.get().cursor.getBlob(activity.get().cursor.getColumnIndex(DBHelper.IMAGE)))
                         , activity.get().width / 2, activity.get().width / 2, false));
             }
 
