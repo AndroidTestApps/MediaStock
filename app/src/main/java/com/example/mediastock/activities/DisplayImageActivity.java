@@ -43,12 +43,14 @@ import java.nio.charset.Charset;
 import java.util.Iterator;
 
 /**
- * Fragment to display the image that the user clicked. It displays the description of the image and the similar images.
+ * Activity to display the image that the user clicked. It displays the description of the image and the similar images.
+ * The image can be added to favorites or removed from favorites.
  *
  * @author Dinu
  */
 public class DisplayImageActivity extends AppCompatActivity implements View.OnClickListener {
     private static Handler handler;
+    private static Thread thread_db;
     private int image_id;
     private int width;
     private boolean imageDB = false;
@@ -63,6 +65,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.display_image_activity);
         width = getResources().getDisplayMetrics().widthPixels;
 
@@ -131,7 +134,9 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
         ImageBean bean = getBeanFromIntent();
         image_id = bean.getId();
-        checkExistingImageInDB(image_id);
+
+        imageDB = true;
+        fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
         imageView.setImageBitmap(Bitmap.createScaledBitmap(Utilities.convertToBitmap(bean.getImage()), width, width, true));
         description.setText(bean.getDescription());
@@ -163,20 +168,31 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         // handler to handle the UI updates
         handler = new MyHandler(this);
 
-        // get main image
-        getMainImage(getBeanFromIntent());
-
-        // get the authors name
-        AsyncWork thread1 = new AsyncWork(1);
-        thread1.setAuthorID(getBeanFromIntent().getIdContributor());
-        new Thread(thread1).start();
-
-        // get similar images
-        AsyncWork thread2 = new AsyncWork(2);
-        thread2.setImageID(getBeanFromIntent().getId());
-        new Thread(thread2).start();
+        // get images
+        updateUI(getBeanFromIntent());
     }
 
+
+    /**
+     * Method which updates the UI with the main image, authors name and the similar images.
+     *
+     * @param bean the image bean
+     */
+    private void updateUI(ImageBean bean) {
+
+        // get main image
+        getMainImage(bean);
+
+        // get the authors name
+        AsyncWork thread_author = new AsyncWork(1);
+        thread_author.setAuthorID(bean.getIdContributor());
+        thread_author.start();
+
+        // get the similar images to the current image
+        AsyncWork thread_similarImages = new AsyncWork(2);
+        thread_similarImages.setImageID(bean.getId());
+        thread_similarImages.start();
+    }
 
     /**
      * Favorites action button
@@ -194,8 +210,19 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                 fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
 
                 // delete img from db
-                db.deleteImage(image_id);
-                Toast.makeText(this, "Image removed from favorites", Toast.LENGTH_SHORT).show();
+                thread_db = new Thread() {
+
+                    @Override
+                    public void run() {
+                        super.run();
+
+                        db.deleteImage(image_id);
+                    }
+                };
+
+                thread_db.start();
+
+                Toast.makeText(this.getApplicationContext(), "Image removed from favorites", Toast.LENGTH_SHORT).show();
 
                 // if not
             } else {
@@ -203,10 +230,10 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                 fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
                 // thread used to get the favorite image and then save it to database
-                AsyncWork thread = new AsyncWork(3);
-                thread.setUrl((String) imageView.getTag());
+                AsyncWork thread_favoriteImage = new AsyncWork(3);
+                thread_favoriteImage.setUrl((String) imageView.getTag());
                 AsyncWork.setContext(this);
-                new Thread(thread).start();
+                thread_favoriteImage.start();
             }
         }
     }
@@ -215,23 +242,14 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     public void onDestroy() {
         super.onDestroy();
         imageView = null;
-        db.close();
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-
-        if (!db.isOpened())
-            db.reopen(this);
+        thread_db = null;
     }
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        imageView = null;
-        db.close();
 
+        finish();
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
 
@@ -256,7 +274,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     }
 
     /**
-     * It downloads the main image from the server
+     * It downloads the main image from the server and sets the description of the image
      *
      * @param bean the image bean
      */
@@ -277,28 +295,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         description.setText(bean.getDescription());
     }
 
-    /**
-     * Method which updates the UI with the new image, authors name and the similar images.
-     *
-     * @param bean the image bean
-     */
-    private void updateUI(ImageBean bean) {
-        checkExistingImageInDB(bean.getId());
-
-        // get image
-        getMainImage(bean);
-
-        // get the authors name
-        AsyncWork thread1 = new AsyncWork(1);
-        thread1.setAuthorID(bean.getIdContributor());
-        new Thread(thread1).start();
-
-        // get the similar images to the current image
-        AsyncWork thread2 = new AsyncWork(2);
-        thread2.setImageID(bean.getId());
-        new Thread(thread2).start();
-    }
-
 
     /**
      * Handler to update the UI
@@ -311,8 +307,8 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         }
 
         @Override
-        public void handleMessage(Message msg) {
-            DisplayImageActivity context = activity.get();
+        public void handleMessage(final Message msg) {
+            final DisplayImageActivity context = activity.get();
 
             switch (msg.what) {
 
@@ -334,8 +330,21 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
                 // save favorite image to database
                 case 4:
-                    context.db.insertImage((Bitmap) msg.getData().getParcelable("img"), context.image_id, context.description.getText().toString(), context.author.getText().toString());
-                    Toast.makeText(context, "Image added to favorites", Toast.LENGTH_SHORT).show();
+
+                    thread_db = new Thread() {
+
+                        @Override
+                        public void run() {
+                            super.run();
+
+                            context.db.insertImage((Bitmap) msg.getData().getParcelable("img"), context.image_id, context.description.getText().toString(), context.author.getText().toString());
+                        }
+                    };
+
+                    thread_db.start();
+
+                    Toast.makeText(context.getApplicationContext(), "Image added to favorites", Toast.LENGTH_SHORT).show();
+
                     break;
 
                 default:
@@ -344,12 +353,13 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
+
     /**
      * Static inner class to download the authors name, the favorite image and the similar images.
      *
      * @author Dinu
      */
-    private static class AsyncWork implements Runnable {
+    private static class AsyncWork extends Thread {
         private static WeakReference<DisplayImageActivity> activity;
         private final int type;
         private int authorID;
@@ -371,6 +381,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
         @Override
         public void run() {
+            super.run();
 
             switch (type) {
 

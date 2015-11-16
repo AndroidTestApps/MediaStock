@@ -2,13 +2,11 @@ package com.example.mediastock.activities;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.SurfaceHolder;
@@ -21,13 +19,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mediastock.R;
+import com.example.mediastock.util.Utilities;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A simple media player for videos.
+ * A simple video player activity
  *
  * @author Dinu
  */
@@ -43,14 +42,15 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
     private SeekBar seekbar;
     private TextView tx1, tx2;
     private ProgressDialog progressDialog;
+    private boolean isPaused = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         // check if online
-        if (!isOnline()) {
-            Toast.makeText(this, "Not online", Toast.LENGTH_SHORT).show();
+        if (!Utilities.deviceOnline(getApplicationContext())) {
+            Toast.makeText(getApplicationContext(), "Not online", Toast.LENGTH_SHORT).show();
             finish();
         } else {
 
@@ -69,24 +69,6 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
             TextView description = (TextView) this.findViewById(R.id.textView_video_player_title);
             description.setText(getIntent().getStringExtra("description"));
 
-            mediaPlayer = new MediaPlayer();
-            try {
-
-                mediaPlayer.setDataSource(url);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            mediaPlayer.prepareAsync();
-            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mp) {
-                    progressDialog.dismiss();
-                    playVideo();
-                }
-            });
-
             seekbar = (SeekBar) findViewById(R.id.seekBar_video);
             seekbar.setClickable(false);
             seekbar.setOnSeekBarChangeListener(this);
@@ -99,13 +81,31 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
             surfaceHolder.get().addCallback(this);
             surfaceHolder.get().setSizeFromLayout();
 
+            mediaPlayer = new MediaPlayer();
+            try {
+
+                mediaPlayer.setDataSource(url);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mp) {
+                    progressDialog.dismiss();
+                    playVideo(surfaceHolder.get());
+                }
+            });
+
             play.setOnClickListener(new View.OnClickListener() {
 
                 @Override
                 public void onClick(View v) {
                     pause.setTextColor(Color.BLACK);
                     play.setTextColor(Color.RED);
-                    playVideo();
+                    playVideo(surfaceHolder.get());
                 }
             });
 
@@ -141,22 +141,27 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         }
     }
 
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
+            isPaused = true;
+        }
+    }
+
     @Override
     public void onBackPressed() {
         super.onBackPressed();
         mediaPlayer.stop();
-        mediaPlayer.release();
-        mediaPlayer = null;
-
-        surfaceView.destroyDrawingCache();
-        surfaceView = null;
-        surfaceHolder = null;
 
         finish();
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
 
-    private void playVideo() {
+    private void playVideo(SurfaceHolder holder) {
         play.setTextColor(Color.RED);
 
         if (mediaPlayer.isPlaying()) {
@@ -164,7 +169,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         }
 
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mediaPlayer.setDisplay(surfaceHolder.get());
+        mediaPlayer.setDisplay(holder);
 
         finalTime = mediaPlayer.getDuration();
         startTime = mediaPlayer.getCurrentPosition();
@@ -200,40 +205,36 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
             mediaPlayer.seekTo(progress);
     }
 
-    /**
-     * Checks if the device is connected to the Internet
-     *
-     * @return true if connected, false otherwise
-     */
-    private boolean isOnline() {
-        ConnectivityManager cm = (ConnectivityManager) this.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
-    }
-
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        holder.getSurface().release();
-    }
-
-    // not used
-    @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
-    }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+
+        if (isPaused) {
+            playVideo(holder);
+            isPaused = false;
+
+        } else
+            mediaPlayer.prepareAsync();
     }
 
-    @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {
-    }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
     }
 
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+    }
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+    }
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+    }
+
+    /**
+     * Thread to update the time of the video
+     */
     private static class UpdateTime implements Runnable {
         private static WeakReference<VideoPlayerActivity> activity;
 

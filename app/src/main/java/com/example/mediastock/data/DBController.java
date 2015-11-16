@@ -29,12 +29,13 @@ public class DBController {
     }
 
     /**
-     * Close the database
+     * Close the database. Done automatically by the android kernel
      */
-    public void close() {
-        dbHelper.close();
+ /*   public void close() {
         db.close();
+        dbHelper.close();
     }
+    */
 
 
     public Cursor getImages() {

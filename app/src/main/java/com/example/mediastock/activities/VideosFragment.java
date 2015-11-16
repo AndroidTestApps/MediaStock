@@ -152,7 +152,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
      * Method to get the recent videos
      */
     public void getRecentVideos() {
-        if (!isOnline())
+        if (!Utilities.deviceOnline(context))
             return;
 
         showProgressBar();
@@ -190,7 +190,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
      * Start the filter search. The bundle contains alla the users input.
      */
     public void startFilterSearch(Bundle bundle) {
-        if (!isOnline())
+        if (!Utilities.deviceOnline(context))
             return;
 
         showProgressBar();

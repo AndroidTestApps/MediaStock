@@ -12,8 +12,10 @@ import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.example.mediastock.R;
+import com.example.mediastock.util.Utilities;
 
 import java.util.ArrayList;
 
@@ -125,8 +127,8 @@ public class FilterImageFragment extends AbstractFragment implements OnItemSelec
 	@Override
 	public void onClick(View v) {
 
-        if (!isOnline()) {
-            showAlertDialog();
+        if (!Utilities.deviceOnline(context)) {
+            Toast.makeText(context.getApplicationContext(), "There is no internet connection", Toast.LENGTH_SHORT).show();
             return;
         }
 

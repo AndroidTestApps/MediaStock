@@ -129,7 +129,7 @@
             android:src="@drawable/abc_btn_rating_star_on_mtrl_alpha"
             app:backgroundTint="#838383"
             app:borderWidth="0dp"
-            app:fabSize="normal"/>
+            app:fabSize="mini"/>
     </RelativeLayout>
 
 </ScrollView>

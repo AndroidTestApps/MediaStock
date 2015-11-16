@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
@@ -22,12 +21,12 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import com.example.mediastock.R;
 import com.example.mediastock.util.CustomPagerAdapter;
+import com.example.mediastock.util.Utilities;
 import com.squareup.leakcanary.LeakCanary;
 
 import java.util.ArrayList;
@@ -73,7 +72,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        if (!isOnline())
+        if (!Utilities.deviceOnline(getApplicationContext()))
             showAlertDialog();
 
         LeakCanary.install(getApplication());
@@ -238,7 +237,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
     public boolean onOptionsItemSelected(MenuItem item) {
         super.onOptionsItemSelected(item);
 
-        if (isOnline()) {
+        if (Utilities.deviceOnline(getApplicationContext())) {
 
             switch (item.getItemId()) {
 
@@ -296,7 +295,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
         editText = (EditText) v.findViewById(R.id.actionbar_search);
         editText.requestFocus();
-        showKeyboard();
+        Utilities.showKeyboard(getApplicationContext());
 
         editText.setOnTouchListener(new View.OnTouchListener() {
 
@@ -310,11 +309,11 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
                         isFocused = false;
                         editText.setVisibility(View.GONE);
                         setTitle("MediaStock");
-                        hideKeyboard(editText);
+                        Utilities.hideKeyboard(getApplicationContext(), editText);
 
                     } else {
                         isFocused = true;
-                        showKeyboard();
+                        Utilities.showKeyboard(getApplicationContext());
                     }
                 }
 
@@ -346,7 +345,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
         this.editText.setVisibility(View.GONE);
         setTitle("MediaStock");
-        hideKeyboard(editText);
+        Utilities.hideKeyboard(getApplicationContext(), editText);
 
         boolean twoWords = parseQuery(query);
 
@@ -388,24 +387,4 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         }
     }
 
-    private void hideKeyboard(View view) {
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-    }
-
-    private void showKeyboard() {
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
-    }
-
-    /**
-     * Checks if the device is connected to the Internet
-     *
-     * @return true if connected, false otherwise
-     */
-    public boolean isOnline() {
-        ConnectivityManager cm = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
-    }
 }

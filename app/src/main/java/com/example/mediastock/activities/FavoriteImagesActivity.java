@@ -9,7 +9,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 
@@ -19,6 +18,7 @@ import com.example.mediastock.data.DBHelper;
 import com.example.mediastock.data.ImageBean;
 import com.example.mediastock.util.FavoriteImageAdapter;
 import com.example.mediastock.util.Utilities;
+import com.squareup.leakcanary.LeakCanary;
 
 import java.lang.ref.WeakReference;
 
@@ -36,6 +36,8 @@ public class FavoriteImagesActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.favorite_images);
+
+        LeakCanary.install(getApplication());
 
         db = new DBController(this);
         cursor = db.getImages();
@@ -60,8 +62,6 @@ public class FavoriteImagesActivity extends AppCompatActivity {
         });
 
         new AsyncWork(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
-        Log.i("favorites", " invocato onCreate");
     }
 
     /**
@@ -102,38 +102,20 @@ public class FavoriteImagesActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-
-        // close the cursor
-        cursor.close();
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        // close the database
-        db.close();
-        Log.i("on destroy fav", "si");
-    }
 
     @Override
     protected void onRestart() {
         super.onRestart();
 
-        if (!db.isOpened())
-            db.reopen(this);
+        int cursor_count = cursor.getCount();
+        cursor = db.getImages();
 
-        if (cursor != null) {
+        // some image has been removed from favorites
+        if (cursor_count != cursor.getCount())
+            adapter.deleteItemAt(imageID_temp);
 
-            if (cursor.isClosed()) {
-                int numElements = cursor.getCount();
-                cursor = db.getImages();
-
-                // some image has been removed from favorites
-                if (numElements != cursor.getCount())
-                    adapter.deleteItemAt(imageID_temp);
-            }
-        }
     }
 
     private static class AsyncWork extends AsyncTask<Void, Bitmap, Void> {

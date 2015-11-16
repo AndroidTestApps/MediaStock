@@ -13,8 +13,10 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.example.mediastock.R;
+import com.example.mediastock.util.Utilities;
 
 
 public class FilterVideoFragment extends AbstractFragment implements OnItemSelectedListener, OnClickListener {
@@ -82,10 +84,11 @@ public class FilterVideoFragment extends AbstractFragment implements OnItemSelec
      */
     @Override
     public void onClick(View arg0) {
-        if (!isOnline()) {
-            showAlertDialog();
+        if (!Utilities.deviceOnline(context)) {
+            Toast.makeText(context.getApplicationContext(), "There is no internet connection", Toast.LENGTH_SHORT).show();
             return;
         }
+
         Bundle bundle = new Bundle();
         bundle.putString(WORD, word.getText().toString());
         bundle.putString(SORT, query.get(1));

@@ -2,12 +2,10 @@ package com.example.mediastock.activities;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -18,13 +16,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mediastock.R;
+import com.example.mediastock.util.Utilities;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A simple media player for music
+ * A simple music player activity.
  *
  * @author Dinu
  */
@@ -44,8 +43,8 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
         super.onCreate(savedInstanceState);
 
         // check if online
-        if (!isOnline()) {
-            Toast.makeText(this, "Not online", Toast.LENGTH_SHORT).show();
+        if (!Utilities.deviceOnline(getApplicationContext())) {
+            Toast.makeText(getApplicationContext(), "Not online", Toast.LENGTH_SHORT).show();
             finish();
         } else {
 
@@ -127,9 +126,8 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
 
     @Override
     public void onBackPressed() {
-        mediaPlayer.stop();
-        mediaPlayer.release();
-        mediaPlayer = null;
+        super.onBackPressed();
+
         this.finish();
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
@@ -172,26 +170,19 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
             mediaPlayer.seekTo(progress);
     }
 
-    /**
-     * Checks if the device is connected to the Internet
-     *
-     * @return true if connected, false otherwise
-     */
-    private boolean isOnline() {
-        ConnectivityManager cm = (ConnectivityManager) this.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
-    }
 
     // not used
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
     }
-
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
     }
 
+
+    /**
+     * Thread to update the time of the music
+     */
     private static class UpdateSongTime implements Runnable {
         private static WeakReference<MusicPlayerActivity> activity;
 

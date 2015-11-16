@@ -146,7 +146,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
      * Method to get the recent music
      */
     public void getRecentMusic() {
-        if (!isOnline())
+        if (!Utilities.deviceOnline(context))
             return;
 
         showProgressBar();
@@ -172,7 +172,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
      * We pass all the info to DownloadService service to start to download the images.
      */
     public void startFilterSearch(Bundle bundle) {
-        if (!isOnline())
+        if (!Utilities.deviceOnline(context))
             return;
 
         musicAdapter.setLoadingType(3);

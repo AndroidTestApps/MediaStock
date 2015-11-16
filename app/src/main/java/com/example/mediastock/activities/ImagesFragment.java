@@ -108,7 +108,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
             @Override
             public void onImageClick(View view, int position) {
 
-                if (isOnline())
+                if (Utilities.deviceOnline(context))
                     goToDisplayImageActivity(adapter.getBeanAt(position));
             }
         });
@@ -135,7 +135,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
      * Method to get the recent images
      */
     public void getRecentImages() {
-        if (!isOnline())
+        if (!Utilities.deviceOnline(context))
             return;
 
         showProgressBar();
@@ -161,7 +161,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
      * We pass all the info to DownloadService service to start to download the images.
      */
     public void startFilterSearch(Bundle bundle) {
-        if (!isOnline())
+        if (!Utilities.deviceOnline(context))
             return;
 
         adapter.setLoadingType(3);
