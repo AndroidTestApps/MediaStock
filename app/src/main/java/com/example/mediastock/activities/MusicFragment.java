@@ -109,16 +109,25 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         LinearLayoutManager llm = new LinearLayoutManager(context);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(llm);
-        musicAdapter = new MusicVideoAdapter(context, 1);
+        musicAdapter = new MusicVideoAdapter(context, 1, false);
         recyclerView.setAdapter(musicAdapter);
+
+        // on item click
         musicAdapter.setOnMediaItemClickListener(new MusicVideoAdapter.OnMediaItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                MusicBean b = (MusicBean) musicAdapter.getItemAt(position);
+
+                if (!Utilities.deviceOnline(context)) {
+                    Toast.makeText(context.getApplicationContext(), "Not online", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                final Bundle bundle = new Bundle();
+                final MusicBean bean = (MusicBean) musicAdapter.getItemAt(position);
 
                 Intent intent = new Intent(context, MusicPlayerActivity.class);
-                intent.putExtra("url", b.getPreview());
-                intent.putExtra("title", b.getTitle());
+                bundle.putParcelable("bean", bean);
+                intent.putExtra("bean", bundle);
 
                 startActivity(intent);
                 getActivity().overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
@@ -450,11 +459,14 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
 
         @Override
         protected void onPostExecute(String result) {
+            super.onPostExecute(result);
 
             if (!searchSuccess) {
                 activity.get().dismissProgressBar();
                 Toast.makeText(activity.get().getActivity(), "Sorry, no music with " + result + " was found!", Toast.LENGTH_LONG).show();
             }
+
+            activity = null;
         }
     }
 }

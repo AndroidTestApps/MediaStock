@@ -11,6 +11,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.example.mediastock.R;
 import com.example.mediastock.data.DBController;
@@ -24,7 +25,7 @@ import java.lang.ref.WeakReference;
 
 public class FavoriteImagesActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
-    private FloatingActionButton fab_filter;
+    private FloatingActionButton fabFilter;
     private FavoriteImageAdapter adapter;
     private ProgressBar progressBar;
     private DBController db;
@@ -39,6 +40,7 @@ public class FavoriteImagesActivity extends AppCompatActivity {
 
         LeakCanary.install(getApplication());
 
+        // get images from db
         db = new DBController(this);
         cursor = db.getImages();
 
@@ -47,21 +49,26 @@ public class FavoriteImagesActivity extends AppCompatActivity {
         recyclerView = (RecyclerView) this.findViewById(R.id.gridView_fav_images);
         recyclerView.setHasFixedSize(true);
         progressBar = (ProgressBar) this.findViewById(R.id.p_img_bar);
-        fab_filter = (FloatingActionButton) this.findViewById(R.id.fab_fav_img_search);
-        fab_filter = (FloatingActionButton) this.findViewById(R.id.fab_fav_img_search);
+        fabFilter = (FloatingActionButton) this.findViewById(R.id.fab_fav_img_search);
+        fabFilter = (FloatingActionButton) this.findViewById(R.id.fab_fav_img_search);
         GridLayoutManager grid = new GridLayoutManager(getApplicationContext(), 2);
         recyclerView.setLayoutManager(grid);
         adapter = new FavoriteImageAdapter(getApplicationContext());
         recyclerView.setAdapter(adapter);
+
+        // on item click
         adapter.setOnImageClickListener(new FavoriteImageAdapter.OnImageClickListener() {
             @Override
             public void onImageClick(View view, int position) {
 
-                goToDisplayImageActivity(position + 1);
+                goToDisplayImageActivity(position);
             }
         });
 
-        new AsyncWork(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        if (cursor.getCount() == 0)
+            Toast.makeText(getApplicationContext(), "There are no images saved", Toast.LENGTH_SHORT).show();
+        else
+            new AsyncWork(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     /**
@@ -70,23 +77,24 @@ public class FavoriteImagesActivity extends AppCompatActivity {
      * @param position the position of the selected image
      */
     private void goToDisplayImageActivity(int position) {
+        final Bundle bundle = new Bundle();
         final ImageBean bean = new ImageBean();
         cursor.moveToPosition(position);
 
         bean.setId(cursor.getInt(cursor.getColumnIndex(DBHelper.IMG_ID)));
-        bean.setDescription(cursor.getString(cursor.getColumnIndex(DBHelper.DESCRIPTION)));
-        bean.setAuthor(cursor.getString(cursor.getColumnIndex(DBHelper.AUTHOR)));
+        bean.setDescription(cursor.getString(cursor.getColumnIndex(DBHelper.DESCRIPTION_IMG)));
+        bean.setAuthor(cursor.getString(cursor.getColumnIndex(DBHelper.AUTHOR_IMG)));
         bean.setByteArrayLength(cursor.getBlob(cursor.getColumnIndex(DBHelper.IMAGE)).length);
         bean.setImage(cursor.getBlob(cursor.getColumnIndex(DBHelper.IMAGE)));
 
         Intent intent = new Intent(getApplicationContext(), DisplayImageActivity.class);
-        final Bundle bundle = new Bundle();
+
         bundle.putInt("type", 2);
         bundle.putParcelable("bean", bean);
         intent.putExtra("bean", bundle);
 
         // save the images position in the adapter in case the image will be removed from favorites
-        imageID_temp = position - 1;
+        imageID_temp = position;
 
         startActivity(intent);
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
@@ -128,14 +136,18 @@ public class FavoriteImagesActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... params) {
+            FavoriteImagesActivity context = activity.get();
 
-            while (activity.get().cursor.moveToNext()) {
+            do {
 
                 // scale image and send it to the adapter
                 publishProgress(Bitmap.createScaledBitmap(
-                        Utilities.convertToBitmap(activity.get().cursor.getBlob(activity.get().cursor.getColumnIndex(DBHelper.IMAGE)))
-                        , activity.get().width / 2, activity.get().width / 2, false));
-            }
+                        Utilities.convertToBitmap(context.cursor.getBlob(context.cursor.getColumnIndex(DBHelper.IMAGE)))
+                        , context.width / 2, context.width / 2, false));
+
+            } while (context.cursor.moveToNext());
+
+
 
             return null;
         }
@@ -152,6 +164,7 @@ public class FavoriteImagesActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+
             activity = null;
         }
     }

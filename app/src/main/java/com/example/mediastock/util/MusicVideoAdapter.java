@@ -19,6 +19,7 @@ import java.util.ArrayList;
 
 public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.MyHolder> {
     private final int type;
+    private final boolean favorites;
     private final Drawable icon_music;
     private final Drawable icon_video;
     private final ArrayList<Bean> list = new ArrayList<>();
@@ -28,8 +29,9 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
     private OnBottomListener bottomListener;
 
 
-    public MusicVideoAdapter(Context context, int type) {
+    public MusicVideoAdapter(Context context, int type, boolean favorites) {
         this.type = type;
+        this.favorites = favorites;
 
         icon_music = context.getResources().getDrawable(R.drawable.music);
         icon_video = context.getResources().getDrawable(R.drawable.video);
@@ -54,7 +56,12 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
 
     @Override
     public MyHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View item = LayoutInflater.from(parent.getContext()).inflate(R.layout.grid_music_video, parent, false);
+        View item;
+
+        if (favorites)
+            item = LayoutInflater.from(parent.getContext()).inflate(R.layout.grid_music_video_favorites, parent, false);
+        else
+            item = LayoutInflater.from(parent.getContext()).inflate(R.layout.grid_music_video, parent, false);
 
         return new MyHolder(item, this);
     }
@@ -85,7 +92,7 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
     }
 
     public void addItem(Bean bean) {
-        list.add(bean);
+        list.add(bean.getPos(), bean);
         notifyItemInserted(bean.getPos());
     }
 

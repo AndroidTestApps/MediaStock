@@ -5,6 +5,7 @@ import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -50,23 +51,22 @@ import java.util.Iterator;
  */
 public class DisplayImageActivity extends AppCompatActivity implements View.OnClickListener {
     private static Handler handler;
-    private static Thread thread_db;
     private int image_id;
     private int width;
-    private boolean imageDB = false;
+    private boolean imageToDB = false;
     private ScrollView sw;
     private ImageView imageView;
     private ImageAdapter adapter;
     private RecyclerView recyclerView;
     private TextView description, author, similarImg;
-    private FloatingActionButton fab_favorites;
+    private FloatingActionButton fabFavorites;
     private DBController db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.display_image_activity);
+
         width = getResources().getDisplayMetrics().widthPixels;
 
         db = new DBController(this);
@@ -82,8 +82,8 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         labelAuthor.setTypeface(null, Typeface.BOLD);
         TextView labelSimilarImg = (TextView) this.findViewById(R.id.TextView_similar_displayImage);
         labelSimilarImg.setTypeface(null, Typeface.BOLD);
-        fab_favorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
-        fab_favorites.setOnClickListener(this);
+        fabFavorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
+        fabFavorites.setOnClickListener(this);
         sw = ((ScrollView) findViewById(R.id.scrollViewDisplayImage));
         imageView = (ImageView) this.findViewById(R.id.imageView_displayImage);
         description = (TextView) this.findViewById(R.id.textView_description_displayImage);
@@ -118,7 +118,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             }
         });
 
-        // if offline
+        // we are offline ?
         if (getIntentType() == 2)
             computeOfflineWork();
         else
@@ -135,8 +135,8 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         ImageBean bean = getBeanFromIntent();
         image_id = bean.getId();
 
-        imageDB = true;
-        fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+        imageToDB = true;
+        fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
         imageView.setImageBitmap(Bitmap.createScaledBitmap(Utilities.convertToBitmap(bean.getImage()), width, width, true));
         description.setText(bean.getDescription());
@@ -204,30 +204,18 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
         if (v.getId() == R.id.fab_favorites) {
 
-            // if the image is already in the database
-            if (imageDB) {
-                imageDB = false;
-                fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
+            // if the image is already saved in the database, it means we want to remove the image
+            if (imageToDB) {
+                imageToDB = false;
+                fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
 
                 // delete img from db
-                thread_db = new Thread() {
+                new AsyncDbWork(this, 1, image_id).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
-                    @Override
-                    public void run() {
-                        super.run();
-
-                        db.deleteImage(image_id);
-                    }
-                };
-
-                thread_db.start();
-
-                Toast.makeText(this.getApplicationContext(), "Image removed from favorites", Toast.LENGTH_SHORT).show();
-
-                // if not
+                // the image is not in the database, so we have to save it
             } else {
-                imageDB = true;
-                fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+                imageToDB = true;
+                fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
                 // thread used to get the favorite image and then save it to database
                 AsyncWork thread_favoriteImage = new AsyncWork(3);
@@ -242,7 +230,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     public void onDestroy() {
         super.onDestroy();
         imageView = null;
-        thread_db = null;
     }
 
     @Override
@@ -262,14 +249,15 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     }
 
     /**
-     * Method to check in the local database to an existing image.
+     * We check in the database if the image with id id exists.
+     * If exists we change the fab color.
      *
      * @param id the id of the image
      */
     private void checkExistingImageInDB(int id) {
-        if (db.checkExitingImage(id)) {
-            imageDB = true;
-            fab_favorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+        if (db.checkExistingImage(id)) {
+            imageToDB = true;
+            fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
         }
     }
 
@@ -281,7 +269,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     private void getMainImage(ImageBean bean) {
         image_id = bean.getId();
 
-        // if the image is already in the database we change the color of the fab favorites
+        // if the image is already in the database we change the color of the fab
         checkExistingImageInDB(image_id);
 
         if (bean.getUrl() != null) {
@@ -330,20 +318,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
                 // save favorite image to database
                 case 4:
-
-                    thread_db = new Thread() {
-
-                        @Override
-                        public void run() {
-                            super.run();
-
-                            context.db.insertImage((Bitmap) msg.getData().getParcelable("img"), context.image_id, context.description.getText().toString(), context.author.getText().toString());
-                        }
-                    };
-
-                    thread_db.start();
-
-                    Toast.makeText(context.getApplicationContext(), "Image added to favorites", Toast.LENGTH_SHORT).show();
+                    new AsyncDbWork(context, 2, msg, context.image_id, context.description.getText().toString(), context.author.getText().toString()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
                     break;
 
@@ -575,6 +550,69 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
         public void setUrl(String url) {
             this.url = url;
+        }
+    }
+
+    private static class AsyncDbWork extends AsyncTask<Void, Void, Long> {
+        private static WeakReference<DisplayImageActivity> activity;
+        private final int type;
+        private final int imageID;
+        private final Message msg;
+        private final String description;
+        private final String author;
+
+        public AsyncDbWork(DisplayImageActivity context, int type, Message msg, int imageID, String description, String author) {
+            activity = new WeakReference<>(context);
+            this.type = type;
+            this.imageID = imageID;
+            this.msg = msg;
+            this.description = description;
+            this.author = author;
+
+        }
+
+        public AsyncDbWork(DisplayImageActivity context, int type, int imageID) {
+            this(context, type, null, imageID, null, null);
+        }
+
+        @Override
+        protected Long doInBackground(Void... params) {
+
+            if (type == 1)
+                return removeImageFromFavorites();
+            else
+                return addImageToFavorites();
+        }
+
+        private long addImageToFavorites() {
+            DisplayImageActivity context = activity.get();
+            long result = 0;
+
+            result = context.db.insertImage((Bitmap) msg.getData().getParcelable("img"), imageID, description, author);
+
+            return result;
+        }
+
+        private long removeImageFromFavorites() {
+
+            activity.get().db.deleteMusic(imageID);
+
+            return 0;
+        }
+
+        @Override
+        protected void onPostExecute(Long value) {
+            super.onPostExecute(value);
+
+            if (type == 2) {
+                if (value > 0)
+                    Toast.makeText(activity.get().getApplicationContext(), "Image added to favorites", Toast.LENGTH_SHORT).show();
+                else
+                    Toast.makeText(activity.get().getApplicationContext(), "Error adding the image to favorites", Toast.LENGTH_SHORT).show();
+            } else
+                Toast.makeText(activity.get().getApplicationContext(), "Image removed from favorites", Toast.LENGTH_SHORT).show();
+
+            activity = null;
         }
     }
 }

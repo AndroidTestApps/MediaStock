@@ -75,6 +75,11 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         if (!Utilities.deviceOnline(getApplicationContext()))
             showAlertDialog();
 
+/*
+        DBController db = new DBController(this);
+        db.deleteTables();
+        db.createTables();
+*/
         LeakCanary.install(getApplication());
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
@@ -148,8 +153,15 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
                     // Images
                     case 0:
-                        Intent intent = new Intent(getApplicationContext(), FavoriteImagesActivity.class);
-                        startActivity(intent);
+                        Intent imgIntent = new Intent(getApplicationContext(), FavoriteImagesActivity.class);
+                        startActivity(imgIntent);
+                        overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
+                        break;
+
+                    // Music
+                    case 2:
+                        Intent musicIntent = new Intent(getApplicationContext(), FavoriteMusicVideosActivity.class);
+                        startActivity(musicIntent);
                         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
                         break;
 

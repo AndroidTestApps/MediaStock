@@ -93,8 +93,8 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
     }
 
     public void addItem(ImageBean bean) {
-        images.add(bean);
-        this.notifyItemInserted(bean.getPos());
+        images.add(bean.getPos(), bean);
+        notifyItemInserted(bean.getPos());
     }
 
     public void deleteItems() {

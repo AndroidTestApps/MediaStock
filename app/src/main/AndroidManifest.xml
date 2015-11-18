@@ -36,6 +36,13 @@
             android:name="com.example.mediastock.activities.FavoriteImagesActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             />
+
+
+        <activity
+            android:name="com.example.mediastock.activities.FavoriteMusicVideosActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            />
+
         <activity
             android:name="com.example.mediastock.activities.FullViewImageActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"

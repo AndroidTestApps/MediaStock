@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
+             xmlns:app="http://schemas.android.com/apk/res-auto"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             android:orientation="horizontal">
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/list_video_galery"
+        android:id="@+id/list_music_video_fav"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#ffeeeeee">
@@ -22,16 +23,19 @@
         android:layout_gravity="center"
         android:visibility="gone"/>
 
-    <ProgressBar
-        android:id="@+id/p_bar_bottom"
-        style="?android:progressBarStyleInverse"
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_fav_img_search"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_gravity="center_horizontal|bottom"
-        android:layout_marginBottom="10dp"
-        android:visibility="gone"/>
-
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="false"
+        android:layout_gravity="right|bottom"
+        android:layout_marginBottom="6dp"
+        android:src="@drawable/abc_ic_menu_moreoverflow_mtrl_alpha"
+        app:backgroundTint="#e2e70b0b"
+        app:borderWidth="0dp"
+        app:elevation="6dp"/>
 
 </FrameLayout>

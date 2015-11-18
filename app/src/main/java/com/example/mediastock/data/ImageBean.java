@@ -122,11 +122,8 @@ public class ImageBean extends Bean{
         this.pos = pos;
     }
 
-    public int getByteArrayLength() {
-        return byteArrayLength;
-    }
-
     public void setByteArrayLength(int byteArrayLength) {
         this.byteArrayLength = byteArrayLength;
     }
+
 }

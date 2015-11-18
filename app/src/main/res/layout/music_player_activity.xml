@@ -119,7 +119,7 @@
 
 
         <android.support.design.widget.FloatingActionButton
-            android:id="@+id/fab_favorites"
+            android:id="@+id/fab_favorites_music"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_above="@+id/textView2_music"

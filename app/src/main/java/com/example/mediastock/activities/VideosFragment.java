@@ -109,8 +109,10 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         LinearLayoutManager llm = new LinearLayoutManager(context);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(llm);
-        videoAdapter = new MusicVideoAdapter(context, 2);
+        videoAdapter = new MusicVideoAdapter(context, 2, false);
         recyclerView.setAdapter(videoAdapter);
+
+        // on item click
         videoAdapter.setOnMediaItemClickListener(new MusicVideoAdapter.OnMediaItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {

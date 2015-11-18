@@ -104,6 +104,8 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         recyclerView.setLayoutManager(grid);
         adapter = new ImageAdapter(context, 1);
         recyclerView.setAdapter(adapter);
+
+        // on image click
         adapter.setOnImageClickListener(new ImageAdapter.OnImageClickListener() {
             @Override
             public void onImageClick(View view, int position) {

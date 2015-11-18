@@ -52,7 +52,7 @@ public class FavoriteImageAdapter extends RecyclerView.Adapter<FavoriteImageAdap
     }
 
     public void addItem(Bitmap image, int pos) {
-        list.add(image);
+        list.add(pos, image);
         notifyItemInserted(pos);
     }
 
