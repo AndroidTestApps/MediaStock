@@ -9,25 +9,36 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ProgressBar;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mediastock.R;
 import com.example.mediastock.data.DBController;
 import com.example.mediastock.data.DBHelper;
 import com.example.mediastock.data.ImageBean;
+import com.example.mediastock.util.CustomSpinnerRowAdapter;
 import com.example.mediastock.util.FavoriteImageAdapter;
 import com.example.mediastock.util.Utilities;
 import com.squareup.leakcanary.LeakCanary;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 
-public class FavoriteImagesActivity extends AppCompatActivity {
+public class FavoriteImagesActivity extends AppCompatActivity implements View.OnClickListener {
+    private final static String[] colors = {"Black", "White", "Red", "Blue", "Green", "Yellow"};
+    private final ArrayList<String> rows = new ArrayList<>();
+    private CustomSpinnerRowAdapter spinnerRowAdapter;
     private RecyclerView recyclerView;
     private FloatingActionButton fabFilter;
     private FavoriteImageAdapter adapter;
-    private ProgressBar progressBar;
     private DBController db;
     private Cursor cursor;
     private int width;
@@ -44,13 +55,15 @@ public class FavoriteImagesActivity extends AppCompatActivity {
         db = new DBController(this);
         cursor = db.getImages();
 
+        // create the spinner model rows and the adapter
+        createSpinnerModelRows();
+
         // layout init
+        fabFilter = (FloatingActionButton) this.findViewById(R.id.fab_fav_img_search);
+        fabFilter.setOnClickListener(this);
         width = getResources().getDisplayMetrics().widthPixels;
         recyclerView = (RecyclerView) this.findViewById(R.id.gridView_fav_images);
         recyclerView.setHasFixedSize(true);
-        progressBar = (ProgressBar) this.findViewById(R.id.p_img_bar);
-        fabFilter = (FloatingActionButton) this.findViewById(R.id.fab_fav_img_search);
-        fabFilter = (FloatingActionButton) this.findViewById(R.id.fab_fav_img_search);
         GridLayoutManager grid = new GridLayoutManager(getApplicationContext(), 2);
         recyclerView.setLayoutManager(grid);
         adapter = new FavoriteImageAdapter(getApplicationContext());
@@ -120,12 +133,89 @@ public class FavoriteImagesActivity extends AppCompatActivity {
         int cursor_count = cursor.getCount();
         cursor = db.getImages();
 
-        // some image has been removed from favorites
+        // some image has been removed from favorites ?
         if (cursor_count != cursor.getCount())
             adapter.deleteItemAt(imageID_temp);
 
     }
 
+    @Override
+    public void onClick(View v) {
+
+        if (v.getId() == R.id.fab_fav_img_search) {
+            fabFilter.setClickable(false);
+
+            showPopupMenu();
+        }
+    }
+
+    /**
+     * Method to show a popup menu to display do a filter search of the images
+     */
+    private void showPopupMenu() {
+        int a = width / 2;
+        int b = width / 3;
+        int tot = a + b;
+
+        LayoutInflater layoutInflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
+        View popupView = layoutInflater.inflate(R.layout.popup_window, null);
+
+        Spinner rows = (Spinner) popupView.findViewById(R.id.spinner_rows);
+        rows.setAdapter(spinnerRowAdapter);
+        rows.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selected = ((TextView) view.findViewById(R.id.text_spinner_row)).getText().toString();
+
+                Toast.makeText(getApplicationContext(), "Color selected: " + selected, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
+        final PopupWindow popupWindow = new PopupWindow(popupView, tot, RelativeLayout.LayoutParams.WRAP_CONTENT);//RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+
+        Button buttonDismiss = (Button) popupView.findViewById(R.id.dismiss);
+        Button buttonOK = (Button) popupView.findViewById(R.id.accept);
+
+        buttonDismiss.setOnClickListener(new Button.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+
+                popupWindow.dismiss();
+                fabFilter.setClickable(true);
+            }
+        });
+
+        buttonOK.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                // TODO
+                popupWindow.dismiss();
+                fabFilter.setClickable(true);
+            }
+        });
+
+        popupWindow.showAtLocation(fabFilter, Gravity.CENTER, 0, 0);
+    }
+
+    private void createSpinnerModelRows() {
+        for (int i = 0; i < 6; i++)
+            rows.add(colors[i]);
+
+        // adapter for the spinner
+        spinnerRowAdapter = new CustomSpinnerRowAdapter(FavoriteImagesActivity.this, R.layout.spinner_rows, rows, getResources());
+    }
+
+
+    /**
+     * A thread class to get the images from the database.
+     */
     private static class AsyncWork extends AsyncTask<Void, Bitmap, Void> {
         private static WeakReference<FavoriteImagesActivity> activity;
         private int pos = 0;

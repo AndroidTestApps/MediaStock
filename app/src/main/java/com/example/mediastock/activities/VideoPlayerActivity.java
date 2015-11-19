@@ -7,8 +7,11 @@ import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.design.widget.FloatingActionButton;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -22,7 +25,11 @@ import com.example.mediastock.R;
 import com.example.mediastock.util.Utilities;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -30,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Dinu
  */
-public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callback, OnSeekBarChangeListener {
+public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callback, OnSeekBarChangeListener, View.OnClickListener {
     private static Handler myHandler = new Handler();
     public int oneTimeOnly = 0;
     private WeakReference<SurfaceHolder> surfaceHolder;
@@ -43,6 +50,8 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
     private TextView tx1, tx2;
     private ProgressDialog progressDialog;
     private boolean isPaused = false;
+    private String url;
+    private FloatingActionButton fabFavorites;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +65,8 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
             setContentView(R.layout.video_player_activity);
 
+            fabFavorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
+            fabFavorites.setOnClickListener(this);
             progressDialog = new ProgressDialog(this);
             progressDialog.setMessage("Loading...");
             progressDialog.show();
@@ -65,7 +76,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
             tx1 = (TextView) findViewById(R.id.textView2_video);
             tx2 = (TextView) findViewById(R.id.textView3_video);
 
-            String url = getIntent().getStringExtra("url");
+            url = getIntent().getStringExtra("url");
             TextView description = (TextView) this.findViewById(R.id.textView_video_player_title);
             description.setText(getIntent().getStringExtra("description"));
 
@@ -232,6 +243,16 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
     public void onStopTrackingTouch(SeekBar seekBar) {
     }
 
+    @Override
+    public void onClick(View v) {
+
+        if (v.getId() == R.id.fab_favorites) {
+
+            // add video to favorites
+            new AsyncDbWork(this, 2).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }
+    }
+
     /**
      * Thread to update the time of the video
      */
@@ -254,6 +275,87 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                 activity.get().seekbar.setProgress((int) activity.get().startTime);
                 myHandler.postDelayed(this, 100);
             }
+        }
+    }
+
+
+    private static class AsyncDbWork extends AsyncTask<Integer, Void, Long> {
+        private static WeakReference<VideoPlayerActivity> activity;
+        private final int type;
+
+        public AsyncDbWork(VideoPlayerActivity context, int type) {
+            activity = new WeakReference<>(context);
+            this.type = type;
+        }
+
+        @Override
+        protected Long doInBackground(Integer... params) {
+
+            if (type == 1)
+                return removeVideoFromFavorites(params[0]);
+            else
+                return addVideoToFavorites();
+        }
+
+        private long addVideoToFavorites() {
+            VideoPlayerActivity context = activity.get();
+
+            HttpURLConnection con = null;
+            InputStream stream = null;
+            long result = 0;
+            try {
+
+                URL urll = new URL(context.url);
+                con = (HttpURLConnection) urll.openConnection();
+                stream = con.getInputStream();
+
+                Utilities.covertStreamToByte(stream);
+                // save music to database
+                //result = context.db.insertMusic(Utilities.covertStreamToByte(stream), context.musicID, context.bean.getTitle());
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                Log.i("music to db", " music covertStreamToByte");
+                e.printStackTrace();
+
+            } finally {
+
+                // and finally we close the objects
+                if (con != null && stream != null) {
+                    con.disconnect();
+
+                    try {
+
+                        stream.close();
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private long removeVideoFromFavorites(int id) {
+
+            return 0;
+        }
+
+        @Override
+        protected void onPostExecute(Long value) {
+            super.onPostExecute(value);
+
+            if (type == 2) {
+                if (value > 0)
+                    Toast.makeText(activity.get().getApplicationContext(), "Music added to favorites", Toast.LENGTH_SHORT).show();
+                else
+                    Toast.makeText(activity.get().getApplicationContext(), "Error adding the music to favorites", Toast.LENGTH_SHORT).show();
+            } else
+                Toast.makeText(activity.get().getApplicationContext(), "Music removed from favorites", Toast.LENGTH_SHORT).show();
+
+            activity = null;
         }
     }
 

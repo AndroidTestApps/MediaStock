@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.mediastock.R;
 import com.example.mediastock.util.CustomPagerAdapter;
@@ -73,7 +74,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         setSupportActionBar(toolbar);
 
         if (!Utilities.deviceOnline(getApplicationContext()))
-            showAlertDialog();
+            showAlertDialogNoInternet();
 
 /*
         DBController db = new DBController(this);
@@ -173,12 +174,39 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
     }
 
     @Override
+    public void onBackPressed() {
+        AlertDialog.Builder msg = new AlertDialog.Builder(new ContextThemeWrapper(this, android.R.style.Theme_Dialog));
+        msg.setTitle("MediaStock");
+        msg.setMessage("Are you sure you want to exit ?");
+        msg.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                dialog.dismiss();
+                finish();
+            }
+        });
+
+        msg.setNegativeButton("No", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                dialog.dismiss();
+            }
+        });
+
+        msg.show();
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
     }
 
     /**
      * Callback method to do a filter search of the images
+     *
      * @param bundle bundle that contains the users input
      */
     @Override
@@ -190,6 +218,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
     /**
      * Callback method to do a filter search of the music
+     *
      * @param bundle bundle that contains the users input
      */
     @Override
@@ -201,6 +230,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
     /**
      * Callback method to do a filter search of the videos
+     *
      * @param bundle bundle that contains the users input
      */
     @Override
@@ -211,7 +241,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
     }
 
     /**
-     * Method that returns a list of fragments
+     * Method that returns the list of fragments: ImagesFragment, VideosFragment, MusicFragment
      */
     public List<AbstractFragment> getFragments() {
         List<AbstractFragment> list = new ArrayList<>();
@@ -223,7 +253,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         return list;
     }
 
-    private void showAlertDialog(){
+    private void showAlertDialogNoInternet() {
         AlertDialog.Builder msg = new AlertDialog.Builder(new ContextThemeWrapper(this, android.R.style.Theme_Dialog));
         msg.setTitle("MediaStock");
         msg.setMessage("There is no internet connection!");
@@ -237,6 +267,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         msg.show();
     }
 
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -245,47 +276,75 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         return super.onCreateOptionsMenu(menu);
     }
 
+    /**
+     * Handling the menu items
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         super.onOptionsItemSelected(item);
 
-        if (Utilities.deviceOnline(getApplicationContext())) {
+        switch (item.getItemId()) {
 
-            switch (item.getItemId()) {
+            case R.id.item_search:
 
-                case R.id.item_search:
+                if (Utilities.deviceOnline(getApplicationContext())) {
 
                     if (viewPager.getCurrentItem() == 0 || viewPager.getCurrentItem() == 1 || viewPager.getCurrentItem() == 2) {
 
-                        if (isFocused) // search view opened
-                            startSearch(editText.getText().toString(), editText);
+                        // search view opened
+                        if (isFocused)
+                            startSearch(editText.getText().toString(), editText); // start searching the users input
                         else
                             openSearchView();
                     }
+                } else
+                    Toast.makeText(getApplicationContext(), "There is no internet connection", Toast.LENGTH_SHORT).show();
 
-                    return true;
+                return true;
 
-                case R.id.item_recent_images:
+
+            case R.id.item_recent_images:
+
+                if (Utilities.deviceOnline(getApplicationContext())) {
                     ImagesFragment frag = (ImagesFragment) adapter.getItem(0);
                     viewPager.setCurrentItem(0);
                     frag.getRecentImages();
+                } else
+                    Toast.makeText(getApplicationContext(), "There is no internet connection", Toast.LENGTH_SHORT).show();
 
-                    return true;
+                return true;
 
-                case R.id.item_recent_videos:
+            case R.id.item_recent_videos:
+
+                if (Utilities.deviceOnline(getApplicationContext())) {
                     VideosFragment frag_v = (VideosFragment) adapter.getItem(1);
                     viewPager.setCurrentItem(1);
                     frag_v.getRecentVideos();
 
-                    return true;
+                } else
+                    Toast.makeText(getApplicationContext(), "There is no internet connection", Toast.LENGTH_SHORT).show();
 
-                case R.id.item_recent_music:
+                return true;
+
+            case R.id.item_recent_music:
+
+                if (Utilities.deviceOnline(getApplicationContext())) {
                     MusicFragment frag_m = (MusicFragment) adapter.getItem(2);
                     viewPager.setCurrentItem(2);
                     frag_m.getRecentMusic();
 
-                    return true;
-            }
+                } else
+                    Toast.makeText(getApplicationContext(), "There is no internet connection", Toast.LENGTH_SHORT).show();
+
+                return true;
+
+            case R.id.item_favoriteImages:
+                Intent favoriteImagesIntent = new Intent(getApplicationContext(), FavoriteImagesActivity.class);
+                startActivity(favoriteImagesIntent);
+                overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
+
+                return true;
+
         }
 
         return true;

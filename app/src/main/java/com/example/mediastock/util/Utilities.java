@@ -105,6 +105,8 @@ public class Utilities {
             byteBuffer.write(buffer, 0, len);
         }
 
+        Log.i("db", " -> " + String.valueOf(byteBuffer.size()));
+
         return byteBuffer.toByteArray();
     }
 

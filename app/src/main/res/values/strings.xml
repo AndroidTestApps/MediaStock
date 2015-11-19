@@ -9,5 +9,7 @@
     <string name="similar">Similar images</string>
     <string name="play">&gt;</string>
     <string name="pause">| |</string>
-    <string name="favorites">Favorites</string>
+    <string name="favoriteImages">Favorite images</string>
+    <string name="favoriteMusic">Favorite music</string>
+    <string name="favoriteVideos">Favorite videos</string>
 </resources>
