@@ -39,10 +39,8 @@ public class FavoriteImageAdapter extends RecyclerView.Adapter<FavoriteImageAdap
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        Bitmap bitmap = list.get(position);
-        holder.ivIcon.setImageBitmap(bitmap);
+        holder.ivIcon.setImageBitmap(list.get(position));
         holder.ivIcon.setTag(position);
-        holder.ivIcon.setTag(bitmap);
     }
 
 
@@ -61,6 +59,10 @@ public class FavoriteImageAdapter extends RecyclerView.Adapter<FavoriteImageAdap
             list.clear();
             notifyDataSetChanged();
         }
+    }
+
+    public Bitmap getImageAt(int pos) {
+        return list.get(pos);
     }
 
     public void deleteItemAt(int position) {

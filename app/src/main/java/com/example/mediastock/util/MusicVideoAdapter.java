@@ -1,8 +1,8 @@
 package com.example.mediastock.util;
 
+
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,52 +10,26 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.mediastock.R;
-import com.example.mediastock.data.Bean;
 import com.example.mediastock.data.MusicBean;
 import com.example.mediastock.data.VideoBean;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 
-public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.MyHolder> {
-    private final int type;
-    private final boolean favorites;
+public class MusicVideoAdapter extends AbstractMediaAdapter {
     private final Drawable icon_music;
     private final Drawable icon_video;
-    private final ArrayList<Bean> list = new ArrayList<>();
-    private int loadingType;
-    private int pageNumber;
-    private OnMediaItemClickListener mediaListener;
-    private OnBottomListener bottomListener;
-
+    private final boolean favorites;
 
     public MusicVideoAdapter(Context context, int type, boolean favorites) {
-        this.type = type;
-        this.favorites = favorites;
+        super(context, type);
 
+        this.favorites = favorites;
         icon_music = context.getResources().getDrawable(R.drawable.music);
         icon_video = context.getResources().getDrawable(R.drawable.video);
     }
 
-    public void setPageNumber(int number) {
-        pageNumber = number;
-    }
-
-    public void setLoadingType(int loadingType) {
-        this.loadingType = loadingType;
-    }
-
-    public void setOnBottomListener(final OnBottomListener listener) {
-        this.bottomListener = listener;
-    }
-
-    public void setOnMediaItemClickListener(final OnMediaItemClickListener listener) {
-        this.mediaListener = listener;
-    }
-
-
     @Override
-    public MyHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public MediaHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View item;
 
         if (favorites)
@@ -63,64 +37,35 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
         else
             item = LayoutInflater.from(parent.getContext()).inflate(R.layout.grid_music_video, parent, false);
 
-        return new MyHolder(item, this);
+        return new MusicVideoHolder(item, this);
     }
 
     @Override
-    public void onBindViewHolder(MyHolder holder, int position) {
+    public void onBindViewHolder(MediaHolder holder, int position) {
 
-        if (type == 1) {
-            MusicBean item = (MusicBean) list.get(position);
-            holder.ivIcon.setImageDrawable(icon_music);
-            holder.text.setText(item.getTitle());
+        if (getType() == 1) {
+            MusicBean item = (MusicBean) getBeanAt(position);
+            ((MusicVideoHolder) holder).ivIcon.setImageDrawable(icon_music);
+            ((MusicVideoHolder) holder).text.setText(item.getTitle());
         } else {
-            VideoBean item_video = (VideoBean) list.get(position);
-            holder.ivIcon.setImageDrawable(icon_video);
-            holder.text.setText(item_video.getDescription());
+            VideoBean item_video = (VideoBean) getBeanAt(position);
+            ((MusicVideoHolder) holder).ivIcon.setImageDrawable(icon_video);
+            ((MusicVideoHolder) holder).text.setText(item_video.getDescription());
         }
 
 
         // scrolled to the bottom
-        if (position >= pageNumber - 1)
-            if (loadingType == 1 || loadingType == 2)
-                bottomListener.onBottomLoadMoreData(loadingType, pageNumber + 30); // load more data
+        if (position >= getPageNumber() - 1)
+            if (getLoadingType() == 1 || getLoadingType() == 2)
+                getBottomListener().onBottomLoadMoreData(getLoadingType(), getPageNumber() + 30); // load more data
     }
 
-    @Override
-    public int getItemCount() {
-        return list.size();
-    }
-
-    public void addItem(Bean bean) {
-        list.add(bean.getPos(), bean);
-        notifyItemInserted(bean.getPos());
-    }
-
-    public void deleteItems() {
-        if (!list.isEmpty()) {
-            list.clear();
-            notifyDataSetChanged();
-        }
-    }
-
-    public Bean getItemAt(int position) {
-        return list.get(position);
-    }
-
-    public interface OnMediaItemClickListener {
-        void onItemClick(View view, int position);
-    }
-
-    public interface OnBottomListener {
-        void onBottomLoadMoreData(int loadingType, int loadingPageNumber);
-    }
-
-    public static class MyHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public static class MusicVideoHolder extends AbstractMediaAdapter.MediaHolder implements View.OnClickListener {
         public ImageView ivIcon;
         public TextView text;
         private WeakReference<MusicVideoAdapter> ref;
 
-        public MyHolder(View itemView, MusicVideoAdapter adapter) {
+        public MusicVideoHolder(View itemView, MusicVideoAdapter adapter) {
             super(itemView);
 
             ref = new WeakReference<>(adapter);
@@ -131,8 +76,8 @@ public class MusicVideoAdapter extends RecyclerView.Adapter<MusicVideoAdapter.My
 
         @Override
         public void onClick(View v) {
-            if (ref.get().mediaListener != null)
-                ref.get().mediaListener.onItemClick(v, getAdapterPosition());
+            if (ref.get().getItemClickListener() != null)
+                ref.get().getItemClickListener().onItemClick(v, getAdapterPosition());
         }
     }
 }

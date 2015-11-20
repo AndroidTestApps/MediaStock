@@ -1,7 +1,6 @@
 package com.example.mediastock.util;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
@@ -18,11 +17,12 @@ import java.util.ArrayList;
 
 
 public class CustomSpinnerRowAdapter extends ArrayAdapter<String> {
-    private final static String[] colorsID = {"#000000", "#ffffff", "#dc020e", "#0226dc", "#15a415", "#ffea00"};
+    // black, white, red, blue, green, yellow, orange, magenta, grey, cyan
+    private final static String[] colorsID = {"#000000", "#ffffff", "#dc020e", "#0226dc", "#15a415", "#ffea00", "#ff8800", "#ff00ff", "#888888", "#00ffff"};
     private final LayoutInflater inflater;
     private final ArrayList<String> data;
 
-    public CustomSpinnerRowAdapter(FavoriteImagesActivity context, int textViewResourceId, ArrayList<String> objects, Resources resources) {
+    public CustomSpinnerRowAdapter(FavoriteImagesActivity context, int textViewResourceId, ArrayList<String> objects) {
         super(context, textViewResourceId, objects);
 
         this.data = objects;

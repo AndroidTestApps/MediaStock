@@ -25,7 +25,8 @@ import static org.apache.commons.codec.binary.Base64.encodeBase64;
 
 public class Utilities {
 
-	/**
+
+    /**
 	 * It reads the content of the input stream.
      *
 	 * @return the string from the stream

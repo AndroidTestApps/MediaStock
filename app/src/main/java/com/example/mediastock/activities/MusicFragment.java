@@ -113,7 +113,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         recyclerView.setAdapter(musicAdapter);
 
         // on item click
-        musicAdapter.setOnMediaItemClickListener(new MusicVideoAdapter.OnMediaItemClickListener() {
+        musicAdapter.setOnItemClickListener(new MusicVideoAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
 
@@ -123,7 +123,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                 }
 
                 final Bundle bundle = new Bundle();
-                final MusicBean bean = (MusicBean) musicAdapter.getItemAt(position);
+                final MusicBean bean = (MusicBean) musicAdapter.getBeanAt(position);
 
                 Intent intent = new Intent(context, MusicPlayerActivity.class);
                 bundle.putParcelable("bean", bean);

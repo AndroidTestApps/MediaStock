@@ -113,10 +113,10 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         recyclerView.setAdapter(videoAdapter);
 
         // on item click
-        videoAdapter.setOnMediaItemClickListener(new MusicVideoAdapter.OnMediaItemClickListener() {
+        videoAdapter.setOnItemClickListener(new MusicVideoAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                VideoBean bean = (VideoBean) videoAdapter.getItemAt(position);
+                VideoBean bean = (VideoBean) videoAdapter.getBeanAt(position);
 
                 Intent intent = new Intent(context, VideoPlayerActivity.class);
                 intent.putExtra("url", bean.getPreview());

@@ -33,8 +33,9 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 public class FavoriteImagesActivity extends AppCompatActivity implements View.OnClickListener {
-    private final static String[] colors = {"Black", "White", "Red", "Blue", "Green", "Yellow"};
+    private final static String[] colors = {"Black", "White", "Red", "Blue", "Green", "Yellow", "Orange", "Magenta", "Grey", "Cyan"};
     private final ArrayList<String> rows = new ArrayList<>();
+    private final ArrayList<String> imagesPaletteColor = new ArrayList<>();
     private CustomSpinnerRowAdapter spinnerRowAdapter;
     private RecyclerView recyclerView;
     private FloatingActionButton fabFilter;
@@ -81,7 +82,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         if (cursor.getCount() == 0)
             Toast.makeText(getApplicationContext(), "There are no images saved", Toast.LENGTH_SHORT).show();
         else
-            new AsyncWork(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            new AsyncDBWork(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     /**
@@ -153,12 +154,11 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
      * Method to show a popup menu to display do a filter search of the images
      */
     private void showPopupMenu() {
-        int a = width / 2;
-        int b = width / 3;
-        int tot = a + b;
+        final int colorSelected;
+        int layoutWidth = (width / 2) + (width / 3);
 
         LayoutInflater layoutInflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
-        View popupView = layoutInflater.inflate(R.layout.popup_window, null);
+        final View popupView = layoutInflater.inflate(R.layout.popup_window, null);
 
         Spinner rows = (Spinner) popupView.findViewById(R.id.spinner_rows);
         rows.setAdapter(spinnerRowAdapter);
@@ -168,7 +168,10 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selected = ((TextView) view.findViewById(R.id.text_spinner_row)).getText().toString();
 
-                Toast.makeText(getApplicationContext(), "Color selected: " + selected, Toast.LENGTH_SHORT).show();
+                if (position != 0)
+                    Toast.makeText(getApplicationContext(), "Color selected: " + selected, Toast.LENGTH_SHORT).show();
+
+
             }
 
             @Override
@@ -176,7 +179,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
             }
         });
 
-        final PopupWindow popupWindow = new PopupWindow(popupView, tot, RelativeLayout.LayoutParams.WRAP_CONTENT);//RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        final PopupWindow popupWindow = new PopupWindow(popupView, layoutWidth, RelativeLayout.LayoutParams.WRAP_CONTENT);
 
         Button buttonDismiss = (Button) popupView.findViewById(R.id.dismiss);
         Button buttonOK = (Button) popupView.findViewById(R.id.accept);
@@ -195,7 +198,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
             @Override
             public void onClick(View v) {
 
-                // TODO
+
                 popupWindow.dismiss();
                 fabFilter.setClickable(true);
             }
@@ -205,22 +208,37 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
     }
 
     private void createSpinnerModelRows() {
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < 10; i++)
             rows.add(colors[i]);
 
         // adapter for the spinner
-        spinnerRowAdapter = new CustomSpinnerRowAdapter(FavoriteImagesActivity.this, R.layout.spinner_rows, rows, getResources());
+        spinnerRowAdapter = new CustomSpinnerRowAdapter(FavoriteImagesActivity.this, R.layout.spinner_rows, rows);
+    }
+
+    /**
+     * Method to get the color palette from a bitmap and to determine if the colors
+     * are similar to the color color
+     *
+     * @param bitmap the bitmap
+     * @param color  the color to search in the bitmap
+     */
+    private void getColorsFromImage(Bitmap bitmap, final int color) {
+
+        //ColorHelper colorHelper = new ColorHelper(color, 0, 0, 0, 0, 0, 0);
+
+        //Log.i("color", " : " + String.valueOf(colorHelper.getColorSimilarity()));
+
     }
 
 
     /**
-     * A thread class to get the images from the database.
+     * Class to get in background the images from the database.
      */
-    private static class AsyncWork extends AsyncTask<Void, Bitmap, Void> {
+    private static class AsyncDBWork extends AsyncTask<Void, Bitmap, Void> {
         private static WeakReference<FavoriteImagesActivity> activity;
         private int pos = 0;
 
-        public AsyncWork(FavoriteImagesActivity context) {
+        public AsyncDBWork(FavoriteImagesActivity context) {
             activity = new WeakReference<>(context);
         }
 
@@ -236,8 +254,6 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
                         , context.width / 2, context.width / 2, false));
 
             } while (context.cursor.moveToNext());
-
-
 
             return null;
         }
@@ -258,4 +274,22 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
             activity = null;
         }
     }
+
+    /**
+     * Async class to filter the images.
+     */
+    private static class AsyncImageFilter extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
+    }
+
+
 }

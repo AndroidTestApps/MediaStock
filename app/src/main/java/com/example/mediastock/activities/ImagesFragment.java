@@ -106,17 +106,19 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         recyclerView.setAdapter(adapter);
 
         // on image click
-        adapter.setOnImageClickListener(new ImageAdapter.OnImageClickListener() {
+        adapter.setOnItemClickListener(new ImageAdapter.OnItemClickListener() {
+
             @Override
-            public void onImageClick(View view, int position) {
+            public void onItemClick(View view, int position) {
 
                 if (Utilities.deviceOnline(context))
-                    goToDisplayImageActivity(adapter.getBeanAt(position));
+                    goToDisplayImageActivity((ImageBean) adapter.getBeanAt(position));
             }
         });
 
         // endless list which loads more data when reaching the bottom of the view
         adapter.setOnBottomListener(new ImageAdapter.OnBottomListener() {
+
             @Override
             public void onBottomLoadMoreData(int loadingType, int loadingPageNumber) {
                 progressBar_bottom.setVisibility(View.VISIBLE);

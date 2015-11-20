@@ -47,10 +47,10 @@ public class FavoriteMusicVideosActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         // on item click
-        adapter.setOnMediaItemClickListener(new MusicVideoAdapter.OnMediaItemClickListener() {
+        adapter.setOnItemClickListener(new MusicVideoAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                final MusicBean bean = (MusicBean) adapter.getItemAt(position);
+                final MusicBean bean = (MusicBean) adapter.getBeanAt(position);
                 final Bundle bundle = new Bundle();
 
                 Intent intent = new Intent(getApplicationContext(), MusicPlayerActivity.class);
@@ -65,7 +65,7 @@ public class FavoriteMusicVideosActivity extends AppCompatActivity {
             }
         });
 
-        // new AsyncWork(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        // new AsyncDBWork(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
 

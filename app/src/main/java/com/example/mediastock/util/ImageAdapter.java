@@ -2,7 +2,6 @@ package com.example.mediastock.util;
 
 import android.content.Context;
 import android.net.Uri;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,119 +13,56 @@ import com.example.mediastock.data.ImageBean;
 import com.squareup.picasso.Picasso;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 
-public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
-    private final int width;
-    private final int type;
-    private final Context activity;
+
+public class ImageAdapter extends AbstractMediaAdapter {
     private final RelativeLayout.LayoutParams layout_param;
-    private int loadingType;
-    private int pageNumber;
-    private ArrayList<ImageBean> images = new ArrayList<>();
-    private OnImageClickListener image_listener;
-    private OnBottomListener bottom_listener;
 
     public ImageAdapter(Context context, int type) {
-        this.type = type;
-        this.activity = context;
-        this.width = context.getResources().getDisplayMetrics().widthPixels;
+        super(context, type);
 
-        if (type == 2) {
-            layout_param = new RelativeLayout.LayoutParams(width / 3, width / 3);
-            layout_param.setMargins(0, 2, 2, 2);
+        if (type == 1) {
+            layout_param = new RelativeLayout.LayoutParams(this.getWidth() / 2, this.getWidth() / 2);
+            layout_param.setMargins(3, 2, 0, 2);
 
         } else {
-            layout_param = new RelativeLayout.LayoutParams(width / 2, width / 2);
-            layout_param.setMargins(3, 2, 0, 2);
+            layout_param = new RelativeLayout.LayoutParams(this.getWidth() / 3, this.getWidth() / 3);
+            layout_param.setMargins(0, 2, 2, 2);
         }
-
     }
 
     @Override
-    public MyHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public AbstractMediaAdapter.MediaHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View item = LayoutInflater.from(parent.getContext()).inflate(R.layout.grid_image, parent, false);
 
-        return new MyHolder(item, this);
+        return new ImageHolder(item, this);
     }
 
     @Override
-    public void onBindViewHolder(MyHolder holder, int position) {
-        ImageBean item = images.get(position);
+    public void onBindViewHolder(AbstractMediaAdapter.MediaHolder holder, int position) {
+        ImageBean item = (ImageBean) this.getBeanAt(position);
 
         if (item.getUrl() != null) {
-            if (type == 2)
-                Picasso.with(activity).load(Uri.parse(item.getUrl())).resize(width / 3, width / 3).placeholder(R.drawable.border).centerCrop().into(holder.ivIcon);
+            if (getType() == 2)
+                Picasso.with(this.getContext()).load(Uri.parse(item.getUrl())).resize(this.getWidth() / 3, this.getWidth() / 3).placeholder(R.drawable.border).centerCrop().into(((ImageHolder) holder).ivIcon);
             else
-                Picasso.with(activity).load(Uri.parse(item.getUrl())).resize(width / 2, width / 2).placeholder(R.drawable.border).centerCrop().into(holder.ivIcon);
+                Picasso.with(this.getContext()).load(Uri.parse(item.getUrl())).resize(this.getWidth() / 2, this.getWidth() / 2).placeholder(R.drawable.border).centerCrop().into(((ImageHolder) holder).ivIcon);
         } else
-            holder.ivIcon.setBackgroundResource(R.drawable.border);
+            ((ImageHolder) holder).ivIcon.setBackgroundResource(R.drawable.border);
 
 
         // scrolled to the bottom
-        if (position >= pageNumber - 1) {
-            if (loadingType == 1 || loadingType == 2)
-                bottom_listener.onBottomLoadMoreData(loadingType, pageNumber + 50);  // load more data
+        if (position >= getPageNumber() - 1) {
+            if (getLoadingType() == 1 || getLoadingType() == 2)
+                getBottomListener().onBottomLoadMoreData(getLoadingType(), getPageNumber() + 50);  // load more data
         }
     }
 
-
-    @Override
-    public int getItemCount() {
-        return images.size();
-    }
-
-    public void setOnBottomListener(final OnBottomListener listener) {
-        this.bottom_listener = listener;
-    }
-
-    public void setOnImageClickListener(final OnImageClickListener listener) {
-        this.image_listener = listener;
-    }
-
-    public ImageBean getBeanAt(int position) {
-        return images.get(position);
-    }
-
-    public void setPageNumber(int number) {
-        this.pageNumber = number;
-    }
-
-    public void addItem(ImageBean bean) {
-        images.add(bean.getPos(), bean);
-        notifyItemInserted(bean.getPos());
-    }
-
-    public void deleteItems() {
-        if (!images.isEmpty()) {
-            images.clear();
-            notifyDataSetChanged();
-        }
-    }
-
-    public void setLoadingType(int loading_type) {
-        this.loadingType = loading_type;
-    }
-
-    /**
-     * Interface used to load more data when reaching the end of the current list of images
-     */
-    public interface OnBottomListener {
-        void onBottomLoadMoreData(int loadingType, int loadingPageNumber);
-    }
-
-    /**
-     * Interface used to signal a click on the image
-     */
-    public interface OnImageClickListener {
-        void onImageClick(View view, int position);
-    }
-
-    protected static class MyHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        protected ImageView ivIcon;
+    public static class ImageHolder extends AbstractMediaAdapter.MediaHolder implements View.OnClickListener {
+        public ImageView ivIcon;
         private WeakReference<ImageAdapter> ref;
 
-        public MyHolder(View itemView, ImageAdapter adapter) {
+        public ImageHolder(View itemView, ImageAdapter adapter) {
             super(itemView);
 
             ref = new WeakReference<>(adapter);
@@ -137,8 +73,9 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.MyHolder> {
 
         @Override
         public void onClick(View v) {
-            if (ref.get().image_listener != null)
-                ref.get().image_listener.onImageClick(v, getAdapterPosition());
+            if (ref.get().getItemClickListener() != null)
+                ref.get().getItemClickListener().onItemClick(v, getAdapterPosition());
         }
     }
+
 }

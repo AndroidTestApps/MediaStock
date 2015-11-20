@@ -36,7 +36,9 @@ public class DBController {
      */
     public Cursor getImages() {
         Cursor cursor = db.rawQuery("select * from " + DBHelper.TABLE_IMAGES, null);
-        cursor.moveToFirst();
+
+        if (cursor.getCount() > 0)
+            cursor.moveToFirst();
 
         return cursor;
     }
@@ -48,7 +50,9 @@ public class DBController {
      */
     public Cursor getMusic() {
         Cursor cursor = db.rawQuery("select " + DBHelper.MUSIC + " from " + DBHelper.TABLE_MUSIC, null);
-        cursor.moveToFirst();
+
+        if (cursor.getCount() > 0)
+            cursor.moveToFirst();
 
         return cursor;
     }

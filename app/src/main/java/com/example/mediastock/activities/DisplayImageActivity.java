@@ -12,8 +12,10 @@ import android.os.Message;
 import android.os.StrictMode;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.graphics.Palette;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -25,6 +27,7 @@ import android.widget.Toast;
 import com.example.mediastock.R;
 import com.example.mediastock.data.DBController;
 import com.example.mediastock.data.ImageBean;
+import com.example.mediastock.util.ColorHelper;
 import com.example.mediastock.util.ImageAdapter;
 import com.example.mediastock.util.Utilities;
 import com.google.gson.JsonArray;
@@ -138,10 +141,48 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         imageToDB = true;
         fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
-        imageView.setImageBitmap(Bitmap.createScaledBitmap(Utilities.convertToBitmap(bean.getImage()), width, width, true));
+        Bitmap bitmap = Bitmap.createScaledBitmap(Utilities.convertToBitmap(bean.getImage()), width, width, true);
+
+        imageView.setImageBitmap(bitmap);
         description.setText(bean.getDescription());
         author.setText(bean.getAuthor());
+
+        getColorsFromImage(bitmap, 6);
+
     }
+
+    /**
+     * Method to get the color palette from a bitmap and to determine if the colors
+     * are similar to the color color
+     *
+     * @param bitmap the bitmap
+     * @param color the color to search in the bitmap
+     */
+    private void getColorsFromImage(Bitmap bitmap, final int color) {
+        Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
+
+            boolean a;
+
+            @Override
+            public void onGenerated(Palette palette) {
+                Palette.Swatch vibrantSwatch = palette.getVibrantSwatch();
+                Palette.Swatch darkVibrantSwatch = palette.getDarkVibrantSwatch();
+                Palette.Swatch lightVibrantSwatch = palette.getLightVibrantSwatch();
+
+                Palette.Swatch mutedSwatch = palette.getMutedSwatch();
+                Palette.Swatch lightMutedSwatch = palette.getLightMutedSwatch();
+                Palette.Swatch darkMutedSwatch = palette.getDarkMutedSwatch();
+
+                ColorHelper colorHelper = new ColorHelper(color, vibrantSwatch, darkVibrantSwatch, lightVibrantSwatch,
+                        mutedSwatch, darkMutedSwatch, lightMutedSwatch);
+
+                Log.i("color", " : " + String.valueOf(colorHelper.getColorSimilarity()));
+                a = false;
+            }
+
+        });
+    }
+
 
     /**
      * Compute the online work. It gets from the server the main image, the authors name, the description and the similar images.
@@ -157,11 +198,12 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         recyclerView.setLayoutParams(params);
         adapter = new ImageAdapter(this, 2);
         recyclerView.setAdapter(adapter);
-        adapter.setOnImageClickListener(new ImageAdapter.OnImageClickListener() {
-            @Override
-            public void onImageClick(View view, int position) {
+        adapter.setOnItemClickListener(new ImageAdapter.OnItemClickListener() {
 
-                updateUI(adapter.getBeanAt(position));
+            @Override
+            public void onItemClick(View view, int position) {
+
+                updateUI((ImageBean) adapter.getBeanAt(position));
             }
         });
 
@@ -330,7 +372,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
 
     /**
-     * Static inner class to download the authors name, the favorite image and the similar images.
+     * Static inner class to download the authors name, the favorite image and the similar images in the background.
      *
      * @author Dinu
      */
@@ -553,6 +595,9 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
+    /**
+     * Class to handle the background work for the database
+     */
     private static class AsyncDbWork extends AsyncTask<Void, Void, Long> {
         private static WeakReference<DisplayImageActivity> activity;
         private final int type;
@@ -560,6 +605,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         private final Message msg;
         private final String description;
         private final String author;
+        private long result;
 
         public AsyncDbWork(DisplayImageActivity context, int type, Message msg, int imageID, String description, String author) {
             activity = new WeakReference<>(context);
@@ -584,18 +630,61 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                 return addImageToFavorites();
         }
 
+        /**
+         * Method to add an image and the colors of the image to db
+         */
         private long addImageToFavorites() {
-            DisplayImageActivity context = activity.get();
-            long result = 0;
+            final DisplayImageActivity context = activity.get();
+            final Bitmap bitmap = msg.getData().getParcelable("img");
 
-            result = context.db.insertImage((Bitmap) msg.getData().getParcelable("img"), imageID, description, author);
+            // get the colors from the image
+            Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
+
+                int vibrantSwatchColor, lightVibrantSwatchColor, darkVibrantSwatchColor,
+                        mutedSwatchColor, lightMutedSwatchColor, darkMutedSwatchColor = 0;
+
+                @Override
+                public void onGenerated(Palette palette) {
+                    Palette.Swatch vibrantSwatch = palette.getVibrantSwatch();
+                    Palette.Swatch darkVibrantSwatch = palette.getDarkVibrantSwatch();
+                    Palette.Swatch lightVibrantSwatch = palette.getLightVibrantSwatch();
+
+                    Palette.Swatch mutedSwatch = palette.getMutedSwatch();
+                    Palette.Swatch lightMutedSwatch = palette.getLightMutedSwatch();
+                    Palette.Swatch darkMutedSwatch = palette.getDarkMutedSwatch();
+
+                    if (vibrantSwatch != null)
+                        vibrantSwatchColor = vibrantSwatch.getRgb();
+
+                    if (lightVibrantSwatch != null)
+                        lightVibrantSwatchColor = lightVibrantSwatch.getRgb();
+
+                    if (darkVibrantSwatch != null)
+                        darkVibrantSwatchColor = darkVibrantSwatch.getRgb();
+
+                    if (mutedSwatch != null)
+                        this.mutedSwatchColor = mutedSwatch.getRgb();
+
+                    if (darkMutedSwatch != null)
+                        darkMutedSwatchColor = darkMutedSwatch.getRgb();
+
+                    if (lightMutedSwatch != null)
+                        lightMutedSwatchColor = lightMutedSwatch.getRgb();
+
+                    // add to db the image and the colors of the image
+                    result = context.db.insertImage(bitmap, imageID, description, author);
+                }
+            });
 
             return result;
         }
 
+        /**
+         * Method to remove an image from db
+         */
         private long removeImageFromFavorites() {
 
-            activity.get().db.deleteMusic(imageID);
+            activity.get().db.deleteImage(imageID);
 
             return 0;
         }
