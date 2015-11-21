@@ -58,7 +58,7 @@ public class ImageAdapter extends AbstractMediaAdapter {
         }
     }
 
-    public static class ImageHolder extends AbstractMediaAdapter.MediaHolder implements View.OnClickListener {
+    public static class ImageHolder extends AbstractMediaAdapter.MediaHolder {
         public ImageView ivIcon;
         private WeakReference<ImageAdapter> ref;
 

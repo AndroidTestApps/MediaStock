@@ -71,9 +71,10 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         recyclerView.setAdapter(adapter);
 
         // on item click
-        adapter.setOnImageClickListener(new FavoriteImageAdapter.OnImageClickListener() {
+        adapter.setOnItemClickListener(new FavoriteImageAdapter.OnItemClickListener() {
+
             @Override
-            public void onImageClick(View view, int position) {
+            public void onItemClick(View view, int position) {
 
                 goToDisplayImageActivity(position);
             }
@@ -114,16 +115,11 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        moveTaskToBack(false);
-        overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
-    }
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    public void onBackPressed() {
+        moveTaskToBack(true);
+        overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
 
 
@@ -131,13 +127,20 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
     protected void onRestart() {
         super.onRestart();
 
-        int cursor_count = cursor.getCount();
+        int cursorCountBefore = cursor.getCount();
         cursor = db.getImages();
 
-        // some image has been removed from favorites ?
-        if (cursor_count != cursor.getCount())
-            adapter.deleteItemAt(imageID_temp);
+        // an image has been removed from favorites
+        if (cursorCountBefore > cursor.getCount())
+            adapter.deleteBitmapAt(imageID_temp);
 
+        // a new image has been added to favorites
+        if (cursorCountBefore < cursor.getCount()) {
+            cursor.moveToLast();
+            adapter.addBitmap(Bitmap.createScaledBitmap(
+                            Utilities.convertToBitmap(cursor.getBlob(cursor.getColumnIndex(DBHelper.IMAGE))), width / 2, width / 2, false),
+                    adapter.getItemCount());
+        }
     }
 
     @Override
@@ -263,7 +266,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         protected void onProgressUpdate(Bitmap... values) {
             super.onProgressUpdate(values);
 
-            activity.get().adapter.addItem(values[0], pos);
+            activity.get().adapter.addBitmap(values[0], pos);
             pos++;
         }
 

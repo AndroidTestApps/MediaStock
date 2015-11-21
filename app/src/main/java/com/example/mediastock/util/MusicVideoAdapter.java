@@ -60,7 +60,7 @@ public class MusicVideoAdapter extends AbstractMediaAdapter {
                 getBottomListener().onBottomLoadMoreData(getLoadingType(), getPageNumber() + 30); // load more data
     }
 
-    public static class MusicVideoHolder extends AbstractMediaAdapter.MediaHolder implements View.OnClickListener {
+    public static class MusicVideoHolder extends AbstractMediaAdapter.MediaHolder {
         public ImageView ivIcon;
         public TextView text;
         private WeakReference<MusicVideoAdapter> ref;

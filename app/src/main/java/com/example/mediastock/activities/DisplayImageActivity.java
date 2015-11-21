@@ -56,6 +56,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     private static Handler handler;
     private int image_id;
     private int width;
+    private boolean offlineWork = false;
     private boolean imageToDB = false;
     private ScrollView sw;
     private ImageView imageView;
@@ -132,6 +133,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
      * Compute the offline work. It gets from the local database the favorite image, the description and the authors name.
      */
     private void computeOfflineWork() {
+        offlineWork = true;
         recyclerView.setVisibility(View.GONE);
         similarImg.setVisibility(View.GONE);
 
@@ -148,7 +150,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         author.setText(bean.getAuthor());
 
         getColorsFromImage(bitmap, 6);
-
     }
 
     /**
@@ -156,7 +157,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
      * are similar to the color color
      *
      * @param bitmap the bitmap
-     * @param color the color to search in the bitmap
+     * @param color  the color to search in the bitmap
      */
     private void getColorsFromImage(Bitmap bitmap, final int color) {
         Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
@@ -274,11 +275,18 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         imageView = null;
     }
 
+
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
 
-        finish();
+        if (offlineWork) {
+            Intent i = new Intent(getApplicationContext(), FavoriteImagesActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY);
+            startActivity(i);
+            finish();
+        } else
+            super.onBackPressed();
+
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
 
@@ -598,14 +606,13 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     /**
      * Class to handle the background work for the database
      */
-    private static class AsyncDbWork extends AsyncTask<Void, Void, Long> {
+    private static class AsyncDbWork extends AsyncTask<Void, Void, Void> {
         private static WeakReference<DisplayImageActivity> activity;
         private final int type;
         private final int imageID;
         private final Message msg;
         private final String description;
         private final String author;
-        private long result;
 
         public AsyncDbWork(DisplayImageActivity context, int type, Message msg, int imageID, String description, String author) {
             activity = new WeakReference<>(context);
@@ -622,22 +629,26 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         }
 
         @Override
-        protected Long doInBackground(Void... params) {
+        protected Void doInBackground(Void... params) {
 
             if (type == 1)
-                return removeImageFromFavorites();
+                removeImageFromFavorites();
             else
-                return addImageToFavorites();
+                addImageToFavorites();
+
+            return null;
         }
 
         /**
          * Method to add an image and the colors of the image to db
          */
-        private long addImageToFavorites() {
+        private void addImageToFavorites() {
             final DisplayImageActivity context = activity.get();
             final Bitmap bitmap = msg.getData().getParcelable("img");
 
             // get the colors from the image
+            Palette.from(bitmap);
+
             Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
 
                 int vibrantSwatchColor, lightVibrantSwatchColor, darkVibrantSwatchColor,
@@ -672,32 +683,30 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                         lightMutedSwatchColor = lightMutedSwatch.getRgb();
 
                     // add to db the image and the colors of the image
-                    result = context.db.insertImage(bitmap, imageID, description, author);
+                    context.db.insertImage(bitmap, imageID, description, author);
                 }
             });
-
-            return result;
         }
 
         /**
          * Method to remove an image from db
          */
-        private long removeImageFromFavorites() {
+        private void removeImageFromFavorites() {
 
             activity.get().db.deleteImage(imageID);
-
-            return 0;
         }
 
         @Override
-        protected void onPostExecute(Long value) {
+        protected void onPostExecute(Void value) {
             super.onPostExecute(value);
 
             if (type == 2) {
-                if (value > 0)
+
+                // TODO
+                // if (result > 0)
                     Toast.makeText(activity.get().getApplicationContext(), "Image added to favorites", Toast.LENGTH_SHORT).show();
-                else
-                    Toast.makeText(activity.get().getApplicationContext(), "Error adding the image to favorites", Toast.LENGTH_SHORT).show();
+                // else
+                //   Toast.makeText(activity.get().getApplicationContext(), "Error adding the image to favorites", Toast.LENGTH_SHORT).show();
             } else
                 Toast.makeText(activity.get().getApplicationContext(), "Image removed from favorites", Toast.LENGTH_SHORT).show();
 
