@@ -10,7 +10,7 @@ import com.example.mediastock.util.Utilities;
 import com.squareup.picasso.Picasso;
 
 /**
- * Created by dinu on 25/10/15.
+ * Class to display a full screen image.
  */
 public class FullViewImageActivity extends AppCompatActivity {
 
@@ -27,7 +27,9 @@ public class FullViewImageActivity extends AppCompatActivity {
             Picasso.with(getApplicationContext()).load(url).placeholder(R.drawable.border).fit().centerInside().into(image);
 
         } else
-            image.setImageBitmap(Utilities.convertToBitmap(getBeanFromIntent().getImage()));
+            image.setImageBitmap(Utilities.loadImageFromInternalStorage(
+                    this, getBeanFromIntent().getName(), getResources().getDisplayMetrics().widthPixels));
+
 
     }
 

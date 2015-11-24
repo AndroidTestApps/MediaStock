@@ -468,6 +468,8 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                 activity.get().dismissProgressBar();
                 Toast.makeText(context, "Sorry, no image with " + result + " was found!", Toast.LENGTH_LONG).show();
             }
+
+            activity = null;
         }
     }
 }

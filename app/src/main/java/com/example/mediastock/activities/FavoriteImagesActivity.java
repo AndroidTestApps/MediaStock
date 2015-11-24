@@ -17,13 +17,13 @@ import android.widget.Button;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mediastock.R;
 import com.example.mediastock.data.DBController;
 import com.example.mediastock.data.DBHelper;
 import com.example.mediastock.data.ImageBean;
+import com.example.mediastock.util.ColorHelper;
 import com.example.mediastock.util.CustomSpinnerRowAdapter;
 import com.example.mediastock.util.FavoriteImageAdapter;
 import com.example.mediastock.util.Utilities;
@@ -35,7 +35,6 @@ import java.util.ArrayList;
 public class FavoriteImagesActivity extends AppCompatActivity implements View.OnClickListener {
     private final static String[] colors = {"Black", "White", "Red", "Blue", "Green", "Yellow", "Orange", "Magenta", "Grey", "Cyan"};
     private final ArrayList<String> rows = new ArrayList<>();
-    private final ArrayList<String> imagesPaletteColor = new ArrayList<>();
     private CustomSpinnerRowAdapter spinnerRowAdapter;
     private RecyclerView recyclerView;
     private FloatingActionButton fabFilter;
@@ -44,6 +43,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
     private Cursor cursor;
     private int width;
     private int imageID_temp = 0;
+    private int colorSelectedPosition;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +54,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
 
         // get images from db
         db = new DBController(this);
-        cursor = db.getImages();
+        cursor = db.getImagesInfo();
 
         // create the spinner model rows and the adapter
         createSpinnerModelRows();
@@ -83,7 +83,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         if (cursor.getCount() == 0)
             Toast.makeText(getApplicationContext(), "There are no images saved", Toast.LENGTH_SHORT).show();
         else
-            new AsyncDBWork(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            new AsyncDBWork(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR); // get the favorite images
     }
 
     /**
@@ -94,21 +94,21 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
     private void goToDisplayImageActivity(int position) {
         final Bundle bundle = new Bundle();
         final ImageBean bean = new ImageBean();
+
+        // move to position position
         cursor.moveToPosition(position);
 
         bean.setId(cursor.getInt(cursor.getColumnIndex(DBHelper.IMG_ID)));
         bean.setDescription(cursor.getString(cursor.getColumnIndex(DBHelper.DESCRIPTION_IMG)));
         bean.setAuthor(cursor.getString(cursor.getColumnIndex(DBHelper.AUTHOR_IMG)));
-        bean.setByteArrayLength(cursor.getBlob(cursor.getColumnIndex(DBHelper.IMAGE)).length);
-        bean.setImage(cursor.getBlob(cursor.getColumnIndex(DBHelper.IMAGE)));
+        bean.setName(cursor.getString(cursor.getColumnIndex(DBHelper.IMG_PATH)));
 
         Intent intent = new Intent(getApplicationContext(), DisplayImageActivity.class);
-
         bundle.putInt("type", 2);
         bundle.putParcelable("bean", bean);
         intent.putExtra("bean", bundle);
 
-        // save the images position in the adapter in case the image will be removed from favorites
+        // save the images position (in the adapter) in case the image will be removed from favorites
         imageID_temp = position;
 
         startActivity(intent);
@@ -128,7 +128,8 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         super.onRestart();
 
         int cursorCountBefore = cursor.getCount();
-        cursor = db.getImages();
+
+        cursor = db.getImagesInfo();
 
         // an image has been removed from favorites
         if (cursorCountBefore > cursor.getCount())
@@ -137,9 +138,9 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         // a new image has been added to favorites
         if (cursorCountBefore < cursor.getCount()) {
             cursor.moveToLast();
-            adapter.addBitmap(Bitmap.createScaledBitmap(
-                            Utilities.convertToBitmap(cursor.getBlob(cursor.getColumnIndex(DBHelper.IMAGE))), width / 2, width / 2, false),
-                    adapter.getItemCount());
+
+            adapter.addBitmap(Utilities.loadImageFromInternalStorage(
+                    this, cursor.getString(cursor.getColumnIndex(DBHelper.IMG_PATH)), width / 2), adapter.getItemCount());
         }
     }
 
@@ -154,10 +155,10 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
     }
 
     /**
-     * Method to show a popup menu to display do a filter search of the images
+     * Method to show a popup menu to filter the images
      */
     private void showPopupMenu() {
-        final int colorSelected;
+
         int layoutWidth = (width / 2) + (width / 3);
 
         LayoutInflater layoutInflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -169,12 +170,9 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
 
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selected = ((TextView) view.findViewById(R.id.text_spinner_row)).getText().toString();
 
-                if (position != 0)
-                    Toast.makeText(getApplicationContext(), "Color selected: " + selected, Toast.LENGTH_SHORT).show();
-
-
+                // the selected color position
+                colorSelectedPosition = position;
             }
 
             @Override
@@ -201,6 +199,8 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
             @Override
             public void onClick(View v) {
 
+                // filter the images by color
+                // new AsyncImageFilter(FavoriteImagesActivity.this, colorSelectedPosition).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
                 popupWindow.dismiss();
                 fabFilter.setClickable(true);
@@ -210,27 +210,13 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         popupWindow.showAtLocation(fabFilter, Gravity.CENTER, 0, 0);
     }
 
+
     private void createSpinnerModelRows() {
         for (int i = 0; i < 10; i++)
             rows.add(colors[i]);
 
         // adapter for the spinner
         spinnerRowAdapter = new CustomSpinnerRowAdapter(FavoriteImagesActivity.this, R.layout.spinner_rows, rows);
-    }
-
-    /**
-     * Method to get the color palette from a bitmap and to determine if the colors
-     * are similar to the color color
-     *
-     * @param bitmap the bitmap
-     * @param color  the color to search in the bitmap
-     */
-    private void getColorsFromImage(Bitmap bitmap, final int color) {
-
-        //ColorHelper colorHelper = new ColorHelper(color, 0, 0, 0, 0, 0, 0);
-
-        //Log.i("color", " : " + String.valueOf(colorHelper.getColorSimilarity()));
-
     }
 
 
@@ -251,10 +237,10 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
 
             do {
 
-                // scale image and send it to the adapter
-                publishProgress(Bitmap.createScaledBitmap(
-                        Utilities.convertToBitmap(context.cursor.getBlob(context.cursor.getColumnIndex(DBHelper.IMAGE)))
-                        , context.width / 2, context.width / 2, false));
+                // load image from storage and send it to the adapter
+                publishProgress(Utilities.loadImageFromInternalStorage(context,
+                        context.cursor.getString(context.cursor.getColumnIndex(DBHelper.IMG_PATH)),
+                        context.width / 2));
 
             } while (context.cursor.moveToNext());
 
@@ -282,15 +268,41 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
      * Async class to filter the images.
      */
     private static class AsyncImageFilter extends AsyncTask<Void, Void, Void> {
+        private static WeakReference<FavoriteImagesActivity> activity;
+        private final int color;
+        private final Cursor cursor;
+
+        public AsyncImageFilter(FavoriteImagesActivity context, int colorPosition) {
+            activity = new WeakReference<>(context);
+            color = colorPosition;
+            cursor = activity.get().db.getColorPalettes();
+        }
 
         @Override
         protected Void doInBackground(Void... params) {
+
+
+            do {
+                ColorHelper colorHelper = new ColorHelper(color, cursor.getInt(cursor.getColumnIndex(DBHelper.VIBRANT)),
+                        0, 0, 0, 0, 0);
+
+            } while (cursor.moveToNext());
+
             return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+            super.onProgressUpdate(values);
+
+            // activity.get().adapter.deleteBitmapAt(pos);
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+
+            activity = null;
         }
     }
 

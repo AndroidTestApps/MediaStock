@@ -88,8 +88,8 @@ public class FavoriteMusicVideosActivity extends AppCompatActivity {
                 bean.setPos(pos);
                 bean.setId(String.valueOf(context.cursorPart1.getInt(context.cursorPart1.getColumnIndex(DBHelper.MUSIC_ID))));
                 bean.setTitle(context.getString(context.cursorPart1.getColumnIndex(DBHelper.TITLE_MUSIC)));
-                bean.setByteArrayLength(context.cursorPart1.getBlob(context.cursorPart1.getColumnIndex(DBHelper.MUSIC)).length);
-                bean.setByteMusic(context.cursorPart1.getBlob(context.cursorPart1.getColumnIndex(DBHelper.MUSIC)));
+                bean.setByteArrayLength(context.cursorPart1.getBlob(context.cursorPart1.getColumnIndex(DBHelper.MUSIC_PATH)).length);
+                bean.setByteMusic(context.cursorPart1.getBlob(context.cursorPart1.getColumnIndex(DBHelper.MUSIC_PATH)));
 
                 publishProgress(bean);
 

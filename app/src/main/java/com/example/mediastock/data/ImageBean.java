@@ -15,14 +15,17 @@ public class ImageBean extends Bean{
                 }
             };
 
+
     private int  id;
 	private String description;
 	private String url;
 	private int idContributor;
-    private byte[] image;
     private String author;
     private int pos;
-    private int byteArrayLength;
+
+    // path on the storage
+    private String name;
+
 
     public ImageBean() {
     }
@@ -63,14 +66,6 @@ public class ImageBean extends Bean{
 		this.idContributor = idContributor;
 	}
 
-    public byte[] getImage() {
-        return image;
-    }
-
-    public void setImage(byte[] image) {
-        this.image = image;
-    }
-
     public String getAuthor() {
         return author;
     }
@@ -79,6 +74,22 @@ public class ImageBean extends Bean{
         this.author = author;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public int getPos() {
+        return pos;
+    }
+
+    public void setPos(int pos) {
+        this.pos = pos;
+    }
 
 	@Override
 	public int describeContents() {
@@ -92,10 +103,8 @@ public class ImageBean extends Bean{
 		dest.writeString(description);
 		dest.writeString(url);
         dest.writeString(author);
-        dest.writeInt(byteArrayLength);
-        dest.writeByteArray(image);
-
-	}
+        dest.writeString(name);
+    }
 
 	private void readFromParcel(Parcel in) {
 		id = in.readInt();
@@ -103,27 +112,6 @@ public class ImageBean extends Bean{
 		description = in.readString();
 		url = in.readString();
         author = in.readString();
-        byteArrayLength = in.readInt();
-
-        if (byteArrayLength > 0) {
-            image = new byte[byteArrayLength];
-            in.readByteArray(image);
-        }
-
-	}
-
-
-    @Override
-    public int getPos() {
-        return pos;
+        name = in.readString();
     }
-
-    public void setPos(int pos) {
-        this.pos = pos;
-    }
-
-    public void setByteArrayLength(int byteArrayLength) {
-        this.byteArrayLength = byteArrayLength;
-    }
-
 }

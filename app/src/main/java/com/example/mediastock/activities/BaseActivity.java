@@ -80,6 +80,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         DBController db = new DBController(this);
         db.deleteTables();
         db.createTables();
+        Utilities.deleteAllImagesFromInternalStorage(this);
 */
         LeakCanary.install(getApplication());
 

@@ -2,6 +2,7 @@
 package com.example.mediastock.util;
 
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -13,6 +14,10 @@ import android.view.inputmethod.InputMethodManager;
 import com.example.mediastock.R;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -69,23 +74,101 @@ public class Utilities {
     }
 
     /**
-     * Convert from bitmap to byte array
+     * It saves the image into the internal storage of the app.
+     *
+     * @param context the context
+     * @param bitmap the image
+     * @return the path of the image
      */
-    public static byte[] convertToByteArray(Bitmap bitmap) {
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 50, stream);
+    public static String saveImageToInternalStorage(Context context, Bitmap bitmap) {
+        ContextWrapper cw = new ContextWrapper(context.getApplicationContext());
 
-        Log.i("db", "encode -> " + String.valueOf(stream.size()));
+        File imageDir = cw.getDir("imageDir", Context.MODE_PRIVATE);
 
-        return stream.toByteArray();
+        final String[] fileNames = imageDir.list();
+        final int fileNumber = fileNames.length;
+
+        // Create file image
+        File file = new File(imageDir, "image" + fileNumber);
+
+        FileOutputStream fos;
+        try {
+
+            fos = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 50, fos);
+
+            fos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return file.getName();
     }
 
     /**
-     * Convert from byte array to bitmap and then to drawable
+     * Method to delete an image from the internal storage
+     *
+     * @param context the context
+     * @param path the path of the image
+     * @return true, if the image was deleted, false otherwise
      */
-    public static Bitmap convertToBitmap(byte[] image) {
-        return BitmapFactory.decodeByteArray(image, 0, image.length);
+    public static boolean deleteImageFromInternalStorage(Context context, String path) {
+        ContextWrapper cw = new ContextWrapper(context.getApplicationContext());
+        File imageDir = cw.getDir("imageDir", Context.MODE_PRIVATE);
+
+        final File[] fileNames = imageDir.listFiles();
+
+        boolean result = false;
+        for (int i = 0; i < fileNames.length; i++)
+            if (fileNames[i].getName().equals(path))
+                result = fileNames[i].delete();
+
+        return result;
     }
+
+    /**
+     * It loads from the storage an image
+     *
+     * @param context the context
+     * @param path    the path of the image
+     * @param width   the width that the image should have
+     * @return a new scaled bitmap
+     */
+    public static Bitmap loadImageFromInternalStorage(Context context, String path, int width) {
+        ContextWrapper cw = new ContextWrapper(context.getApplicationContext());
+        File imageDir = cw.getDir("imageDir", Context.MODE_PRIVATE);
+
+        final File[] fileNames = imageDir.listFiles();
+
+        File target = null;
+        for (int i = 0; i < fileNames.length; i++)
+            if (fileNames[i].getName().equals(path))
+                target = fileNames[i];
+
+        for (int i = 0; i < fileNames.length; i++)
+            Log.i("path", fileNames[i].getName());
+
+        Bitmap bitmap = null;
+        try {
+
+            bitmap = BitmapFactory.decodeStream(new FileInputStream(target));
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return Bitmap.createScaledBitmap(bitmap, width, width, false);
+    }
+
+    public static void deleteAllImagesFromInternalStorage(Context context) {
+        ContextWrapper cw = new ContextWrapper(context.getApplicationContext());
+        File imageDir = cw.getDir("imageDir", Context.MODE_PRIVATE);
+
+        final File[] fileNames = imageDir.listFiles();
+        for (int i = 0; i < fileNames.length; i++)
+            fileNames[i].delete();
+    }
+
 
     /**
      * Method to read the bytes from the stream.

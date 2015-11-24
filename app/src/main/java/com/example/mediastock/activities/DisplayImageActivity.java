@@ -15,7 +15,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -27,7 +26,6 @@ import android.widget.Toast;
 import com.example.mediastock.R;
 import com.example.mediastock.data.DBController;
 import com.example.mediastock.data.ImageBean;
-import com.example.mediastock.util.ColorHelper;
 import com.example.mediastock.util.ImageAdapter;
 import com.example.mediastock.util.Utilities;
 import com.google.gson.JsonArray;
@@ -130,7 +128,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     }
 
     /**
-     * Compute the offline work. It gets from the local database the favorite image, the description and the authors name.
+     * Compute the offline work. It the favorite image, the description and the authors name.
      */
     private void computeOfflineWork() {
         offlineWork = true;
@@ -143,45 +141,9 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         imageToDB = true;
         fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
-        Bitmap bitmap = Bitmap.createScaledBitmap(Utilities.convertToBitmap(bean.getImage()), width, width, true);
-
-        imageView.setImageBitmap(bitmap);
+        imageView.setImageBitmap(Utilities.loadImageFromInternalStorage(this, bean.getName(), width));
         description.setText(bean.getDescription());
         author.setText(bean.getAuthor());
-
-        getColorsFromImage(bitmap, 6);
-    }
-
-    /**
-     * Method to get the color palette from a bitmap and to determine if the colors
-     * are similar to the color color
-     *
-     * @param bitmap the bitmap
-     * @param color  the color to search in the bitmap
-     */
-    private void getColorsFromImage(Bitmap bitmap, final int color) {
-        Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
-
-            boolean a;
-
-            @Override
-            public void onGenerated(Palette palette) {
-                Palette.Swatch vibrantSwatch = palette.getVibrantSwatch();
-                Palette.Swatch darkVibrantSwatch = palette.getDarkVibrantSwatch();
-                Palette.Swatch lightVibrantSwatch = palette.getLightVibrantSwatch();
-
-                Palette.Swatch mutedSwatch = palette.getMutedSwatch();
-                Palette.Swatch lightMutedSwatch = palette.getLightMutedSwatch();
-                Palette.Swatch darkMutedSwatch = palette.getDarkMutedSwatch();
-
-                ColorHelper colorHelper = new ColorHelper(color, vibrantSwatch, darkVibrantSwatch, lightVibrantSwatch,
-                        mutedSwatch, darkMutedSwatch, lightMutedSwatch);
-
-                Log.i("color", " : " + String.valueOf(colorHelper.getColorSimilarity()));
-                a = false;
-            }
-
-        });
     }
 
 
@@ -252,10 +214,10 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                 imageToDB = false;
                 fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
 
-                // delete img from db
+                // remove image from favorites
                 new AsyncDbWork(this, 1, image_id).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
-                // the image is not in the database, so we have to save it
+                // we have to add the image to favorites
             } else {
                 imageToDB = true;
                 fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
@@ -542,7 +504,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                     int i = 0;
                     while (iterator.hasNext()) {
                         JsonObject jsonObj = iterator.next().getAsJsonObject();
-                        ImageBean ib = new ImageBean();
+                        final ImageBean ib = new ImageBean();
                         assets = jsonObj.get("assets") == null ? null : jsonObj.get("assets").getAsJsonObject();
 
                         if (assets != null) {
@@ -646,68 +608,80 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             final DisplayImageActivity context = activity.get();
             final Bitmap bitmap = msg.getData().getParcelable("img");
 
-            // get the colors from the image
-            Palette.from(bitmap);
+            // get the color palette of the image
+            Palette palette = Palette.from(bitmap).generate();
 
-            Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
+            int vibrantSwatchColor = 0;
+            int lightVibrantSwatchColor = 0;
+            int darkVibrantSwatchColor = 0;
+            int mutedSwatchColor = 0;
+            int lightMutedSwatchColor = 0;
+            int darkMutedSwatchColor = 0;
 
-                int vibrantSwatchColor, lightVibrantSwatchColor, darkVibrantSwatchColor,
-                        mutedSwatchColor, lightMutedSwatchColor, darkMutedSwatchColor = 0;
+            Palette.Swatch vibrantSwatch = palette.getVibrantSwatch();
+            Palette.Swatch darkVibrantSwatch = palette.getDarkVibrantSwatch();
+            Palette.Swatch lightVibrantSwatch = palette.getLightVibrantSwatch();
 
-                @Override
-                public void onGenerated(Palette palette) {
-                    Palette.Swatch vibrantSwatch = palette.getVibrantSwatch();
-                    Palette.Swatch darkVibrantSwatch = palette.getDarkVibrantSwatch();
-                    Palette.Swatch lightVibrantSwatch = palette.getLightVibrantSwatch();
+            Palette.Swatch mutedSwatch = palette.getMutedSwatch();
+            Palette.Swatch lightMutedSwatch = palette.getLightMutedSwatch();
+            Palette.Swatch darkMutedSwatch = palette.getDarkMutedSwatch();
 
-                    Palette.Swatch mutedSwatch = palette.getMutedSwatch();
-                    Palette.Swatch lightMutedSwatch = palette.getLightMutedSwatch();
-                    Palette.Swatch darkMutedSwatch = palette.getDarkMutedSwatch();
+            if (vibrantSwatch != null)
+                vibrantSwatchColor = vibrantSwatch.getRgb();
 
-                    if (vibrantSwatch != null)
-                        vibrantSwatchColor = vibrantSwatch.getRgb();
+            if (lightVibrantSwatch != null)
+                lightVibrantSwatchColor = lightVibrantSwatch.getRgb();
 
-                    if (lightVibrantSwatch != null)
-                        lightVibrantSwatchColor = lightVibrantSwatch.getRgb();
+            if (darkVibrantSwatch != null)
+                darkVibrantSwatchColor = darkVibrantSwatch.getRgb();
 
-                    if (darkVibrantSwatch != null)
-                        darkVibrantSwatchColor = darkVibrantSwatch.getRgb();
+            if (mutedSwatch != null)
+                mutedSwatchColor = mutedSwatch.getRgb();
 
-                    if (mutedSwatch != null)
-                        this.mutedSwatchColor = mutedSwatch.getRgb();
+            if (darkMutedSwatch != null)
+                darkMutedSwatchColor = darkMutedSwatch.getRgb();
 
-                    if (darkMutedSwatch != null)
-                        darkMutedSwatchColor = darkMutedSwatch.getRgb();
+            if (lightMutedSwatch != null)
+                lightMutedSwatchColor = lightMutedSwatch.getRgb();
 
-                    if (lightMutedSwatch != null)
-                        lightMutedSwatchColor = lightMutedSwatch.getRgb();
+            // save the image into the internal storage
+            String path = Utilities.saveImageToInternalStorage(context, bitmap);
 
-                    // add to db the image and the colors of the image
-                    context.db.insertImage(bitmap, imageID, description, author);
-                }
-            });
+            // add to db the info about the image
+            context.db.insertImageInfo(path, imageID, description, author);
+
+            // add to db the color palette of the image
+            context.db.insertColorPalette(imageID, vibrantSwatchColor, lightVibrantSwatchColor, darkVibrantSwatchColor,
+                    mutedSwatchColor, lightMutedSwatchColor, darkMutedSwatchColor);
         }
 
+
         /**
-         * Method to remove an image from db
+         * Method to remove an image from favorites
          */
         private void removeImageFromFavorites() {
 
-            activity.get().db.deleteImage(imageID);
+            // path of the image
+            String path = activity.get().db.getImagePath(imageID);
+
+            // delete images info
+            activity.get().db.deleteImageInfo(imageID);
+
+            // delete the images color palette
+            activity.get().db.deleteColorPalette(imageID);
+
+            // delete image from storage
+            Utilities.deleteImageFromInternalStorage(activity.get(), path);
         }
+
 
         @Override
         protected void onPostExecute(Void value) {
             super.onPostExecute(value);
 
-            if (type == 2) {
-
-                // TODO
-                // if (result > 0)
-                    Toast.makeText(activity.get().getApplicationContext(), "Image added to favorites", Toast.LENGTH_SHORT).show();
-                // else
-                //   Toast.makeText(activity.get().getApplicationContext(), "Error adding the image to favorites", Toast.LENGTH_SHORT).show();
-            } else
+            if (type == 2)
+                Toast.makeText(activity.get().getApplicationContext(), "Image added to favorites", Toast.LENGTH_SHORT).show();
+            else
                 Toast.makeText(activity.get().getApplicationContext(), "Image removed from favorites", Toast.LENGTH_SHORT).show();
 
             activity = null;
