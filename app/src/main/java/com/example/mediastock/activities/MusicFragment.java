@@ -53,6 +53,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
     private RecyclerView recyclerView;
     private MusicVideoAdapter musicAdapter;
     private View view;
+    private boolean workingInProgress = false;
 
 
     /**
@@ -114,42 +115,55 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
 
         // on item click
         musicAdapter.setOnItemClickListener(new MusicVideoAdapter.OnItemClickListener() {
+
             @Override
             public void onItemClick(View view, int position) {
 
-                if (!Utilities.deviceOnline(context)) {
-                    Toast.makeText(context.getApplicationContext(), "Not online", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                final Bundle bundle = new Bundle();
-                final MusicBean bean = (MusicBean) musicAdapter.getBeanAt(position);
-
-                Intent intent = new Intent(context, MusicPlayerActivity.class);
-                bundle.putParcelable("bean", bean);
-                intent.putExtra("bean", bundle);
-
-                startActivity(intent);
-                getActivity().overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
+                goToMusicPLayerActivity(position);
             }
         });
 
         // endless list. load more data when reaching the bottom of the view
         musicAdapter.setOnBottomListener(new MusicVideoAdapter.OnBottomListener() {
+
             @Override
             public void onBottomLoadMoreData(int loadingType, int loadingPageNumber) {
                 progressbar_bottom.setVisibility(View.VISIBLE);
 
-                // recent music
+                // type 1 : recent music
                 if (loadingType == 1)
                     new AsyncWork(fragment, 1, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+                    // type 2 : search music by key
                 else
-                    new AsyncWork(fragment, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, keyWord1, keyWord2); // search music by key
+                    new AsyncWork(fragment, 2, loadingPageNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, keyWord1, keyWord2);
             }
         });
 
         getRecentMusic();
     }
+
+    /**
+     * Open MusicPlayerActivity activity
+     */
+    private void goToMusicPLayerActivity(int position) {
+
+        if (!Utilities.deviceOnline(context)) {
+            Toast.makeText(context.getApplicationContext(), "Not online", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final Bundle bundle = new Bundle();
+        final MusicBean bean = (MusicBean) musicAdapter.getBeanAt(position);
+
+        Intent intent = new Intent(context, MusicPlayerActivity.class);
+        bundle.putParcelable("bean", bean);
+        intent.putExtra("bean", bundle);
+
+        startActivity(intent);
+        getActivity().overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
+    }
+
 
     /**
      * Method to get the recent music
@@ -277,6 +291,8 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+
+            activity.get().workingInProgress = true;
             activity.get().musicAdapter.setLoadingType(type);
             activity.get().musicAdapter.setPageNumber(loadingPageNumber);
         }

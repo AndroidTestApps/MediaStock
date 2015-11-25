@@ -41,6 +41,21 @@ public class DBController {
     }
 
     /**
+     * Query to get the videos info from db.
+     *
+     * @return the cursor object
+     */
+    public Cursor getVideosInfo() {
+        Cursor cursor = db.rawQuery("select * from " + DBHelper.TABLE_VIDEOS, null);
+
+        if (cursor.getCount() > 0)
+            cursor.moveToFirst();
+
+        return cursor;
+    }
+
+
+    /**
      * Query to get the color palettes from db.
      *
      * @return the cursor object
@@ -55,12 +70,12 @@ public class DBController {
     }
 
     /**
-     * Query to get the music from db.
+     * Query to get the music info from db.
      *
      * @return the cursor object
      */
-    public Cursor getMusic() {
-        Cursor cursor = db.rawQuery("select " + DBHelper.MUSIC_PATH + " from " + DBHelper.TABLE_MUSIC, null);
+    public Cursor getMusicInfo() {
+        Cursor cursor = db.rawQuery("select * from " + DBHelper.TABLE_MUSIC, null);
 
         if (cursor.getCount() > 0)
             cursor.moveToFirst();
@@ -71,27 +86,43 @@ public class DBController {
 
 
     /**
-     * Method to add to database a new music
+     * Method to add to database the music infos
      *
-     * @param music    the byte array of the music
-     * @param music_id the id of the music
+     * @param path    the path of the music
+     * @param musicId the id of the music
      * @param title    the title of the music
      */
-    public long insertMusic(byte[] music, int music_id, String title) {
+    public long insertMusicInfo(String path, int musicId, String title) {
         ContentValues contentValues = new ContentValues();
 
-        contentValues.put(DBHelper.MUSIC_PATH, music);
-        contentValues.put(DBHelper.MUSIC_ID, new Integer(music_id));
+        contentValues.put(DBHelper.MUSIC_PATH, path);
+        contentValues.put(DBHelper.MUSIC_ID, new Integer(musicId));
         contentValues.put(DBHelper.TITLE_MUSIC, title);
 
         return db.insert(DBHelper.TABLE_MUSIC, null, contentValues);
     }
 
+    /**
+     * Method to add to database the videos infos
+     *
+     * @param path        the path of the video
+     * @param videoID     the id of the video
+     * @param description the description of the video
+     */
+    public long insertVideoInfo(String path, int videoID, String description) {
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put(DBHelper.VIDEO_PATH, path);
+        contentValues.put(DBHelper.VIDEO_ID, new Integer(videoID));
+        contentValues.put(DBHelper.DESCRIPTION_VIDEO, description);
+
+        return db.insert(DBHelper.TABLE_VIDEOS, null, contentValues);
+    }
 
     /**
-     * Method to add to database a the information about the image
+     * Method to add to database the image infos
      *
-     * @param imagePath   the path to the internal storage
+     * @param imagePath   the path of the image
      * @param imgId       the id of the image
      * @param description the description of the image
      * @param author      the author of the image
@@ -136,6 +167,7 @@ public class DBController {
         db.delete(DBHelper.TABLE_IMAGES, DBHelper.IMG_ID + " = ? ", new String[]{String.valueOf(imageID)});
     }
 
+
     /**
      * It deletes the color palette of the image with id imageID
      *
@@ -147,17 +179,47 @@ public class DBController {
 
 
     /**
-     * It deletes the music id music_id
+     * It deletes the music with id musicID
      *
-     * @param music_id the id of the music
+     * @param musicId the id of the music
      */
-    public void deleteMusic(int music_id) {
+    public void deleteMusicInfo(int musicId) {
 
-        db.delete(DBHelper.TABLE_MUSIC, DBHelper.MUSIC_ID + " = ? ", new String[]{String.valueOf(music_id)});
+        db.delete(DBHelper.TABLE_MUSIC, DBHelper.MUSIC_ID + " = ? ", new String[]{String.valueOf(musicId)});
+    }
+
+
+    /**
+     * It deletes the videos with id videoID
+     *
+     * @param videoId the id of the video
+     */
+    public void deleteVideoInfo(int videoId) {
+
+        db.delete(DBHelper.TABLE_VIDEOS, DBHelper.VIDEO_ID + " = ? ", new String[]{String.valueOf(videoId)});
     }
 
     /**
-     * Method to get the name of the image with id imageID
+     * Method to get the path of the music with id musicID
+     *
+     * @param musicID the id of the music
+     * @return the path of the music
+     */
+    public String getMusicPath(int musicID) {
+        Cursor cursor = db.rawQuery("select " + DBHelper.MUSIC_PATH + " from " + DBHelper.TABLE_MUSIC +
+                " where " + DBHelper.MUSIC_ID + " = ? ", new String[]{String.valueOf(musicID)});
+
+        cursor.moveToFirst();
+
+        String path = cursor.getString(cursor.getColumnIndex(DBHelper.MUSIC_PATH));
+
+        cursor.close();
+
+        return path;
+    }
+
+    /**
+     * Method to get the path of the image with id imageID
      *
      * @param imageID the id of the image
      * @return the path of the image
@@ -175,16 +237,53 @@ public class DBController {
         return path;
     }
 
+    /**
+     * Method to get the path of the video with id videoID
+     *
+     * @param videoID the id of the video
+     * @return the path of the video
+     */
+    public String getVideoPath(int videoID) {
+        Cursor cursor = db.rawQuery("select " + DBHelper.VIDEO_PATH + " from " + DBHelper.TABLE_VIDEOS +
+                " where " + DBHelper.VIDEO_ID + " = ? ", new String[]{String.valueOf(videoID)});
+
+        cursor.moveToFirst();
+
+        String path = cursor.getString(cursor.getColumnIndex(DBHelper.VIDEO_PATH));
+
+        cursor.close();
+
+        return path;
+    }
 
     /**
      * Method to check if the image with id img_id exists in the database
      *
-     * @param img_id the id of the image
+     * @param imgId the id of the image
      * @return true if exists , false otherwise
      */
-    public boolean checkExistingImage(int img_id) {
+    public boolean checkExistingImage(int imgId) {
         Cursor res = db.rawQuery("select " + DBHelper.IMG_ID + " from " + DBHelper.TABLE_IMAGES + " where "
-                + DBHelper.IMG_ID + " = ? ", new String[]{String.valueOf(img_id)});
+                + DBHelper.IMG_ID + " = ? ", new String[]{String.valueOf(imgId)});
+
+        if (res.getCount() != 0) {
+            res.close();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Method to check if the video with id videoID exists in the database
+     *
+     * @param videoID the id of the videos
+     * @return true if exists , false otherwise
+     */
+    public boolean checkExistingVideo(int videoID) {
+        Cursor res = db.rawQuery("select " + DBHelper.VIDEO_ID + " from " + DBHelper.TABLE_VIDEOS + " where "
+                + DBHelper.VIDEO_ID + " = ? ", new String[]{String.valueOf(videoID)});
 
         if (res.getCount() != 0) {
             res.close();
@@ -198,12 +297,12 @@ public class DBController {
     /**
      * Method to check if the music with id music_id exists in the database
      *
-     * @param music_id the id of the music
+     * @param musicId the id of the music
      * @return true if exists , false otherwise
      */
-    public boolean checkExistingMusic(int music_id) {
+    public boolean checkExistingMusic(int musicId) {
         Cursor res = db.rawQuery("select " + DBHelper.MUSIC_ID + " from " + DBHelper.TABLE_MUSIC + " where "
-                + DBHelper.MUSIC_ID + " = ? ", new String[]{String.valueOf(music_id)});
+                + DBHelper.MUSIC_ID + " = ? ", new String[]{String.valueOf(musicId)});
 
         if (res.getCount() != 0) {
             res.close();

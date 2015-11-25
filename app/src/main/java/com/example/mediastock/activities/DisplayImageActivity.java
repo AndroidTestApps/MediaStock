@@ -52,7 +52,7 @@ import java.util.Iterator;
  */
 public class DisplayImageActivity extends AppCompatActivity implements View.OnClickListener {
     private static Handler handler;
-    private int image_id;
+    private int imageId;
     private int width;
     private boolean offlineWork = false;
     private boolean imageToDB = false;
@@ -68,9 +68,9 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.display_image_activity);
-
         width = getResources().getDisplayMetrics().widthPixels;
 
+        // the database
         db = new DBController(this);
 
         // handle the threads
@@ -105,11 +105,12 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                 Intent intent = new Intent(DisplayImageActivity.this, FullViewImageActivity.class);
                 final Bundle bundle = new Bundle();
 
-
+                // offline work
                 if (getIntentType() == 2) {
                     bundle.putInt("type", 2);
                     bundle.putParcelable("bean", getBeanFromIntent());
 
+                    // online work
                 } else {
                     bundle.putInt("type", 1);
                     intent.putExtra("image", (String) imageView.getTag());
@@ -120,7 +121,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             }
         });
 
-        // we are offline ?
+        // check if we are offline
         if (getIntentType() == 2)
             computeOfflineWork();
         else
@@ -128,7 +129,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     }
 
     /**
-     * Compute the offline work. It the favorite image, the description and the authors name.
+     * Compute the offline work. We display the image from the internal storage and the image infos
      */
     private void computeOfflineWork() {
         offlineWork = true;
@@ -136,12 +137,12 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         similarImg.setVisibility(View.GONE);
 
         ImageBean bean = getBeanFromIntent();
-        image_id = bean.getId();
+        imageId = bean.getId();
 
         imageToDB = true;
         fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
-        imageView.setImageBitmap(Utilities.loadImageFromInternalStorage(this, bean.getName(), width));
+        imageView.setImageBitmap(Utilities.loadImageFromInternalStorage(this, bean.getPath(), width));
         description.setText(bean.getDescription());
         author.setText(bean.getAuthor());
     }
@@ -215,14 +216,14 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                 fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
 
                 // remove image from favorites
-                new AsyncDbWork(this, 1, image_id).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                new AsyncDbWork(this, 1, imageId).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
                 // we have to add the image to favorites
             } else {
                 imageToDB = true;
                 fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
-                // thread used to get the favorite image and then save it to database
+                // thread used to get the favorite image and then save it
                 AsyncWork thread_favoriteImage = new AsyncWork(3);
                 thread_favoriteImage.setUrl((String) imageView.getTag());
                 AsyncWork.setContext(this);
@@ -279,10 +280,10 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
      * @param bean the image bean
      */
     private void getMainImage(ImageBean bean) {
-        image_id = bean.getId();
+        imageId = bean.getId();
 
         // if the image is already in the database we change the color of the fab
-        checkExistingImageInDB(image_id);
+        checkExistingImageInDB(imageId);
 
         if (bean.getUrl() != null) {
 
@@ -330,7 +331,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
                 // save favorite image to database
                 case 4:
-                    new AsyncDbWork(context, 2, msg, context.image_id, context.description.getText().toString(), context.author.getText().toString()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    new AsyncDbWork(context, 2, msg, context.imageId, context.description.getText().toString(), context.author.getText().toString()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
                     break;
 
@@ -645,7 +646,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                 lightMutedSwatchColor = lightMutedSwatch.getRgb();
 
             // save the image into the internal storage
-            String path = Utilities.saveImageToInternalStorage(context, bitmap);
+            String path = Utilities.saveImageToInternalStorage(context, bitmap, imageID);
 
             // add to db the info about the image
             context.db.insertImageInfo(path, imageID, description, author);
@@ -671,7 +672,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             activity.get().db.deleteColorPalette(imageID);
 
             // delete image from storage
-            Utilities.deleteImageFromInternalStorage(activity.get(), path);
+            Utilities.deleteSpecificMediaFromInternalStorage(Utilities.IMG_DIR, activity.get(), path);
         }
 
 

@@ -28,6 +28,7 @@ public class MusicVideoAdapter extends AbstractMediaAdapter {
         icon_video = context.getResources().getDrawable(R.drawable.video);
     }
 
+
     @Override
     public MediaHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View item;

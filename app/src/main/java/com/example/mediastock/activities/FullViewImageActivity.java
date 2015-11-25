@@ -28,7 +28,7 @@ public class FullViewImageActivity extends AppCompatActivity {
 
         } else
             image.setImageBitmap(Utilities.loadImageFromInternalStorage(
-                    this, getBeanFromIntent().getName(), getResources().getDisplayMetrics().widthPixels));
+                    this, getBeanFromIntent().getPath(), getResources().getDisplayMetrics().widthPixels));
 
 
     }

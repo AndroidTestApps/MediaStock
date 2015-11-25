@@ -24,7 +24,7 @@ public class ImageBean extends Bean{
     private int pos;
 
     // path on the storage
-    private String name;
+    private String path;
 
 
     public ImageBean() {
@@ -74,12 +74,12 @@ public class ImageBean extends Bean{
         this.author = author;
     }
 
-    public String getName() {
-        return name;
+    public String getPath() {
+        return path;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setPath(String path) {
+        this.path = path;
     }
 
     @Override
@@ -103,7 +103,7 @@ public class ImageBean extends Bean{
 		dest.writeString(description);
 		dest.writeString(url);
         dest.writeString(author);
-        dest.writeString(name);
+        dest.writeString(path);
     }
 
 	private void readFromParcel(Parcel in) {
@@ -112,6 +112,6 @@ public class ImageBean extends Bean{
 		description = in.readString();
 		url = in.readString();
         author = in.readString();
-        name = in.readString();
+        path = in.readString();
     }
 }

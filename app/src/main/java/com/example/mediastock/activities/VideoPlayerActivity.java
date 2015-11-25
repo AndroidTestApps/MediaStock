@@ -2,6 +2,8 @@ package com.example.mediastock.activities;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
@@ -22,8 +24,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mediastock.R;
+import com.example.mediastock.data.DBController;
+import com.example.mediastock.data.VideoBean;
 import com.example.mediastock.util.Utilities;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
@@ -40,98 +45,160 @@ import java.util.concurrent.TimeUnit;
 public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callback, OnSeekBarChangeListener, View.OnClickListener {
     private static Handler myHandler = new Handler();
     public int oneTimeOnly = 0;
+    private double startTime = 0;
+    private double finalTime = 0;
     private WeakReference<SurfaceHolder> surfaceHolder;
     private MediaPlayer mediaPlayer;
     private SurfaceView surfaceView;
     private Button play, pause;
-    private double startTime = 0;
-    private double finalTime = 0;
     private SeekBar seekbar;
     private TextView tx1, tx2;
     private ProgressDialog progressDialog;
     private boolean isPaused = false;
-    private String url;
     private FloatingActionButton fabFavorites;
+    private boolean videoToDB = false;
+    private boolean offlineWork = false;
+    private String url;
+    private int videoID;
+    private DBController db;
+    private VideoBean bean;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.video_player_activity);
+
+        // the database
+        db = new DBController(this);
+
+        fabFavorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
+        fabFavorites.setOnClickListener(this);
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Loading...");
+        progressDialog.show();
+
+        play = (Button) this.findViewById(R.id.button_playvideoplayer);
+        pause = (Button) this.findViewById(R.id.button_pausevideoplayer);
+        tx1 = (TextView) findViewById(R.id.textView2_video);
+        tx2 = (TextView) findViewById(R.id.textView3_video);
+
+        // get bean infos
+        bean = getBeanFromIntent();
+        url = bean.getPreview();
+        videoID = Integer.valueOf(bean.getId());
+
+        // set description of the video
+        TextView description = (TextView) this.findViewById(R.id.textView_video_player_title);
+        description.setText(bean.getDescription());
+
+        // seekbar
+        seekbar = (SeekBar) findViewById(R.id.seekBar_video);
+        seekbar.setClickable(false);
+        seekbar.setOnSeekBarChangeListener(this);
+        seekbar.getThumb().setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_ATOP);
+        seekbar.getProgressDrawable().setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_ATOP);
+
+        // media player
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                progressDialog.dismiss();
+                playVideo(surfaceHolder.get());
+            }
+        });
+
+        play.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                pause.setTextColor(Color.BLACK);
+                play.setTextColor(Color.RED);
+                playVideo(surfaceHolder.get());
+            }
+        });
+
+        pause.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                play.setTextColor(Color.BLACK);
+                pause.setTextColor(Color.RED);
+                mediaPlayer.pause();
+                pause.setEnabled(false);
+                play.setEnabled(true);
+            }
+        });
 
         // check if online
-        if (!Utilities.deviceOnline(getApplicationContext())) {
-            Toast.makeText(getApplicationContext(), "Not online", Toast.LENGTH_SHORT).show();
-            finish();
+        if (getIntentType() == 2) {
+            computeOfflineWork();
+
         } else {
 
-            setContentView(R.layout.video_player_activity);
 
-            fabFavorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
-            fabFavorites.setOnClickListener(this);
-            progressDialog = new ProgressDialog(this);
-            progressDialog.setMessage("Loading...");
-            progressDialog.show();
-
-            play = (Button) this.findViewById(R.id.button_playvideoplayer);
-            pause = (Button) this.findViewById(R.id.button_pausevideoplayer);
-            tx1 = (TextView) findViewById(R.id.textView2_video);
-            tx2 = (TextView) findViewById(R.id.textView3_video);
-
-            url = getIntent().getStringExtra("url");
-            TextView description = (TextView) this.findViewById(R.id.textView_video_player_title);
-            description.setText(getIntent().getStringExtra("description"));
-
-            seekbar = (SeekBar) findViewById(R.id.seekBar_video);
-            seekbar.setClickable(false);
-            seekbar.setOnSeekBarChangeListener(this);
-            seekbar.getThumb().setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_ATOP);
-            seekbar.getProgressDrawable().setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_ATOP);
-
-            getWindow().setFormat(PixelFormat.UNKNOWN);
-            surfaceView = (SurfaceView) findViewById(R.id.surfaceview);
-            surfaceHolder = new WeakReference<>(surfaceView.getHolder());
-            surfaceHolder.get().addCallback(this);
-            surfaceHolder.get().setSizeFromLayout();
-
-            mediaPlayer = new MediaPlayer();
             try {
 
+                // set online source
                 mediaPlayer.setDataSource(url);
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-
-            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mp) {
-                    progressDialog.dismiss();
-                    playVideo(surfaceHolder.get());
-                }
-            });
-
-            play.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    pause.setTextColor(Color.BLACK);
-                    play.setTextColor(Color.RED);
-                    playVideo(surfaceHolder.get());
-                }
-            });
-
-            pause.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    play.setTextColor(Color.BLACK);
-                    pause.setTextColor(Color.RED);
-                    mediaPlayer.pause();
-                    pause.setEnabled(false);
-                    play.setEnabled(true);
-                }
-            });
         }
+
+        // surface
+        getWindow().setFormat(PixelFormat.UNKNOWN);
+        surfaceView = (SurfaceView) findViewById(R.id.surfaceview);
+        surfaceHolder = new WeakReference<>(surfaceView.getHolder());
+        surfaceHolder.get().addCallback(this);
+        surfaceHolder.get().setSizeFromLayout();
+
+        // did we saved the video previously ? if so .. change the fab color
+        checkExistingVideoInDB(videoID);
+    }
+
+
+    /**
+     * Method to compute all the offline work. We play the video that is saved to the internal storage
+     */
+    private void computeOfflineWork() {
+        offlineWork = true;
+
+        // path of the video file
+        String path = bean.getPath();
+
+        try {
+
+            FileInputStream fileInputStream = Utilities.loadMediaFromInternalStorage(Utilities.VIDEO_DIR, this, path);
+
+            mediaPlayer.setDataSource(fileInputStream.getFD());
+
+            fileInputStream.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    /**
+     * We check in the database if the video with id videoID exists.
+     * If exists we change the fab color.
+     *
+     * @param videoID the id of the video
+     */
+    private void checkExistingVideoInDB(int videoID) {
+        if (db.checkExistingVideo(videoID)) {
+            videoToDB = true;
+            fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+        }
+    }
+
+    private int getIntentType() {
+        return getIntent().getBundleExtra("bean").getInt("type");
+    }
+
+    private VideoBean getBeanFromIntent() {
+        return getIntent().getBundleExtra("bean").getParcelable("bean");
     }
 
     @Override
@@ -165,12 +232,19 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        mediaPlayer.stop();
 
-        finish();
+        if (offlineWork) {
+            Intent i = new Intent(getApplicationContext(), FavoriteVideosActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY);
+            startActivity(i);
+            finish();
+        } else
+            super.onBackPressed();
+
+        mediaPlayer.stop();
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
+
 
     private void playVideo(SurfaceHolder holder) {
         play.setTextColor(Color.RED);
@@ -236,9 +310,11 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
     }
+
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
     }
+
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
     }
@@ -248,10 +324,25 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
         if (v.getId() == R.id.fab_favorites) {
 
-            // add video to favorites
-            new AsyncDbWork(this, 2).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            // if the video is already saved in the db, it means we want to remove the video
+            if (videoToDB) {
+                videoToDB = false;
+                fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
+
+                // thread to remove the video from db
+                new AsyncDbWork(this, 1).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, videoID);
+
+                // we have to add the video to favorites
+            } else {
+                videoToDB = true;
+                fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+
+                // thread to add the video to favorites
+                new AsyncDbWork(this, 2).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            }
         }
     }
+
 
     /**
      * Thread to update the time of the video
@@ -279,7 +370,10 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
     }
 
 
-    private static class AsyncDbWork extends AsyncTask<Integer, Void, Long> {
+    /**
+     * Class to handle the background work for the database
+     */
+    private static class AsyncDbWork extends AsyncTask<Integer, Void, Void> {
         private static WeakReference<VideoPlayerActivity> activity;
         private final int type;
 
@@ -289,34 +383,37 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         }
 
         @Override
-        protected Long doInBackground(Integer... params) {
+        protected Void doInBackground(Integer... params) {
 
             if (type == 1)
-                return removeVideoFromFavorites(params[0]);
+                removeVideoFromFavorites(params[0]);
             else
-                return addVideoToFavorites();
+                addVideoToFavorites();
+
+            return null;
         }
 
-        private long addVideoToFavorites() {
+        private void addVideoToFavorites() {
             VideoPlayerActivity context = activity.get();
 
             HttpURLConnection con = null;
             InputStream stream = null;
-            long result = 0;
             try {
 
                 URL urll = new URL(context.url);
                 con = (HttpURLConnection) urll.openConnection();
                 stream = con.getInputStream();
 
-                Utilities.covertStreamToByte(stream);
-                // save music to database
-                //result = context.db.insertMusic(Utilities.covertStreamToByte(stream), context.musicID, context.bean.getTitle());
+                // save stream video to storage
+                String path = Utilities.saveMediaToInternalStorage(Utilities.VIDEO_DIR, context, stream, context.videoID);
 
+                // save video info to database
+                context.db.insertVideoInfo(path, context.videoID, context.bean.getDescription());
+
+                Log.i("path", path + "\n");
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
-                Log.i("music to db", " music covertStreamToByte");
                 e.printStackTrace();
 
             } finally {
@@ -334,26 +431,28 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                     }
                 }
             }
-
-            return result;
         }
 
-        private long removeVideoFromFavorites(int id) {
+        private void removeVideoFromFavorites(int id) {
 
-            return 0;
+            // path of the video
+            String path = activity.get().db.getVideoPath(id);
+
+            // delete video infos
+            activity.get().db.deleteVideoInfo(id);
+
+            // delete video from storage
+            Utilities.deleteSpecificMediaFromInternalStorage(Utilities.VIDEO_DIR, activity.get(), path);
         }
 
         @Override
-        protected void onPostExecute(Long value) {
+        protected void onPostExecute(Void value) {
             super.onPostExecute(value);
 
-            if (type == 2) {
-                if (value > 0)
-                    Toast.makeText(activity.get().getApplicationContext(), "Music added to favorites", Toast.LENGTH_SHORT).show();
-                else
-                    Toast.makeText(activity.get().getApplicationContext(), "Error adding the music to favorites", Toast.LENGTH_SHORT).show();
-            } else
-                Toast.makeText(activity.get().getApplicationContext(), "Music removed from favorites", Toast.LENGTH_SHORT).show();
+            if (type == 2)
+                Toast.makeText(activity.get().getApplicationContext(), "Video added to favorites", Toast.LENGTH_SHORT).show();
+            else
+                Toast.makeText(activity.get().getApplicationContext(), "Video removed from favorites", Toast.LENGTH_SHORT).show();
 
             activity = null;
         }

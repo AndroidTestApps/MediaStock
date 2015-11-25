@@ -2,6 +2,7 @@ package com.example.mediastock.activities;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -22,10 +23,9 @@ import android.widget.Toast;
 import com.example.mediastock.R;
 import com.example.mediastock.data.DBController;
 import com.example.mediastock.data.MusicBean;
+import com.example.mediastock.util.Utilities;
 
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
@@ -42,26 +42,27 @@ import java.util.concurrent.TimeUnit;
 public class MusicPlayerActivity extends Activity implements OnSeekBarChangeListener, View.OnClickListener {
     private static Handler myHandler = new Handler();
     public int oneTimeOnly = 0;
-    private Button pause, play;
-    private MediaPlayer mediaPlayer;
     private double startTime = 0;
     private double finalTime = 0;
+    private Button pause, play;
+    private MediaPlayer mediaPlayer;
     private SeekBar seekbar;
     private TextView tx1, tx2, title;
     private ProgressDialog progressDialog;
-    private boolean musicToDB = false;
     private FloatingActionButton fabFavorites;
     private DBController db;
-    private String url = "";
-    private int musicID;
     private MusicBean bean;
+    private String url;
+    private int musicID;
+    private boolean musicToDB = false;
+    private boolean offlineWork = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.music_player_activity);
 
-        // the database controller
+        // the database
         db = new DBController(this);
 
         fabFavorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites_music);
@@ -79,16 +80,17 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
         tx2 = (TextView) findViewById(R.id.textView3_music);
         title = (TextView) findViewById(R.id.TextView_mediaPlayer_title);
 
+        // seekbar
         seekbar = (SeekBar) findViewById(R.id.seekBar_music);
         seekbar.setClickable(false);
         seekbar.setOnSeekBarChangeListener(this);
         seekbar.getThumb().setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_ATOP);
         seekbar.getProgressDrawable().setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_ATOP);
 
-        // get bean
+        // get bean infos
         bean = getBeanFromIntent();
-        url = bean.getPreview();                 // url
-        musicID = Integer.valueOf(bean.getId()); // music id
+        url = bean.getPreview();
+        musicID = Integer.valueOf(bean.getId());
 
         // set the title of the music
         title.setText(bean.getTitle());
@@ -127,7 +129,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
         });
 
 
-        // we are offline ?
+        // check if online
         if (getIntentType() == 2) {
             computeOfflineWork();
 
@@ -135,6 +137,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
 
 
             try {
+
                 // set online source
                 mediaPlayer.setDataSource(url);
 
@@ -149,18 +152,18 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
         checkExistingMusicInDB(musicID);
     }
 
+    /**
+     * Method to compute all the offline work. We play the music that is saved to the internal storage
+     */
     private void computeOfflineWork() {
+        offlineWork = true;
+
+        // path of the music file
+        String path = bean.getPath();
+
         try {
-            // create temp file that will hold byte array
-            File tempMusicFile = File.createTempFile("temp" + bean.getId(), "mp3", getCacheDir());
-            tempMusicFile.deleteOnExit();
 
-            FileOutputStream fileOutputStream = new FileOutputStream(tempMusicFile);
-            fileOutputStream.write(bean.getByteMusic());
-            fileOutputStream.close();
-
-            //MediaPlayer mediaPlayer = new MediaPlayer();
-            FileInputStream fileInputStream = new FileInputStream(tempMusicFile);
+            FileInputStream fileInputStream = Utilities.loadMediaFromInternalStorage(Utilities.MUSIC_DIR, this, path);
 
             mediaPlayer.setDataSource(fileInputStream.getFD());
 
@@ -183,11 +186,18 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
 
-        this.finish();
+        if (offlineWork) {
+            Intent i = new Intent(getApplicationContext(), FavoriteMusicActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY);
+            startActivity(i);
+            finish();
+        } else
+            super.onBackPressed();
+
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
+
 
     private int getIntentType() {
         return getIntent().getBundleExtra("bean").getInt("type");
@@ -246,24 +256,23 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
 
         if (v.getId() == R.id.fab_favorites_music) {
 
-            // if the music il already saved in the db, it means we want to remove the music
+            // if the music is already saved in the db, it means we want to remove the music
             if (musicToDB) {
                 musicToDB = false;
                 fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
 
                 // thread to remove the music from db
-                // new AsyncDbWork(this, 1).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, musicID);
+                new AsyncDbWork(this, 1).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, musicID);
 
 
-                // the music is not in the database, so we have to save it
+                // we have to add the music to favorites
             } else {
                 musicToDB = true;
                 fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
-                // thread to save the music to database
-                // new AsyncDbWork(this, 2).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                // thread to save the music
+                new AsyncDbWork(this, 2).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             }
-
         }
     }
 
@@ -311,7 +320,10 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
     }
 
 
-    private static class AsyncDbWork extends AsyncTask<Integer, Void, Long> {
+    /**
+     * Class to handle the background work for the database
+     */
+    private static class AsyncDbWork extends AsyncTask<Integer, Void, Void> {
         private static WeakReference<MusicPlayerActivity> activity;
         private final int type;
 
@@ -321,33 +333,37 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
         }
 
         @Override
-        protected Long doInBackground(Integer... params) {
+        protected Void doInBackground(Integer... params) {
 
             if (type == 1)
-                return removeMusicFromFavorites(params[0]);
+                removeMusicFromFavorites(params[0]);
             else
-                return addMusicToFavorites();
+                addMusicToFavorites();
+
+            return null;
         }
 
-        private long addMusicToFavorites() {
+        private void addMusicToFavorites() {
             MusicPlayerActivity context = activity.get();
 
             HttpURLConnection con = null;
             InputStream stream = null;
-            long result = 0;
             try {
 
                 URL urll = new URL(context.url);
                 con = (HttpURLConnection) urll.openConnection();
                 stream = con.getInputStream();
 
-                // save music to database
-                //result = context.db.insertMusic(Utilities.covertStreamToByte(stream), context.musicID, context.bean.getTitle());
+                // save stream music to storage
+                String path = Utilities.saveMediaToInternalStorage(Utilities.MUSIC_DIR, context, stream, context.musicID);
 
+                // save music info to database
+                context.db.insertMusicInfo(path, context.musicID, context.bean.getTitle());
+
+                Log.i("path", path + "\n");
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
-                Log.i("music to db", " music covertStreamToByte");
                 e.printStackTrace();
 
             } finally {
@@ -365,27 +381,27 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
                     }
                 }
             }
-
-            return result;
         }
 
-        private long removeMusicFromFavorites(int id) {
+        private void removeMusicFromFavorites(int id) {
 
-            activity.get().db.deleteMusic(id);
+            // path of the music
+            String path = activity.get().db.getMusicPath(id);
 
-            return 0;
+            // delete music infos
+            activity.get().db.deleteMusicInfo(id);
+
+            // delete music from storage
+            Utilities.deleteSpecificMediaFromInternalStorage(Utilities.MUSIC_DIR, activity.get(), path);
         }
 
         @Override
-        protected void onPostExecute(Long value) {
+        protected void onPostExecute(Void value) {
             super.onPostExecute(value);
 
-            if (type == 2) {
-                if (value > 0)
-                    Toast.makeText(activity.get().getApplicationContext(), "Music added to favorites", Toast.LENGTH_SHORT).show();
-                else
-                    Toast.makeText(activity.get().getApplicationContext(), "Error adding the music to favorites", Toast.LENGTH_SHORT).show();
-            } else
+            if (type == 2)
+                Toast.makeText(activity.get().getApplicationContext(), "Music added to favorites", Toast.LENGTH_SHORT).show();
+            else
                 Toast.makeText(activity.get().getApplicationContext(), "Music removed from favorites", Toast.LENGTH_SHORT).show();
 
             activity = null;

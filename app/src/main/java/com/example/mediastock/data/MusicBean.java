@@ -19,8 +19,7 @@ public class MusicBean extends Bean {
 	private String title;
 	private String preview;
     private int pos;
-    private int byteArrayLength;
-    private byte[] byteMusic;
+    private String path;
 
     public MusicBean() {
     }
@@ -49,16 +48,21 @@ public class MusicBean extends Bean {
 		this.id = id;
 	}
 
-    public void setByteArrayLength(int byteArrayLength) {
-        this.byteArrayLength = byteArrayLength;
+    public String getPath() {
+        return path;
     }
 
-    public byte[] getByteMusic() {
-        return byteMusic;
+    public void setPath(String path) {
+        this.path = path;
     }
 
-    public void setByteMusic(byte[] music) {
-        this.byteMusic = music;
+    @Override
+    public int getPos() {
+        return pos;
+    }
+
+    public void setPos(int pos) {
+        this.pos = pos;
     }
 
     @Override
@@ -72,31 +76,13 @@ public class MusicBean extends Bean {
 		dest.writeString(preview);
 		dest.writeString(id);
 		dest.writeString(title);
-        dest.writeInt(byteArrayLength);
-        dest.writeByteArray(byteMusic);
-
+        dest.writeString(path);
     }
 
     private void readFromParcel(Parcel in) {
         preview = in.readString();
         id = in.readString();
         title = in.readString();
-        byteArrayLength = in.readInt();
-
-        if (byteArrayLength > 0) {
-            byteMusic = new byte[byteArrayLength];
-            in.readByteArray(byteMusic);
-        }
-
-    }
-
-
-    @Override
-    public int getPos() {
-        return pos;
-    }
-
-    public void setPos(int pos) {
-        this.pos = pos;
+        path = in.readString();
     }
 }

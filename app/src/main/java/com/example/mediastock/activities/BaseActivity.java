@@ -76,12 +76,13 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         if (!Utilities.deviceOnline(getApplicationContext()))
             showAlertDialogNoInternet();
 
-/*
+        /*
         DBController db = new DBController(this);
-        db.deleteTables();
-        db.createTables();
-        Utilities.deleteAllImagesFromInternalStorage(this);
-*/
+        db.deleteAllRowsMusic();
+
+        Utilities.deleteAllMediaFromInternalStorage(Utilities.MUSIC_DIR, this);
+        Utilities.deleteAllMediaFromInternalStorage(Utilities.VIDEO_DIR, this); */
+
         LeakCanary.install(getApplication());
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
@@ -160,9 +161,16 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
                         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
                         break;
 
+                    // Videos
+                    case 1:
+                        Intent videoIntent = new Intent(getApplicationContext(), FavoriteVideosActivity.class);
+                        startActivity(videoIntent);
+                        overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
+                        break;
+
                     // Music
                     case 2:
-                        Intent musicIntent = new Intent(getApplicationContext(), FavoriteMusicVideosActivity.class);
+                        Intent musicIntent = new Intent(getApplicationContext(), FavoriteMusicActivity.class);
                         startActivity(musicIntent);
                         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
                         break;
@@ -292,7 +300,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
                     if (viewPager.getCurrentItem() == 0 || viewPager.getCurrentItem() == 1 || viewPager.getCurrentItem() == 2) {
 
-                        // search view opened
+                        // search view is opened
                         if (isFocused)
                             startSearch(editText.getText().toString(), editText); // start searching the users input
                         else
@@ -346,6 +354,19 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
                 return true;
 
+            case R.id.item_favoriteVideos:
+                Intent favoriteVideosIntent = new Intent(getApplicationContext(), FavoriteVideosActivity.class);
+                startActivity(favoriteVideosIntent);
+                overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
+
+                return true;
+
+            case R.id.item_favoriteMusic:
+                Intent favoriteMusicIntent = new Intent(getApplicationContext(), FavoriteMusicActivity.class);
+                startActivity(favoriteMusicIntent);
+                overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
+
+                return true;
         }
 
         return true;

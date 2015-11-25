@@ -114,16 +114,11 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
         // on item click
         videoAdapter.setOnItemClickListener(new MusicVideoAdapter.OnItemClickListener() {
+
             @Override
             public void onItemClick(View view, int position) {
-                VideoBean bean = (VideoBean) videoAdapter.getBeanAt(position);
 
-                Intent intent = new Intent(context, VideoPlayerActivity.class);
-                intent.putExtra("url", bean.getPreview());
-                intent.putExtra("description", bean.getDescription());
-
-                startActivity(intent);
-                getActivity().overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
+                goToVideoPlayerActivity(position);
             }
         });
 
@@ -134,19 +129,41 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
             public void onBottomLoadMoreData(int loadingType, int loadingPageNumber) {
                 progressBar_bottom.setVisibility(View.VISIBLE);
 
-                // recent videos
+                // type 1 : recent videos
                 if (loadingType == 1) {
                     Bundle bundle = new Bundle();
                     bundle.putInt("pagenumber", loadingPageNumber);
                     getActivity().getLoaderManager().initLoader(1, bundle, fragment);
 
+                    // type 2 : search videos by key
                 } else
-                    startSearching(2, keyWord1, keyWord2, loadingPageNumber); // search videos by key
+                    startSearching(2, keyWord1, keyWord2, loadingPageNumber);
             }
         });
 
 
         getRecentVideos();
+    }
+
+    /**
+     * Open VideoPlayerActivity activity
+     */
+    private void goToVideoPlayerActivity(int position) {
+
+        if (!Utilities.deviceOnline(context)) {
+            Toast.makeText(context.getApplicationContext(), "Not online", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final Bundle bundle = new Bundle();
+        final VideoBean bean = (VideoBean) videoAdapter.getBeanAt(position);
+
+        Intent intent = new Intent(context, VideoPlayerActivity.class);
+        bundle.putParcelable("bean", bean);
+        intent.putExtra("bean", bundle);
+
+        startActivity(intent);
+        getActivity().overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
 
 

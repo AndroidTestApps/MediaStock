@@ -29,7 +29,10 @@ import static org.apache.commons.codec.binary.Base64.encodeBase64;
 
 
 public class Utilities {
-
+    // media directories
+    public static final String MUSIC_DIR = "music";
+    public static final String VIDEO_DIR = "video";
+    public static final String IMG_DIR = "image";
 
     /**
 	 * It reads the content of the input stream.
@@ -78,18 +81,16 @@ public class Utilities {
      *
      * @param context the context
      * @param bitmap the image
+     * @param id the id of the image
      * @return the path of the image
      */
-    public static String saveImageToInternalStorage(Context context, Bitmap bitmap) {
+    public static String saveImageToInternalStorage(Context context, Bitmap bitmap, int id) {
         ContextWrapper cw = new ContextWrapper(context.getApplicationContext());
 
         File imageDir = cw.getDir("imageDir", Context.MODE_PRIVATE);
 
-        final String[] fileNames = imageDir.list();
-        final int fileNumber = fileNames.length;
-
         // Create file image
-        File file = new File(imageDir, "image" + fileNumber);
+        File file = new File(imageDir, "image" + id);
 
         FileOutputStream fos;
         try {
@@ -106,17 +107,52 @@ public class Utilities {
     }
 
     /**
-     * Method to delete an image from the internal storage
+     * Method to save a media file inside the directory typeDir. It writes the bytes of the stream into the file.
      *
+     * @param type the directory type: music, video or image
      * @param context the context
-     * @param path the path of the image
-     * @return true, if the image was deleted, false otherwise
+     * @param inputStream the stream
+     * @param id the id of the media file
+     * @return the path of the media file
      */
-    public static boolean deleteImageFromInternalStorage(Context context, String path) {
+    public static String saveMediaToInternalStorage(String type, Context context, InputStream inputStream, int id) {
         ContextWrapper cw = new ContextWrapper(context.getApplicationContext());
-        File imageDir = cw.getDir("imageDir", Context.MODE_PRIVATE);
 
-        final File[] fileNames = imageDir.listFiles();
+        File dir = cw.getDir(type + "Dir", Context.MODE_PRIVATE);
+
+        // Create media file
+        File file = new File(dir, type + id);
+
+        FileOutputStream fos;
+        try {
+
+            fos = new FileOutputStream(file);
+            fos.write(Utilities.covertStreamToByte(inputStream));
+
+            fos.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return file.getName();
+    }
+
+
+    /**
+     * Method to delete a media file within the typeDir directory. The directory is stored into the internal storage.
+     *
+     * @param type    the directory type: music, video or image
+     * @param context the context
+     * @param path    the path of the media file
+     * @return true, if the file was deleted, false otherwise
+     */
+    public static boolean deleteSpecificMediaFromInternalStorage(String type, Context context, String path) {
+        ContextWrapper cw = new ContextWrapper(context.getApplicationContext());
+        File dir = cw.getDir(type + "Dir", Context.MODE_PRIVATE);
+
+        final File[] fileNames = dir.listFiles();
 
         boolean result = false;
         for (int i = 0; i < fileNames.length; i++)
@@ -145,8 +181,7 @@ public class Utilities {
             if (fileNames[i].getName().equals(path))
                 target = fileNames[i];
 
-        for (int i = 0; i < fileNames.length; i++)
-            Log.i("path", fileNames[i].getName());
+        Log.i("path", target.getName());
 
         Bitmap bitmap = null;
         try {
@@ -160,14 +195,60 @@ public class Utilities {
         return Bitmap.createScaledBitmap(bitmap, width, width, false);
     }
 
-    public static void deleteAllImagesFromInternalStorage(Context context) {
+    /**
+     * It loads a media file from the storage.
+     *
+     * @param type    the typeDir directory, where type can be music or video
+     * @param context the context
+     * @param path    the path to the media file
+     * @return a FileInputStream object that contains the media file
+     */
+    public static FileInputStream loadMediaFromInternalStorage(String type, Context context, final String path){
         ContextWrapper cw = new ContextWrapper(context.getApplicationContext());
-        File imageDir = cw.getDir("imageDir", Context.MODE_PRIVATE);
+        File dir = cw.getDir(type + "Dir", Context.MODE_PRIVATE);
 
-        final File[] fileNames = imageDir.listFiles();
+        final File[] fileNames = dir.listFiles();
+
+        File target = null;
         for (int i = 0; i < fileNames.length; i++)
-            fileNames[i].delete();
+            if (fileNames[i].getName().equals(path))
+                target = fileNames[i];
+
+        Log.i("path", target.getName());
+
+        FileInputStream fis = null;
+        try {
+
+            fis = new FileInputStream(target);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return fis;
     }
+
+
+    /**
+     * Method to delete all the files within the directory typeDir, where type can be music, image or video
+     *
+     * @param type    the directory type: music, video or image
+     * @param context the context
+     */
+    public static void deleteAllMediaFromInternalStorage(String type, Context context) {
+        ContextWrapper cw = new ContextWrapper(context.getApplicationContext());
+        File dir = cw.getDir(type + "Dir", Context.MODE_PRIVATE);
+
+        final File[] fileNames = dir.listFiles();
+
+        if (fileNames.length > 0) {
+            for (int i = 0; i < fileNames.length; i++)
+                fileNames[i].delete();
+        }
+    }
+
 
 
     /**
@@ -189,11 +270,8 @@ public class Utilities {
             byteBuffer.write(buffer, 0, len);
         }
 
-        Log.i("db", " -> " + String.valueOf(byteBuffer.size()));
-
         return byteBuffer.toByteArray();
     }
-
 
     /**
      * Checks if the device is connected to the Internet

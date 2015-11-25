@@ -59,6 +59,16 @@ public abstract class AbstractMediaAdapter extends RecyclerView.Adapter<Abstract
         }
     }
 
+    public void deleteItemAt(int position) {
+        items.remove(position);
+
+        // Android dev said it is a bug on the RecyclerView invoking notifyItemInserted() at pos 0
+        if (position != 0)
+            notifyItemRemoved(position);
+        else
+            notifyDataSetChanged();
+    }
+
     public void setOnBottomListener(final OnBottomListener listener) {
         this.bottomListener = listener;
     }

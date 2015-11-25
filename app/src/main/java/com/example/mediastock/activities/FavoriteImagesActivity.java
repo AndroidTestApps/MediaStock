@@ -101,14 +101,14 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         bean.setId(cursor.getInt(cursor.getColumnIndex(DBHelper.IMG_ID)));
         bean.setDescription(cursor.getString(cursor.getColumnIndex(DBHelper.DESCRIPTION_IMG)));
         bean.setAuthor(cursor.getString(cursor.getColumnIndex(DBHelper.AUTHOR_IMG)));
-        bean.setName(cursor.getString(cursor.getColumnIndex(DBHelper.IMG_PATH)));
+        bean.setPath(cursor.getString(cursor.getColumnIndex(DBHelper.IMG_PATH)));
 
         Intent intent = new Intent(getApplicationContext(), DisplayImageActivity.class);
         bundle.putInt("type", 2);
         bundle.putParcelable("bean", bean);
         intent.putExtra("bean", bundle);
 
-        // save the images position (in the adapter) in case the image will be removed from favorites
+        // save the position that this image has in the adapter
         imageID_temp = position;
 
         startActivity(intent);

@@ -35,14 +35,17 @@
 
         <activity
             android:name="com.example.mediastock.activities.FavoriteImagesActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
             android:launchMode="singleInstance"
             />
 
+        <activity
+            android:name="com.example.mediastock.activities.FavoriteMusicActivity"
+            android:launchMode="singleInstance"
+            />
 
         <activity
-            android:name="com.example.mediastock.activities.FavoriteMusicVideosActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:name="com.example.mediastock.activities.FavoriteVideosActivity"
+            android:launchMode="singleInstance"
             />
 
         <activity
@@ -60,6 +63,7 @@
 
         <service android:name="com.example.mediastock.util.DownloadService">
         </service>
+
     </application>
 
 </manifest>

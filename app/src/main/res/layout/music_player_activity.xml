@@ -69,7 +69,7 @@
             android:layout_height="wrap_content"
             android:layout_above="@+id/lin"
             android:layout_alignParentEnd="true"
-            android:layout_marginBottom="10dp"
+            android:layout_marginBottom="4dp"
             android:layout_marginRight="20dp"
             android:text="0:0"
             android:textAppearance="?android:attr/textAppearanceSmall"
@@ -83,7 +83,7 @@
             android:layout_alignTop="@+id/seekBar_music"
             android:layout_below="@+id/linearLayout2"
             android:layout_marginBottom="10dp"
-            android:layout_marginTop="35dp"
+            android:layout_marginTop="45dp"
             android:orientation="vertical">
 
 
