@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.Charset;
 
@@ -388,11 +389,13 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
             Log.i("url", urlStr);
 
             InputStream is = null;
-
+            HttpURLConnection con = null;
             try {
                 URL url = new URL(urlStr);
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con = (HttpURLConnection) url.openConnection();
                 con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
+                con.setConnectTimeout(15000);
+                con.setReadTimeout(15000);
 
                 if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
                     is = con.getInputStream();
@@ -435,6 +438,8 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
                 con.disconnect();
 
+            } catch (SocketTimeoutException e) {
+                con.disconnect();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {

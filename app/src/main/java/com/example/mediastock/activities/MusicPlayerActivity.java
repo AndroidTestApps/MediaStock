@@ -8,7 +8,6 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
@@ -18,11 +17,11 @@ import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.mediastock.R;
 import com.example.mediastock.data.DBController;
 import com.example.mediastock.data.MusicBean;
+import com.example.mediastock.util.ExecuteExecutor;
 import com.example.mediastock.util.Utilities;
 
 import java.io.FileInputStream;
@@ -177,6 +176,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
     protected void onDestroy() {
         super.onDestroy();
 
+        Log.i("music", "destroy");
         if (mediaPlayer != null) {
             mediaPlayer.stop();
             mediaPlayer.release();
@@ -191,10 +191,9 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
             Intent i = new Intent(getApplicationContext(), FavoriteMusicActivity.class);
             i.setFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY);
             startActivity(i);
-            finish();
-        } else
-            super.onBackPressed();
+        }
 
+        super.onBackPressed();
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
 
@@ -262,7 +261,24 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
                 fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
 
                 // thread to remove the music from db
-                new AsyncDbWork(this, 1).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, musicID);
+                new ExecuteExecutor(this, new ExecuteExecutor.CallableAsyncTask(this) {
+
+                    @Override
+                    public String call() {
+                        MusicPlayerActivity context = (MusicPlayerActivity) getContextRef();
+
+                        // path of the music
+                        String path = context.db.getMusicPath(context.musicID);
+
+                        // delete music infos
+                        context.db.deleteMusicInfo(context.musicID);
+
+                        // delete music from storage
+                        Utilities.deleteSpecificMediaFromInternalStorage(Utilities.MUSIC_DIR, context, path);
+
+                        return "Music removed from favorites";
+                    }
+                });
 
 
                 // we have to add the music to favorites
@@ -271,7 +287,51 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
                 fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
                 // thread to save the music
-                new AsyncDbWork(this, 2).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                new ExecuteExecutor(this, new ExecuteExecutor.CallableAsyncTask(this) {
+
+                    // thread to add the music to favorites
+                    @Override
+                    public String call() {
+                        MusicPlayerActivity context = (MusicPlayerActivity) getContextRef();
+
+                        HttpURLConnection con = null;
+                        InputStream stream = null;
+                        try {
+
+                            URL urll = new URL(context.url);
+                            con = (HttpURLConnection) urll.openConnection();
+                            stream = con.getInputStream();
+
+                            // save stream music to storage
+                            String path = Utilities.saveMediaToInternalStorage(Utilities.MUSIC_DIR, context, stream, context.musicID);
+
+                            // save music info to database
+                            context.db.insertMusicInfo(path, context.musicID, context.bean.getTitle());
+
+                        } catch (MalformedURLException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+
+                        } finally {
+
+                            // and finally we close the objects
+                            if (con != null && stream != null) {
+                                con.disconnect();
+
+                                try {
+
+                                    stream.close();
+
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+
+                        return "Music added to favorites";
+                    }
+                });
             }
         }
     }
@@ -316,95 +376,6 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
                 activity.get().seekbar.setProgress((int) activity.get().startTime);
                 myHandler.postDelayed(this, 100);
             }
-        }
-    }
-
-
-    /**
-     * Class to handle the background work for the database
-     */
-    private static class AsyncDbWork extends AsyncTask<Integer, Void, Void> {
-        private static WeakReference<MusicPlayerActivity> activity;
-        private final int type;
-
-        public AsyncDbWork(MusicPlayerActivity context, int type) {
-            activity = new WeakReference<>(context);
-            this.type = type;
-        }
-
-        @Override
-        protected Void doInBackground(Integer... params) {
-
-            if (type == 1)
-                removeMusicFromFavorites(params[0]);
-            else
-                addMusicToFavorites();
-
-            return null;
-        }
-
-        private void addMusicToFavorites() {
-            MusicPlayerActivity context = activity.get();
-
-            HttpURLConnection con = null;
-            InputStream stream = null;
-            try {
-
-                URL urll = new URL(context.url);
-                con = (HttpURLConnection) urll.openConnection();
-                stream = con.getInputStream();
-
-                // save stream music to storage
-                String path = Utilities.saveMediaToInternalStorage(Utilities.MUSIC_DIR, context, stream, context.musicID);
-
-                // save music info to database
-                context.db.insertMusicInfo(path, context.musicID, context.bean.getTitle());
-
-                Log.i("path", path + "\n");
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-
-            } finally {
-
-                // and finally we close the objects
-                if (con != null && stream != null) {
-                    con.disconnect();
-
-                    try {
-
-                        stream.close();
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-
-        private void removeMusicFromFavorites(int id) {
-
-            // path of the music
-            String path = activity.get().db.getMusicPath(id);
-
-            // delete music infos
-            activity.get().db.deleteMusicInfo(id);
-
-            // delete music from storage
-            Utilities.deleteSpecificMediaFromInternalStorage(Utilities.MUSIC_DIR, activity.get(), path);
-        }
-
-        @Override
-        protected void onPostExecute(Void value) {
-            super.onPostExecute(value);
-
-            if (type == 2)
-                Toast.makeText(activity.get().getApplicationContext(), "Music added to favorites", Toast.LENGTH_SHORT).show();
-            else
-                Toast.makeText(activity.get().getApplicationContext(), "Music removed from favorites", Toast.LENGTH_SHORT).show();
-
-            activity = null;
         }
     }
 }

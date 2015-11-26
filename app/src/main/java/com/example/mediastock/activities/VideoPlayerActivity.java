@@ -9,11 +9,9 @@ import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -21,11 +19,11 @@ import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.mediastock.R;
 import com.example.mediastock.data.DBController;
 import com.example.mediastock.data.VideoBean;
+import com.example.mediastock.util.ExecuteExecutor;
 import com.example.mediastock.util.Utilities;
 
 import java.io.FileInputStream;
@@ -232,16 +230,15 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
     @Override
     public void onBackPressed() {
+        mediaPlayer.stop();
 
         if (offlineWork) {
             Intent i = new Intent(getApplicationContext(), FavoriteVideosActivity.class);
             i.setFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY);
             startActivity(i);
-            finish();
-        } else
-            super.onBackPressed();
+        }
 
-        mediaPlayer.stop();
+        super.onBackPressed();
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
 
@@ -330,7 +327,24 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                 fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
 
                 // thread to remove the video from db
-                new AsyncDbWork(this, 1).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, videoID);
+                new ExecuteExecutor(this, new ExecuteExecutor.CallableAsyncTask(this) {
+
+                    @Override
+                    public String call() {
+                        VideoPlayerActivity activity = (VideoPlayerActivity) getContextRef();
+
+                        // path of the video
+                        String path = activity.db.getVideoPath(activity.videoID);
+
+                        // delete video infos
+                        activity.db.deleteVideoInfo(activity.videoID);
+
+                        // delete video from storage
+                        Utilities.deleteSpecificMediaFromInternalStorage(Utilities.VIDEO_DIR, activity, path);
+
+                        return "Video removed from favorites";
+                    }
+                });
 
                 // we have to add the video to favorites
             } else {
@@ -338,7 +352,50 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                 fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
                 // thread to add the video to favorites
-                new AsyncDbWork(this, 2).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                new ExecuteExecutor(this, new ExecuteExecutor.CallableAsyncTask(this) {
+
+                    @Override
+                    public String call() {
+                        VideoPlayerActivity context = (VideoPlayerActivity) getContextRef();
+
+                        HttpURLConnection con = null;
+                        InputStream stream = null;
+                        try {
+
+                            URL urll = new URL(context.url);
+                            con = (HttpURLConnection) urll.openConnection();
+                            stream = con.getInputStream();
+
+                            // save stream video to storage
+                            String path = Utilities.saveMediaToInternalStorage(Utilities.VIDEO_DIR, context, stream, context.videoID);
+
+                            // save video info to database
+                            context.db.insertVideoInfo(path, context.videoID, context.bean.getDescription());
+
+                        } catch (MalformedURLException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+
+                        } finally {
+
+                            // and finally we close the objects
+                            if (con != null && stream != null) {
+                                con.disconnect();
+
+                                try {
+
+                                    stream.close();
+
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+
+                        return "Video added to favorites";
+                    }
+                });
             }
         }
     }
@@ -366,95 +423,6 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                 activity.get().seekbar.setProgress((int) activity.get().startTime);
                 myHandler.postDelayed(this, 100);
             }
-        }
-    }
-
-
-    /**
-     * Class to handle the background work for the database
-     */
-    private static class AsyncDbWork extends AsyncTask<Integer, Void, Void> {
-        private static WeakReference<VideoPlayerActivity> activity;
-        private final int type;
-
-        public AsyncDbWork(VideoPlayerActivity context, int type) {
-            activity = new WeakReference<>(context);
-            this.type = type;
-        }
-
-        @Override
-        protected Void doInBackground(Integer... params) {
-
-            if (type == 1)
-                removeVideoFromFavorites(params[0]);
-            else
-                addVideoToFavorites();
-
-            return null;
-        }
-
-        private void addVideoToFavorites() {
-            VideoPlayerActivity context = activity.get();
-
-            HttpURLConnection con = null;
-            InputStream stream = null;
-            try {
-
-                URL urll = new URL(context.url);
-                con = (HttpURLConnection) urll.openConnection();
-                stream = con.getInputStream();
-
-                // save stream video to storage
-                String path = Utilities.saveMediaToInternalStorage(Utilities.VIDEO_DIR, context, stream, context.videoID);
-
-                // save video info to database
-                context.db.insertVideoInfo(path, context.videoID, context.bean.getDescription());
-
-                Log.i("path", path + "\n");
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-
-            } finally {
-
-                // and finally we close the objects
-                if (con != null && stream != null) {
-                    con.disconnect();
-
-                    try {
-
-                        stream.close();
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-
-        private void removeVideoFromFavorites(int id) {
-
-            // path of the video
-            String path = activity.get().db.getVideoPath(id);
-
-            // delete video infos
-            activity.get().db.deleteVideoInfo(id);
-
-            // delete video from storage
-            Utilities.deleteSpecificMediaFromInternalStorage(Utilities.VIDEO_DIR, activity.get(), path);
-        }
-
-        @Override
-        protected void onPostExecute(Void value) {
-            super.onPostExecute(value);
-
-            if (type == 2)
-                Toast.makeText(activity.get().getApplicationContext(), "Video added to favorites", Toast.LENGTH_SHORT).show();
-            else
-                Toast.makeText(activity.get().getApplicationContext(), "Video removed from favorites", Toast.LENGTH_SHORT).show();
-
-            activity = null;
         }
     }
 

@@ -246,10 +246,9 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             Intent i = new Intent(getApplicationContext(), FavoriteImagesActivity.class);
             i.setFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY);
             startActivity(i);
-            finish();
-        } else
-            super.onBackPressed();
+        }
 
+        super.onBackPressed();
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
 
@@ -329,7 +328,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                     context.adapter.deleteItems();
                     break;
 
-                // save favorite image to database
+                // save favorite image to storage
                 case 4:
                     new AsyncDbWork(context, 2, msg, context.imageId, context.description.getText().toString(), context.author.getText().toString()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
@@ -405,7 +404,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             msg.setData(bundle);
             msg.what = 4;
 
-            // alert the handler to save the imgage to database
+            // alert the handler to save the image to storage
             handler.post(new Runnable() {
 
                 @Override
@@ -421,7 +420,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             urlStr += id;
 
             InputStream is = null;
-            String author = " - ";
+            String author = "";
             try {
                 URL url = new URL(urlStr);
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -436,7 +435,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
                     JsonElement json = new JsonParser().parse(jsonText);
                     author = json.getAsJsonObject().get("display_name") == null ? " - " : json.getAsJsonObject().get("display_name").getAsString();
-
                 }
 
                 con.disconnect();
@@ -489,7 +487,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                 con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
 
                 if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
-
                     is = con.getInputStream();
 
                     BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
@@ -535,12 +532,9 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                             }
                         });
                     }
-
-
                 }
 
                 con.disconnect();
-
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -565,6 +559,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             this.url = url;
         }
     }
+
 
     /**
      * Class to handle the background work for the database
