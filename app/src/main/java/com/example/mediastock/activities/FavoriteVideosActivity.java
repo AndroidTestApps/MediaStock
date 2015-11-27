@@ -4,12 +4,11 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.mediastock.R;
@@ -23,10 +22,9 @@ import java.lang.ref.WeakReference;
 
 
 public class FavoriteVideosActivity extends AppCompatActivity {
+    //private FloatingActionButton fabFilter;
     private RecyclerView recyclerView;
-    private FloatingActionButton fabFilter;
     private MusicVideoAdapter adapter;
-    private ProgressBar progressBar;
     private DBController db;
     private Cursor cursor;
     private int videoID_temp = 0;
@@ -35,6 +33,18 @@ public class FavoriteVideosActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.favorite_music_video);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        setTitle("Favorite videos");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
 
         db = new DBController(this);
         cursor = db.getVideosInfo();
@@ -117,7 +127,7 @@ public class FavoriteVideosActivity extends AppCompatActivity {
 
 
     /**
-     * Class to get in background the images from the database.
+     * Class to get in background the video info from the database.
      */
     private static class AsyncDBWork extends AsyncTask<Void, Bean, Void> {
         private static WeakReference<FavoriteVideosActivity> activity;

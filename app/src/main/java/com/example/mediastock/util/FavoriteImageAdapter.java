@@ -53,11 +53,6 @@ public class FavoriteImageAdapter extends AbstractMediaAdapter {
             notifyDataSetChanged();
     }
 
-
-    public Bitmap getBitmapAt(int pos) {
-        return bitmaps.get(pos);
-    }
-
     public void deleteBitmapAt(int position) {
         bitmaps.remove(position);
 

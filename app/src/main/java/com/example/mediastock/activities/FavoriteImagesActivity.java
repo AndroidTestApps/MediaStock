@@ -9,6 +9,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -49,6 +50,18 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.favorite_images);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        setTitle("Favorite images");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
 
         LeakCanary.install(getApplication());
 
@@ -158,7 +171,6 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
      * Method to show a popup menu to filter the images
      */
     private void showPopupMenu() {
-
         int layoutWidth = (width / 2) + (width / 3);
 
         LayoutInflater layoutInflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -200,7 +212,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
             public void onClick(View v) {
 
                 // filter the images by color
-                // new AsyncImageFilter(FavoriteImagesActivity.this, colorSelectedPosition).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                new AsyncImageFilter(FavoriteImagesActivity.this, colorSelectedPosition).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
                 popupWindow.dismiss();
                 fabFilter.setClickable(true);
@@ -221,7 +233,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
 
 
     /**
-     * Class to get in background the images from the database.
+     * Class to get in background the images from the storage.
      */
     private static class AsyncDBWork extends AsyncTask<Void, Bitmap, Void> {
         private static WeakReference<FavoriteImagesActivity> activity;
@@ -264,13 +276,15 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         }
     }
 
+
     /**
      * Async class to filter the images.
      */
-    private static class AsyncImageFilter extends AsyncTask<Void, Void, Void> {
+    private static class AsyncImageFilter extends AsyncTask<Void, Integer, Void> {
         private static WeakReference<FavoriteImagesActivity> activity;
         private final int color;
         private final Cursor cursor;
+        private int position = 0;
 
         public AsyncImageFilter(FavoriteImagesActivity context, int colorPosition) {
             activity = new WeakReference<>(context);
@@ -281,10 +295,18 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         @Override
         protected Void doInBackground(Void... params) {
 
-
             do {
+
                 ColorHelper colorHelper = new ColorHelper(color, cursor.getInt(cursor.getColumnIndex(DBHelper.VIBRANT)),
-                        0, 0, 0, 0, 0);
+                        cursor.getInt(cursor.getColumnIndex(DBHelper.LIGHT_VIBRANT)), cursor.getInt(cursor.getColumnIndex(DBHelper.DARK_VIBRANT)),
+                        cursor.getInt(cursor.getColumnIndex(DBHelper.MUTED)), cursor.getInt(cursor.getColumnIndex(DBHelper.LIGHT_MUTED)), cursor.getInt(cursor.getColumnIndex(DBHelper.DARK_MUTED)));
+
+                // if the color palette of the image is not similar to the color chosen by the user
+                // we remove the image from the list
+                if (!colorHelper.getColorSimilarity())
+                    publishProgress(position);
+                else
+                    position++;
 
             } while (cursor.moveToNext());
 
@@ -292,10 +314,10 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         }
 
         @Override
-        protected void onProgressUpdate(Void... values) {
+        protected void onProgressUpdate(Integer... values) {
             super.onProgressUpdate(values);
 
-            // activity.get().adapter.deleteBitmapAt(pos);
+            activity.get().adapter.deleteBitmapAt(values[0]);
         }
 
         @Override
@@ -305,6 +327,4 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
             activity = null;
         }
     }
-
-
 }

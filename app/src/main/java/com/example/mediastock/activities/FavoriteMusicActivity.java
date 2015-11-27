@@ -5,12 +5,11 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.mediastock.R;
@@ -23,10 +22,9 @@ import com.example.mediastock.util.MusicVideoAdapter;
 import java.lang.ref.WeakReference;
 
 public class FavoriteMusicActivity extends AppCompatActivity {
+    //private FloatingActionButton fabFilter;
     private RecyclerView recyclerView;
-    private FloatingActionButton fabFilter;
     private MusicVideoAdapter adapter;
-    private ProgressBar progressBar;
     private DBController db;
     private Cursor cursor;
     private int musicID_temp = 0;
@@ -35,6 +33,18 @@ public class FavoriteMusicActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.favorite_music_video);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        setTitle("Favorite music");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
 
         db = new DBController(this);
         cursor = db.getMusicInfo();
@@ -60,7 +70,7 @@ public class FavoriteMusicActivity extends AppCompatActivity {
         if (cursor.getCount() == 0)
             Toast.makeText(getApplicationContext(), "There is no music saved", Toast.LENGTH_SHORT).show();
         else
-            new AsyncDBWork(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            new AsyncDBWork(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR); // get music info from db
     }
 
     /**
@@ -115,7 +125,7 @@ public class FavoriteMusicActivity extends AppCompatActivity {
     }
 
     /**
-     * Class to get in background the images from the database.
+     * Class to get in background the music info from the database.
      */
     private static class AsyncDBWork extends AsyncTask<Void, Bean, Void> {
         private static WeakReference<FavoriteMusicActivity> activity;
@@ -161,6 +171,4 @@ public class FavoriteMusicActivity extends AppCompatActivity {
             activity = null;
         }
     }
-
-
 }
