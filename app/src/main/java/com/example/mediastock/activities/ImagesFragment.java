@@ -46,6 +46,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
     private static String keyWord1;
     private static String keyWord2;
     private static Context context;
+    private static boolean working = false;
     private DownloadResultReceiver resultReceiver;
     private View view;
     private ProgressBar progressBar;
@@ -140,7 +141,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
      * Method to get the recent images
      */
     public void getRecentImages() {
-        if (!Utilities.deviceOnline(context))
+        if (!Utilities.deviceOnline(context) || working)
             return;
 
         showProgressBar();
@@ -152,6 +153,9 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
      * It searches the images by one or two keys
      */
     public void searchImagesByKey(String key1, String key2) {
+        if (working)
+            return;
+
         keyWord1 = key1;
         keyWord2 = key2;
 
@@ -166,7 +170,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
      * We pass all the info to DownloadService service to start to download the images.
      */
     public void startFilterSearch(Bundle bundle) {
-        if (!Utilities.deviceOnline(context))
+        if (!Utilities.deviceOnline(context) || working)
             return;
 
         adapter.setLoadingType(3);
@@ -277,6 +281,8 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+
+            activity.get().working = true;
             activity.get().adapter.setLoadingType(type);
             activity.get().adapter.setPageNumber(loadingPageNumber);
         }
@@ -318,10 +324,13 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                 urlStr += key1;
 
             InputStream is = null;
+            HttpURLConnection con = null;
             try {
                 URL url = new URL(urlStr);
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con = (HttpURLConnection) url.openConnection();
                 con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
+                con.setConnectTimeout(25000);
+                con.setReadTimeout(25000);
 
                 if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
                     is = con.getInputStream();
@@ -360,15 +369,18 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                         publishProgress(bean);
                     }
                 }
-
-                con.disconnect();
-
+            } catch (SocketTimeoutException e) {
+                if (con != null)
+                    con.disconnect();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
                 try {
                     if (is != null)
                         is.close();
+
+                    if (con != null)
+                        con.disconnect();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -394,8 +406,8 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                 URL url = new URL(urlStr);
                 con = (HttpURLConnection) url.openConnection();
                 con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
-                con.setConnectTimeout(15000);
-                con.setReadTimeout(15000);
+                con.setConnectTimeout(25000);
+                con.setReadTimeout(25000);
 
                 if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
                     is = con.getInputStream();
@@ -435,17 +447,19 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                         publishProgress(bean);
                     }
                 }
-
-                con.disconnect();
-
             } catch (SocketTimeoutException e) {
-                con.disconnect();
+                if (con != null)
+                    con.disconnect();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
                 try {
+                    // clean resources
                     if (is != null)
                         is.close();
+
+                    if (con != null)
+                        con.disconnect();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -474,6 +488,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                 Toast.makeText(context, "Sorry, no image with " + result + " was found!", Toast.LENGTH_LONG).show();
             }
 
+            activity.get().working = false;
             activity = null;
         }
     }

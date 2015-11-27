@@ -34,6 +34,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.Charset;
 
@@ -46,6 +47,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
     private static String keyWord1;
     private static String keyWord2;
     private static Context context;
+    private static boolean working = false;
     private static Handler handler;
     private ProgressBar progressBar;
     private ProgressBar progressBar_bottom;
@@ -171,7 +173,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
      * Method to get the recent videos
      */
     public void getRecentVideos() {
-        if (!Utilities.deviceOnline(context))
+        if (!Utilities.deviceOnline(context) || working)
             return;
 
         showProgressBar();
@@ -188,6 +190,9 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
      * It searches the videos by one or two keys
      */
     public void searchVideosByKey(String key1, String key2) {
+        if (working)
+            return;
+
         keyWord1 = key1;
         keyWord2 = key2;
 
@@ -209,7 +214,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
      * Start the filter search. The bundle contains alla the users input.
      */
     public void startFilterSearch(Bundle bundle) {
-        if (!Utilities.deviceOnline(context))
+        if (!Utilities.deviceOnline(context) || working)
             return;
 
         showProgressBar();
@@ -274,6 +279,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
      */
     @Override
     public void onLoadFinished(Loader<Void> arg0, Void arg1) {
+        working = false;
         getActivity().getLoaderManager().destroyLoader(arg0.getId());
     }
 
@@ -351,6 +357,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
         @Override
         public Void loadInBackground() {
+            activity.get().working = true;
             activity.get().videoAdapter.setLoadingType(type);
             activity.get().videoAdapter.setPageNumber(loadingPageNumber);
 
@@ -398,13 +405,16 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         private void filterVideos() {
             String urlStr = parseUrlFilterSearch();
 
-            InputStream is = null;
-
             Log.i("url", urlStr);
+
+            InputStream is = null;
+            HttpURLConnection con = null;
             try {
                 URL url = new URL(urlStr);
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con = (HttpURLConnection) url.openConnection();
                 con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
+                con.setConnectTimeout(25000);
+                con.setReadTimeout(25000);
 
                 if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
                     is = con.getInputStream();
@@ -488,15 +498,18 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                         });
                     }
                 }
-
-                con.disconnect();
-
+            } catch (SocketTimeoutException e) {
+                if (con != null)
+                    con.disconnect();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
                 try {
                     if (is != null)
                         is.close();
+
+                    if (con != null)
+                        con.disconnect();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -523,10 +536,13 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
             Log.i("url", urlStr);
 
             InputStream is = null;
+            HttpURLConnection con = null;
             try {
                 URL url = new URL(urlStr);
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con = (HttpURLConnection) url.openConnection();
                 con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
+                con.setConnectTimeout(25000);
+                con.setReadTimeout(25000);
 
                 if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
                     is = con.getInputStream();
@@ -615,15 +631,18 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
                     }
                 }
-
-                con.disconnect();
-
+            } catch (SocketTimeoutException e) {
+                if (con != null)
+                    con.disconnect();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
                 try {
                     if (is != null)
                         is.close();
+
+                    if (con != null)
+                        con.disconnect();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -644,10 +663,13 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
             Log.i("url", urlStr);
 
             InputStream is = null;
+            HttpURLConnection con = null;
             try {
                 URL url = new URL(urlStr);
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con = (HttpURLConnection) url.openConnection();
                 con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
+                con.setConnectTimeout(25000);
+                con.setReadTimeout(25000);
 
                 if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
                     is = con.getInputStream();
@@ -727,15 +749,18 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
                     }
                 }
-
-                con.disconnect();
-
+            } catch (SocketTimeoutException e) {
+                if (con != null)
+                    con.disconnect();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
                 try {
                     if (is != null)
                         is.close();
+
+                    if (con != null)
+                        con.disconnect();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

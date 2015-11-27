@@ -67,9 +67,8 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
         fabFavorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites_music);
         fabFavorites.setOnClickListener(this);
 
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Loading...");
-        progressDialog.show();
+        constructProgressDialog();
+        showProgressDialog("Loading...");
 
         // buttons play and stop
         pause = (Button) findViewById(R.id.button_mediaPlayer_pause);
@@ -197,6 +196,16 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
     }
 
+    private void constructProgressDialog() {
+        progressDialog = new ProgressDialog(MusicPlayerActivity.this);
+        progressDialog.setIndeterminate(true);
+        progressDialog.setCancelable(false);
+    }
+
+    private void showProgressDialog(String message) {
+        progressDialog.setMessage(message);
+        progressDialog.show();
+    }
 
     private int getIntentType() {
         return getIntent().getBundleExtra("bean").getInt("type");
@@ -260,6 +269,8 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
                 musicToDB = false;
                 fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
 
+                showProgressDialog("Removing music from favorites...");
+
                 // thread to remove the music from db
                 new ExecuteExecutor(this, new ExecuteExecutor.CallableAsyncTask(this) {
 
@@ -276,6 +287,8 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
                         // delete music from storage
                         Utilities.deleteSpecificMediaFromInternalStorage(Utilities.MUSIC_DIR, context, path);
 
+                        context.progressDialog.dismiss();
+
                         return "Music removed from favorites";
                     }
                 });
@@ -285,6 +298,8 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
             } else {
                 musicToDB = true;
                 fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+
+                showProgressDialog("Adding music to favorites...");
 
                 // thread to save the music
                 new ExecuteExecutor(this, new ExecuteExecutor.CallableAsyncTask(this) {
@@ -328,6 +343,8 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
                                 }
                             }
                         }
+
+                        context.progressDialog.dismiss();
 
                         return "Music added to favorites";
                     }

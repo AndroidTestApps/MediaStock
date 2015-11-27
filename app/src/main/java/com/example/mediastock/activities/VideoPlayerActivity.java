@@ -12,6 +12,7 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
+import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -32,6 +33,7 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
@@ -43,6 +45,7 @@ import java.util.concurrent.TimeUnit;
 public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callback, OnSeekBarChangeListener, View.OnClickListener {
     private static Handler myHandler = new Handler();
     public int oneTimeOnly = 0;
+    private ProgressDialog progressDialog;
     private double startTime = 0;
     private double finalTime = 0;
     private WeakReference<SurfaceHolder> surfaceHolder;
@@ -51,7 +54,6 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
     private Button play, pause;
     private SeekBar seekbar;
     private TextView tx1, tx2;
-    private ProgressDialog progressDialog;
     private boolean isPaused = false;
     private FloatingActionButton fabFavorites;
     private boolean videoToDB = false;
@@ -71,9 +73,9 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
         fabFavorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
         fabFavorites.setOnClickListener(this);
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Loading...");
-        progressDialog.show();
+
+        constructProgressDialog();
+        showProgressDialog("Loading...", 1);
 
         play = (Button) this.findViewById(R.id.button_playvideoplayer);
         pause = (Button) this.findViewById(R.id.button_pausevideoplayer);
@@ -280,6 +282,21 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         play.setEnabled(false);
     }
 
+    private void constructProgressDialog() {
+        progressDialog = new ProgressDialog(VideoPlayerActivity.this);
+        progressDialog.setIndeterminate(true);
+        progressDialog.setCancelable(false);
+    }
+
+    private void showProgressDialog(String message, int where) {
+        if (where == 1)
+            progressDialog.getWindow().setGravity(Gravity.CENTER);
+        else
+            progressDialog.getWindow().setGravity(Gravity.BOTTOM);
+
+        progressDialog.setMessage(message);
+        progressDialog.show();
+    }
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -326,6 +343,8 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                 videoToDB = false;
                 fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
 
+                showProgressDialog("Removing video to favorites...", 2);
+
                 // thread to remove the video from db
                 new ExecuteExecutor(this, new ExecuteExecutor.CallableAsyncTask(this) {
 
@@ -342,6 +361,8 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                         // delete video from storage
                         Utilities.deleteSpecificMediaFromInternalStorage(Utilities.VIDEO_DIR, activity, path);
 
+                        activity.progressDialog.dismiss();
+
                         return "Video removed from favorites";
                     }
                 });
@@ -350,6 +371,8 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
             } else {
                 videoToDB = true;
                 fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+
+                showProgressDialog("Adding video to favorites...", 2);
 
                 // thread to add the video to favorites
                 new ExecuteExecutor(this, new ExecuteExecutor.CallableAsyncTask(this) {
@@ -364,6 +387,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
                             URL urll = new URL(context.url);
                             con = (HttpURLConnection) urll.openConnection();
+                            con.setConnectTimeout(25000);
                             stream = con.getInputStream();
 
                             // save stream video to storage
@@ -372,6 +396,9 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                             // save video info to database
                             context.db.insertVideoInfo(path, context.videoID, context.bean.getDescription());
 
+                        } catch (SocketTimeoutException e) {
+                            if (con != null)
+                                con.disconnect();
                         } catch (MalformedURLException e) {
                             e.printStackTrace();
                         } catch (IOException e) {
@@ -379,8 +406,8 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
                         } finally {
 
-                            // and finally we close the objects
-                            if (con != null && stream != null) {
+                            // clean the objects
+                            if (stream != null) {
                                 con.disconnect();
 
                                 try {
@@ -390,8 +417,13 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
+
+                                if (con != null)
+                                    con.disconnect();
                             }
                         }
+
+                        context.progressDialog.dismiss();
 
                         return "Video added to favorites";
                     }
@@ -425,5 +457,4 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
             }
         }
     }
-
 }

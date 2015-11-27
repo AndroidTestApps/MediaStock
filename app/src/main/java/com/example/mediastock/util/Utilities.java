@@ -98,6 +98,7 @@ public class Utilities {
             fos = new FileOutputStream(file);
             bitmap.compress(Bitmap.CompressFormat.PNG, 50, fos);
 
+            fos.flush();
             fos.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -129,7 +130,9 @@ public class Utilities {
             fos = new FileOutputStream(file);
             fos.write(Utilities.covertStreamToByte(inputStream));
 
+            fos.flush();
             fos.close();
+            inputStream.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -269,6 +272,8 @@ public class Utilities {
         while ((len = inputStream.read(buffer)) != -1) {
             byteBuffer.write(buffer, 0, len);
         }
+
+        inputStream.close();
 
         return byteBuffer.toByteArray();
     }

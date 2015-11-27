@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.Charset;
 
@@ -135,11 +136,14 @@ public class DownloadService extends IntentService {
      */
     private void getImages(String urlStr, ResultReceiver receiver) {
         InputStream is = null;
+        HttpURLConnection con = null;
 
         try {
             URL url = new URL(urlStr);
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con = (HttpURLConnection) url.openConnection();
             con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
+            con.setConnectTimeout(25000);
+            con.setReadTimeout(25000);
 
             if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
                 is = con.getInputStream();
@@ -180,15 +184,18 @@ public class DownloadService extends IntentService {
 
                 }
             }
-
-            con.disconnect();
-
+        } catch (SocketTimeoutException e) {
+            if (con != null)
+                con.disconnect();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
                 if (is != null)
                     is.close();
+
+                if (con != null)
+                    con.disconnect();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -204,11 +211,13 @@ public class DownloadService extends IntentService {
      */
     private void getMusic(String urlStr, ResultReceiver receiver) {
         InputStream is = null;
-
+        HttpURLConnection con = null;
         try {
             URL url = new URL(urlStr);
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con = (HttpURLConnection) url.openConnection();
             con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
+            con.setConnectTimeout(25000);
+            con.setReadTimeout(25000);
 
             if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
                 is = con.getInputStream();
@@ -246,15 +255,18 @@ public class DownloadService extends IntentService {
                     publishMusicResult(bean, 1, receiver);
                 }
             }
-
-            con.disconnect();
-
+        } catch (SocketTimeoutException e) {
+            if (con != null)
+                con.disconnect();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
                 if (is != null)
                     is.close();
+
+                if (con != null)
+                    con.disconnect();
             } catch (IOException e) {
                 e.printStackTrace();
             }

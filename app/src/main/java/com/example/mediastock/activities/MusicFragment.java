@@ -34,6 +34,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.Charset;
 
@@ -47,13 +48,13 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
     private static String keyWord1;
     private static String keyWord2;
     private static Context context;
+    private static boolean working = false;
     private DownloadResultReceiver resultReceiver;
     private ProgressBar progressBar;
     private ProgressBar progressbar_bottom;
     private RecyclerView recyclerView;
     private MusicVideoAdapter musicAdapter;
     private View view;
-    private boolean workingInProgress = false;
 
 
     /**
@@ -147,7 +148,6 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
      * Open MusicPlayerActivity activity
      */
     private void goToMusicPLayerActivity(int position) {
-
         if (!Utilities.deviceOnline(context)) {
             Toast.makeText(context.getApplicationContext(), "Not online", Toast.LENGTH_SHORT).show();
             return;
@@ -169,7 +169,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
      * Method to get the recent music
      */
     public void getRecentMusic() {
-        if (!Utilities.deviceOnline(context))
+        if (!Utilities.deviceOnline(context) || working)
             return;
 
         showProgressBar();
@@ -181,6 +181,9 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
      * It searches the music by one or two keys
      */
     public void searchMusicByKey(String key1, String key2) {
+        if (working)
+            return;
+
         keyWord1 = key1;
         keyWord2 = key2;
 
@@ -195,7 +198,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
      * We pass all the info to DownloadService service to start to download the images.
      */
     public void startFilterSearch(Bundle bundle) {
-        if (!Utilities.deviceOnline(context))
+        if (!Utilities.deviceOnline(context) || working)
             return;
 
         musicAdapter.setLoadingType(3);
@@ -292,7 +295,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         protected void onPreExecute() {
             super.onPreExecute();
 
-            activity.get().workingInProgress = true;
+            activity.get().working = true;
             activity.get().musicAdapter.setLoadingType(type);
             activity.get().musicAdapter.setPageNumber(loadingPageNumber);
         }
@@ -325,10 +328,13 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
             Log.i("url", urlStr);
 
             InputStream is = null;
+            HttpURLConnection con = null;
             try {
                 URL url = new URL(urlStr);
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con = (HttpURLConnection) url.openConnection();
                 con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
+                con.setConnectTimeout(25000);
+                con.setReadTimeout(25000);
 
                 if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
                     is = con.getInputStream();
@@ -367,15 +373,18 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                         publishProgress(bean);
                     }
                 }
-
-                con.disconnect();
-
+            } catch (SocketTimeoutException e) {
+                if (con != null)
+                    con.disconnect();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
                 try {
                     if (is != null)
                         is.close();
+
+                    if (con != null)
+                        con.disconnect();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -401,11 +410,13 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
             Log.i("url", urlStr);
 
             InputStream is = null;
-
+            HttpURLConnection con = null;
             try {
                 URL url = new URL(urlStr);
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con = (HttpURLConnection) url.openConnection();
                 con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
+                con.setConnectTimeout(25000);
+                con.setReadTimeout(25000);
 
                 if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
                     is = con.getInputStream();
@@ -442,15 +453,19 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                         publishProgress(bean);
                     }
                 }
-
-                con.disconnect();
-
+            } catch (SocketTimeoutException e) {
+                if (con != null)
+                    con.disconnect();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
                 try {
+                    // clean resources
                     if (is != null)
                         is.close();
+
+                    if (con != null)
+                        con.disconnect();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -482,6 +497,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                 Toast.makeText(activity.get().getActivity(), "Sorry, no music with " + result + " was found!", Toast.LENGTH_LONG).show();
             }
 
+            activity.get().working = false;
             activity = null;
         }
     }
