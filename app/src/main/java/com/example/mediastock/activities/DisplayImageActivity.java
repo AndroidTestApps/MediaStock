@@ -10,10 +10,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -71,6 +72,8 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        CollapsingToolbarLayout collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
+        collapsingToolbar.setTitle(" ");
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -159,11 +162,11 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     private void computeOnlineWork() {
 
         // layout for the similar images
-        LinearLayoutManager llm = new LinearLayoutManager(this);
-        llm.setOrientation(LinearLayoutManager.HORIZONTAL);
-        recyclerView.setLayoutManager(llm);
+        GridLayoutManager grid = new GridLayoutManager(this, 3);
+        recyclerView.setLayoutManager(grid);
+        recyclerView.setHasFixedSize(true);
         ViewGroup.LayoutParams params = recyclerView.getLayoutParams();
-        params.height = (width / 3) + 2;
+        params.height = ((width / 3) * 2) + 5;
         recyclerView.setLayoutParams(params);
         adapter = new ImageAdapter(this, 2);
         recyclerView.setAdapter(adapter);

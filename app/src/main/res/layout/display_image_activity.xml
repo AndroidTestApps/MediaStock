@@ -45,12 +45,13 @@
 
     <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="300dp"
+        android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginTop="30dp"
             >
 
             <RelativeLayout
@@ -63,7 +64,7 @@
                     android:id="@+id/textView_description_label"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="17dp"
                     android:paddingStart="10dp"
                     android:text="Description"
                     android:textColor="#d6000000"
@@ -118,14 +119,11 @@
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/image_home_ScrollView"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_alignParentStart="true"
                 android:layout_below="@+id/textViews"
-                android:layout_marginBottom="4dp"
-                android:layout_marginLeft="1dp"
-                android:layout_marginRight="1dp"
-                android:background="#000000">
-            </android.support.v7.widget.RecyclerView>
+                android:layout_marginBottom="8dp"
+                android:background="#000000"/>
 
         </RelativeLayout>
     </android.support.v4.widget.NestedScrollView>
