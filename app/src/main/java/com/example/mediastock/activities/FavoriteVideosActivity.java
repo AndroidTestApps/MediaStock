@@ -23,11 +23,11 @@ import java.lang.ref.WeakReference;
 
 public class FavoriteVideosActivity extends AppCompatActivity {
     //private FloatingActionButton fabFilter;
-    private RecyclerView recyclerView;
     private MusicVideoAdapter adapter;
     private DBController db;
     private Cursor cursor;
     private int videoID_temp = 0;
+    private int cursorTempCount = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,10 +46,11 @@ public class FavoriteVideosActivity extends AppCompatActivity {
             }
         });
 
+        // get video infos
         db = new DBController(this);
         cursor = db.getVideosInfo();
 
-        recyclerView = (RecyclerView) this.findViewById(R.id.list_music_video_fav);
+        RecyclerView recyclerView = (RecyclerView) this.findViewById(R.id.list_music_video_fav);
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager llm = new LinearLayoutManager(getApplicationContext());
         llm.setOrientation(LinearLayoutManager.VERTICAL);
@@ -70,7 +71,7 @@ public class FavoriteVideosActivity extends AppCompatActivity {
         if (cursor.getCount() == 0)
             Toast.makeText(getApplicationContext(), "There are no videos saved", Toast.LENGTH_SHORT).show();
         else
-            new AsyncDBWork(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            new AsyncDBWork(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR); //get video info from db
 
     }
 
@@ -94,6 +95,15 @@ public class FavoriteVideosActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+
+        // save cursor count and then close it
+        cursorTempCount = cursor.getCount();
+        cursor.close();
+    }
+
+    @Override
     public void onBackPressed() {
         moveTaskToBack(true);
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
@@ -103,16 +113,15 @@ public class FavoriteVideosActivity extends AppCompatActivity {
     protected void onRestart() {
         super.onRestart();
 
-        int cursorCountBefore = cursor.getCount();
-
+        // get the cursor
         cursor = db.getVideosInfo();
 
         // a video has been removed from favorites
-        if (cursorCountBefore > cursor.getCount())
+        if (cursorTempCount > cursor.getCount())
             adapter.deleteItemAt(videoID_temp);
 
         // a new video has been added to favorites
-        if (cursorCountBefore < cursor.getCount()) {
+        if (cursorTempCount < cursor.getCount()) {
             cursor.moveToLast();
 
             final VideoBean bean = new VideoBean();
@@ -152,7 +161,6 @@ public class FavoriteVideosActivity extends AppCompatActivity {
                 publishProgress(bean);
 
                 pos++;
-
             } while (context.cursor.moveToNext());
 
             return null;

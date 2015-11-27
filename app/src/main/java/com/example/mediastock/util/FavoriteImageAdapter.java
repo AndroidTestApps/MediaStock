@@ -53,6 +53,13 @@ public class FavoriteImageAdapter extends AbstractMediaAdapter {
             notifyDataSetChanged();
     }
 
+    public void deleteBitmaps() {
+        if (!bitmaps.isEmpty()) {
+            bitmaps.clear();
+            notifyDataSetChanged();
+        }
+    }
+
     public void deleteBitmapAt(int position) {
         bitmaps.remove(position);
 

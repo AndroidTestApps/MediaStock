@@ -23,11 +23,11 @@ import java.lang.ref.WeakReference;
 
 public class FavoriteMusicActivity extends AppCompatActivity {
     //private FloatingActionButton fabFilter;
-    private RecyclerView recyclerView;
     private MusicVideoAdapter adapter;
     private DBController db;
     private Cursor cursor;
     private int musicID_temp = 0;
+    private int cursorTempCount = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,10 +46,11 @@ public class FavoriteMusicActivity extends AppCompatActivity {
             }
         });
 
+        // get music infos
         db = new DBController(this);
         cursor = db.getMusicInfo();
 
-        recyclerView = (RecyclerView) this.findViewById(R.id.list_music_video_fav);
+        RecyclerView recyclerView = (RecyclerView) this.findViewById(R.id.list_music_video_fav);
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager llm = new LinearLayoutManager(getApplicationContext());
         llm.setOrientation(LinearLayoutManager.VERTICAL);
@@ -93,6 +94,15 @@ public class FavoriteMusicActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+
+        // save cursor count and then close it
+        cursorTempCount = cursor.getCount();
+        cursor.close();
+    }
+
+    @Override
     public void onBackPressed() {
         moveTaskToBack(true);
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
@@ -102,16 +112,15 @@ public class FavoriteMusicActivity extends AppCompatActivity {
     protected void onRestart() {
         super.onRestart();
 
-        int cursorCountBefore = cursor.getCount();
-
+        // get the cursor
         cursor = db.getMusicInfo();
 
         // a music has been removed from favorites
-        if (cursorCountBefore > cursor.getCount())
+        if (cursorTempCount > cursor.getCount())
             adapter.deleteItemAt(musicID_temp);
 
         // a new music has been added to favorites
-        if (cursorCountBefore < cursor.getCount()) {
+        if (cursorTempCount < cursor.getCount()) {
             cursor.moveToLast();
 
             final MusicBean bean = new MusicBean();
@@ -151,7 +160,6 @@ public class FavoriteMusicActivity extends AppCompatActivity {
                 publishProgress(bean);
 
                 pos++;
-
             } while (context.cursor.moveToNext());
 
             return null;
