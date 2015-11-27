@@ -29,15 +29,19 @@
             android:visibility="invisible"/>
     </android.support.design.widget.AppBarLayout>
 
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="?attr/actionBarSize">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/list_music_video_fav"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="?attr/actionBarSize"
-        android:background="#ffeeeeee">
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/list_music_video_fav"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#ffeeeeee">
 
-    </android.support.v7.widget.RecyclerView>
+        </android.support.v7.widget.RecyclerView>
+    </FrameLayout>
 
     <ProgressBar
         android:id="@+id/p_bar"
@@ -53,12 +57,8 @@
         android:id="@+id/fab_fav_img_search"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="false"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentStart="false"
-        android:layout_gravity="right|bottom"
-        android:layout_margin="20dp"
+        android:layout_gravity="right|bottom|end"
+        android:layout_margin="16dp"
         android:src="@drawable/abc_ic_menu_moreoverflow_mtrl_alpha"
         app:backgroundTint="#e2e70b0b"
         app:borderWidth="0dp"

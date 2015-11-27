@@ -15,11 +15,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -56,7 +55,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
     private int width;
     private boolean offlineWork = false;
     private boolean imageToDB = false;
-    private ScrollView sw;
     private ImageView imageView;
     private ImageAdapter adapter;
     private RecyclerView recyclerView;
@@ -70,6 +68,17 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         setContentView(R.layout.display_image_activity);
         width = getResources().getDisplayMetrics().widthPixels;
 
+        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
+
         // the database
         db = new DBController(this);
 
@@ -78,6 +87,10 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         StrictMode.setThreadPolicy(policy);
 
         // layouts init
+        imageView = (ImageView) findViewById(R.id.imageView_displayImage);
+        ViewGroup.LayoutParams param = imageView.getLayoutParams();
+        param.height = width;
+        imageView.setLayoutParams(param);
         TextView labelDescription = (TextView) this.findViewById(R.id.textView_description_label);
         labelDescription.setTypeface(null, Typeface.BOLD);
         TextView labelAuthor = (TextView) this.findViewById(R.id.TextView_contributor_label);
@@ -86,18 +99,10 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         labelSimilarImg.setTypeface(null, Typeface.BOLD);
         fabFavorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
         fabFavorites.setOnClickListener(this);
-        sw = ((ScrollView) findViewById(R.id.scrollViewDisplayImage));
-        imageView = (ImageView) this.findViewById(R.id.imageView_displayImage);
         description = (TextView) this.findViewById(R.id.textView_description_displayImage);
         similarImg = (TextView) this.findViewById(R.id.TextView_similar_displayImage);
         author = (TextView) this.findViewById(R.id.TextView_contributor_displayImage);
         recyclerView = (RecyclerView) this.findViewById(R.id.image_home_ScrollView);
-
-        // main image layout
-        RelativeLayout relativeLayout = (RelativeLayout) this.findViewById(R.id.Rel_layout);
-        ViewGroup.LayoutParams param = relativeLayout.getLayoutParams();
-        param.height = width;
-        relativeLayout.setLayoutParams(param);
 
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -324,7 +329,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
                 // remove the old similar images
                 case 3:
-                    context.sw.fullScroll(View.FOCUS_UP);
                     context.adapter.deleteItems();
                     break;
 

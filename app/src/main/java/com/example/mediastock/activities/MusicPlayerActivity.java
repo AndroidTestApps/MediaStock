@@ -14,6 +14,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
@@ -66,6 +67,14 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
 
         fabFavorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites_music);
         fabFavorites.setOnClickListener(this);
+        final ImageView goBack = (ImageView) this.findViewById(R.id.imageView_goBack);
+        goBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                onBackPressed();
+            }
+        });
 
         constructProgressDialog();
         showProgressDialog("Loading...");
