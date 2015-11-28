@@ -1,16 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             android:orientation="horizontal">
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/list_video_galery"
+        android:id="@+id/recyclerView_gallery"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#ffeeeeee">
 
     </android.support.v7.widget.RecyclerView>
+
+    <ImageView
+        android:id="@+id/buttonRefreshInternet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_black_action_refresh"/>
 
     <ProgressBar
         android:id="@+id/p_bar"
@@ -32,6 +39,5 @@
         android:layout_gravity="center_horizontal|bottom"
         android:layout_marginBottom="10dp"
         android:visibility="gone"/>
-
 
 </FrameLayout>

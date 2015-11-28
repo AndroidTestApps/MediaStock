@@ -49,6 +49,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
     private ProgressDialog progressDialog;
     private double startTime = 0;
     private double finalTime = 0;
+    private boolean finished = false;
     private WeakReference<SurfaceHolder> surfaceHolder;
     private MediaPlayer mediaPlayer;
     private SurfaceView surfaceView;
@@ -83,14 +84,15 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
         favorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
         favorites.setOnClickListener(this);
+        favorites.bringToFront();
 
         constructProgressDialog();
         showProgressDialog("Loading...", 1);
 
         play = (Button) this.findViewById(R.id.button_playvideoplayer);
         pause = (Button) this.findViewById(R.id.button_pausevideoplayer);
-        tx1 = (TextView) findViewById(R.id.textView2_video);
-        tx2 = (TextView) findViewById(R.id.textView3_video);
+        tx2 = (TextView) findViewById(R.id.textView2_video);
+        tx1 = (TextView) findViewById(R.id.textView3_video);
 
         // get bean infos
         bean = getBeanFromIntent();
@@ -115,6 +117,16 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
             public void onPrepared(MediaPlayer mp) {
                 progressDialog.dismiss();
                 playVideo(surfaceHolder.get());
+            }
+        });
+
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                play.setVisibility(View.VISIBLE);
+                pause.setVisibility(View.GONE);
+                finished = true;
             }
         });
 
@@ -268,14 +280,17 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         pause.setVisibility(View.VISIBLE);
         play.setVisibility(View.GONE);
 
-        if (mediaPlayer.isPlaying())
-            mediaPlayer.reset();
-
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mediaPlayer.setDisplay(holder);
 
         finalTime = mediaPlayer.getDuration();
-        startTime = mediaPlayer.getCurrentPosition();
+
+        if (finished) {
+            finished = false;
+            startTime = 0;
+        } else
+            startTime = mediaPlayer.getCurrentPosition();
+
         mediaPlayer.start();
 
         if (oneTimeOnly == 0) {

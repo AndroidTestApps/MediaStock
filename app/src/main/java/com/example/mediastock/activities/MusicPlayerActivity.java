@@ -43,6 +43,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
     public int oneTimeOnly = 0;
     private double startTime = 0;
     private double finalTime = 0;
+    private boolean finished = false;
     private Button pause, play;
     private MediaPlayer mediaPlayer;
     private SeekBar seekbar;
@@ -82,8 +83,8 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
         pause = (Button) findViewById(R.id.button_mediaPlayer_pause);
         play = (Button) findViewById(R.id.button_mediaPlayer_play);
 
-        tx1 = (TextView) findViewById(R.id.textView2_music);
-        tx2 = (TextView) findViewById(R.id.textView3_music);
+        tx2 = (TextView) findViewById(R.id.textView2_music);
+        tx1 = (TextView) findViewById(R.id.textView3_music);
         title = (TextView) findViewById(R.id.TextView_mediaPlayer_title);
 
         // seekbar
@@ -112,12 +113,20 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
             }
         });
 
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                play.setVisibility(View.VISIBLE);
+                pause.setVisibility(View.GONE);
+                finished = true;
+            }
+        });
+
         play.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                pause.setVisibility(View.VISIBLE);
-                play.setVisibility(View.GONE);
                 playMusic();
             }
         });
@@ -221,8 +230,16 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
     }
 
     private void playMusic() {
+        pause.setVisibility(View.VISIBLE);
+        play.setVisibility(View.GONE);
+
         finalTime = mediaPlayer.getDuration();
-        startTime = mediaPlayer.getCurrentPosition();
+
+        if (finished) {
+            finished = false;
+            startTime = 0;
+        } else
+            startTime = mediaPlayer.getCurrentPosition();
 
         mediaPlayer.start();
 

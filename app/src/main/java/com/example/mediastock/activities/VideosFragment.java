@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -49,6 +50,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
     private static Context context;
     private static boolean working = false;
     private static Handler handler;
+    private ImageView buttonRefresh;
     private ProgressBar progressBar;
     private ProgressBar progressBar_bottom;
     private RecyclerView recyclerView;
@@ -84,7 +86,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         super.onCreate(savedInstanceState);
         context = this.getActivity().getApplicationContext();
 
-        view = inflater.inflate(R.layout.video_fragment, container, false);
+        view = inflater.inflate(R.layout.music_video_fragment, container, false);
 
         return view;
     }
@@ -103,10 +105,27 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         final VideosFragment fragment = this;
 
         handler = new MyHandler(this);
+        buttonRefresh = (ImageView) view.findViewById(R.id.buttonRefreshInternet);
+
+        if (Utilities.deviceOnline(context))
+            buttonRefresh.setVisibility(View.GONE);
+
+        buttonRefresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (!Utilities.deviceOnline(context))
+                    Toast.makeText(context.getApplicationContext(), "There is no internet connection", Toast.LENGTH_SHORT).show();
+                else {
+                    buttonRefresh.setVisibility(View.GONE);
+                    getRecentVideos();
+                }
+            }
+        });
         progressBar = (ProgressBar) view.findViewById(R.id.p_bar);
         progressBar_bottom = (ProgressBar) view.findViewById(R.id.p_bar_bottom);
         progressBar_bottom.getIndeterminateDrawable().setColorFilter(Color.BLACK, PorterDuff.Mode.MULTIPLY);
-        recyclerView = (RecyclerView) view.findViewById(R.id.list_video_galery);
+        recyclerView = (RecyclerView) view.findViewById(R.id.recyclerView_gallery);
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager llm = new LinearLayoutManager(context);
         llm.setOrientation(LinearLayoutManager.VERTICAL);

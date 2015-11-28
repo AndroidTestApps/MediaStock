@@ -19,9 +19,11 @@
         android:id="@+id/video_linearLayoutVideo_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/fab_favorites"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
+        android:layout_alignTop="@+id/imageView_goBack"
+        android:layout_marginEnd="3dp"
+        android:layout_marginStart="2dp"
+        android:layout_marginTop="5dp"
+        android:layout_toEndOf="@+id/imageView_goBack"
         android:orientation="vertical">
 
         <TextView
@@ -33,7 +35,8 @@
             android:padding="2dp"
             android:text="text"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="#DE000000"/>
+            android:textColor="#DE000000"
+            />
     </LinearLayout>
 
     <RelativeLayout
@@ -42,49 +45,41 @@
         android:layout_height="match_parent"
         android:layout_above="@+id/relll"
         android:layout_below="@id/video_linearLayoutVideo_title"
-        android:layout_marginTop="2dp">
+        android:layout_marginTop="5dp">
 
-        <RelativeLayout
-            android:id="@+id/rel_surface"
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab_favorites"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="false"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_gravity="top"
+            android:layout_marginTop="-5dp"
+            android:src="@drawable/abc_btn_rating_star_on_mtrl_alpha"
+            app:backgroundTint="#838383"
+            app:borderWidth="0dp"
+            app:fabSize="mini"
+            />
+
+        <!-- surfaceview -->
+        <LinearLayout
+            android:id="@+id/video_linearLayout_surface"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_alignParentBottom="true"
-            android:layout_gravity="bottom"
+            android:background="#000000"
+            android:orientation="vertical"
             >
 
-            <!-- surfaceview -->
-            <LinearLayout
-                android:id="@+id/video_linearLayout_surface"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginBottom="10dp"
-                android:background="#000000"
-                android:orientation="vertical"
-                >
-
-                <SurfaceView
-                    android:id="@+id/surfaceview"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="1dp"/>
-            </LinearLayout>
-        </RelativeLayout>
+            <SurfaceView
+                android:id="@+id/surfaceview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="1dp"/>
+        </LinearLayout>
 
     </RelativeLayout>
 
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab_favorites"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignTop="@+id/imageView_goBack"
-        android:layout_marginRight="16dp"
-        android:src="@drawable/abc_btn_rating_star_on_mtrl_alpha"
-        app:backgroundTint="#838383"
-        app:borderWidth="0dp"
-        app:fabSize="mini"
-        />
 
     <!-- seekabar -->
     <LinearLayout
@@ -160,6 +155,5 @@
         </RelativeLayout>
 
     </LinearLayout>
-
 
 </RelativeLayout>

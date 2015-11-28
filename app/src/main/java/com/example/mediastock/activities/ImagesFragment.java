@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -48,11 +49,12 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
     private static Context context;
     private static boolean working = false;
     private DownloadResultReceiver resultReceiver;
-    private View view;
+    private ImageView buttonRefresh;
     private ProgressBar progressBar;
     private ProgressBar progressBar_bottom;
     private RecyclerView recyclerView;
     private ImageAdapter adapter;
+    private View view;
 
 
     /**
@@ -97,6 +99,24 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
      */
     private void compute() {
         final ImagesFragment fragment = this;
+
+        buttonRefresh = (ImageView) view.findViewById(R.id.buttonRefreshInternet);
+
+        if (Utilities.deviceOnline(context))
+            buttonRefresh.setVisibility(View.GONE);
+
+        buttonRefresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (!Utilities.deviceOnline(context))
+                    Toast.makeText(context.getApplicationContext(), "There is no internet connection", Toast.LENGTH_SHORT).show();
+                else {
+                    buttonRefresh.setVisibility(View.GONE);
+                    getRecentImages();
+                }
+            }
+        });
 
         progressBar = (ProgressBar) view.findViewById(R.id.p_img_bar);
         progressBar_bottom = (ProgressBar) view.findViewById(R.id.p_img_bar_bottom);
