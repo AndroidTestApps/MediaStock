@@ -1,157 +1,165 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#fdfdfd"
-            android:focusable="true"
-            android:focusableInTouchMode="true">
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#fdfdfd">
 
+    <ImageView
+        android:id="@+id/imageView_goBack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="10dp"
+        android:src="@drawable/ic_action_back"
+        />
+
+    <LinearLayout
+        android:id="@+id/video_linearLayoutVideo_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/fab_favorites"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textView_video_player_title"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:padding="2dp"
+            android:text="text"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="#DE000000"/>
+    </LinearLayout>
 
     <RelativeLayout
+        android:id="@+id/nestedView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        >
+        android:layout_above="@+id/relll"
+        android:layout_below="@id/video_linearLayoutVideo_title"
+        android:layout_marginTop="2dp">
 
-        <LinearLayout
-            android:id="@+id/video_linearLayoutVideo_title"
+        <RelativeLayout
+            android:id="@+id/rel_surface"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/textView_video_player_title"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignLeft="@+id/video_linearLayoutVideo_title"
-                android:layout_alignParentTop="true"
-                android:layout_marginTop="5dp"
-                android:ellipsize="end"
-                android:gravity="center"
-                android:padding="4dp"
-                android:text="text"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:textColor="#DE000000"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/video_linearLayout_surface"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:layout_marginTop="100dp"
-            android:background="#000000"
-            android:orientation="vertical"
+            android:layout_height="match_parent"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="bottom"
             >
 
-            <SurfaceView
-                android:id="@+id/surfaceview"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="1dp"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/relll"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignTop="@+id/seekBar_video"
-            android:layout_marginBottom="10dp"
-            android:layout_marginTop="35dp"
-            android:orientation="vertical"
-            android:padding="10dp">
-
-
+            <!-- surfaceview -->
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:orientation="horizontal"
+                android:id="@+id/video_linearLayout_surface"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="10dp"
+                android:background="#000000"
+                android:orientation="vertical"
                 >
 
-                <Button
-                    android:id="@+id/button_pausevideoplayer"
+                <SurfaceView
+                    android:id="@+id/surfaceview"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_alignParentTop="true"
-                    android:layout_marginRight="5dp"
-                    android:background="@drawable/gradient_button"
-                    android:text="@string/pause"
-                    android:textColor="#f4000000"/>
-
-                <Button
-                    android:id="@+id/button_playvideoplayer"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentTop="true"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginLeft="10dp"
-                    android:layout_toEndOf="@+id/button_pausevideoplayer"
-                    android:background="@drawable/gradient_button"
-                    android:text="@string/play"
-                    android:textColor="#f4000000"/>
-
-
+                    android:padding="1dp"/>
             </LinearLayout>
-        </LinearLayout>
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_favorites"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/imageView_goBack"
+        android:layout_marginRight="16dp"
+        android:src="@drawable/abc_btn_rating_star_on_mtrl_alpha"
+        app:backgroundTint="#838383"
+        app:borderWidth="0dp"
+        app:fabSize="mini"
+        />
+
+    <!-- seekabar -->
+    <LinearLayout
+        android:id="@+id/relll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        >
 
         <SeekBar
             android:id="@+id/seekBar_video"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignRight="@+id/video_linearLayout_surface"
-            android:layout_below="@+id/fab_favorites"
             />
 
-        <TextView
-            android:id="@+id/textView2_video"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/relll"
-            android:layout_alignParentStart="true"
-            android:layout_marginLeft="20dp"
-            android:text="0:0"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="#8A000000"/>
-
-        <TextView
-            android:id="@+id/textView3_video"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignBaseline="@+id/textView2_video"
-            android:layout_alignBottom="@+id/textView2_video"
-            android:layout_alignRight="@+id/seekBar_video"
-            android:layout_marginBottom="4dp"
-            android:layout_marginRight="20dp"
-            android:text="0:0"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="#8A000000"/>
-
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentEnd="true"
-            android:orientation="vertical"
+            android:layout_height="wrap_content"
             >
-        </LinearLayout>
 
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/fab_favorites"
-            android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/textView2_video"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:text="0:0"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="#8A000000"/>
+
+            <TextView
+                android:id="@+id/textView3_video"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="20dp"
+                android:text="0:0"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="#8A000000"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/video_linearLayout_surface"
-            android:layout_centerHorizontal="true"
-            android:clickable="true"
-            android:elevation="6dp"
-            android:src="@drawable/abc_btn_rating_star_on_mtrl_alpha"
-            app:backgroundTint="#838383"
-            app:borderWidth="0dp"
-            app:fabSize="mini"
-            />
+            android:layout_gravity="center"
+            android:layout_marginTop="-10dp">
 
-    </RelativeLayout>
+            <Button
+                android:id="@+id/button_pausevideoplayer"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/round_button_pause"
+                />
 
-</ScrollView>
+            <Button
+                android:id="@+id/button_playvideoplayer"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentTop="true"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="10dp"
+                android:layout_toEndOf="@+id/button_pausevideoplayer"
+                android:background="@drawable/round_button_play"
+                android:visibility="gone"
+                />
+        </RelativeLayout>
+
+    </LinearLayout>
+
+
+</RelativeLayout>

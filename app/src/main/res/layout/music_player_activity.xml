@@ -1,39 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#fdfdfd"
-            android:focusable="true"
-            android:focusableInTouchMode="true">
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#fdfdfd">
+
+    <ImageView
+        android:id="@+id/imageView_goBack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="10dp"
+        android:src="@drawable/ic_action_back"
+        />
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        >
-
-        <ImageView
-            android:id="@+id/imageView_goBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="15dp"
-            android:src="@drawable/ic_action_back"
-            />
-
-        <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="40dp"
-            android:src="@drawable/music"/>
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/layout_seekbar"
+        android:layout_below="@+id/fab_favorites_music"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="50dp">
 
         <LinearLayout
             android:id="@+id/linearLayout2"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/imageView"
-            android:layout_marginTop="20dp"
+            android:layout_centerHorizontal="true"
             android:gravity="center"
             android:orientation="horizontal">
 
@@ -41,8 +35,6 @@
                 android:id="@+id/TextView_mediaPlayer_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignEnd="@+id/imageView"
-                android:layout_alignRight="@+id/imageView"
                 android:layout_gravity="center"
                 android:gravity="center|top"
                 android:text="text"
@@ -50,93 +42,103 @@
                 android:textColor="#DE000000"/>
         </LinearLayout>
 
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_below="@id/linearLayout2"
+            android:layout_centerHorizontal="true"
+            android:layout_centerInParent="true"
+            android:layout_marginTop="50dp"
+            android:src="@drawable/music"/>
+    </RelativeLayout>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_favorites_music"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/imageView_goBack"
+        android:layout_marginRight="16dp"
+        android:src="@drawable/abc_btn_rating_star_on_mtrl_alpha"
+        app:backgroundTint="#838383"
+        app:borderWidth="0dp"
+        app:fabSize="mini"/>
+
+
+    <!-- seekabar -->
+    <LinearLayout
+        android:id="@+id/layout_seekbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        >
 
         <SeekBar
             android:id="@+id/seekBar_music"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/linearLayout2"
-            android:layout_marginTop="200dp"/>
-
-
-        <TextView
-            android:id="@+id/textView2_music"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/textView3_music"
             android:layout_alignParentLeft="true"
-            android:layout_marginLeft="20dp"
-            android:text="0:0"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="#8A000000"/>
+            />
 
-        <TextView
-            android:id="@+id/textView3_music"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/lin"
-            android:layout_alignParentEnd="true"
-            android:layout_marginBottom="4dp"
-            android:layout_marginRight="20dp"
-            android:text="0:0"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="#8A000000"/>
-
-        <LinearLayout
-            android:id="@+id/lin"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_alignTop="@+id/seekBar_music"
-            android:layout_below="@+id/linearLayout2"
-            android:layout_marginBottom="10dp"
-            android:layout_marginTop="45dp"
-            android:orientation="vertical">
+            >
 
-
-
-            <LinearLayout
+            <TextView
+                android:id="@+id/textView2_music"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:orientation="horizontal">
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:text="0:0"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="#8A000000"/>
 
+            <TextView
+                android:id="@+id/textView3_music"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="20dp"
+                android:text="0:0"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="#8A000000"/>
+        </RelativeLayout>
 
-                <Button
-                    android:id="@+id/button_mediaPlayer_pause"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="5dp"
-                    android:background="@drawable/gradient_button"
-                    android:text="@string/pause"
-                    android:textColor="#f4000000"/>
-
-                <Button
-                    android:id="@+id/button_mediaPlayer_play"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="right"
-                    android:layout_marginLeft="10dp"
-                    android:layout_toEndOf="@+id/textView2_music"
-                    android:background="@drawable/gradient_button"
-                    android:text="@string/play"
-                    android:textColor="#f4000000"/>
-            </LinearLayout>
-        </LinearLayout>
-
-
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/fab_favorites_music"
+        <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/textView2_music"
-            android:layout_centerHorizontal="true"
-            android:clickable="true"
-            android:elevation="6dp"
-            android:src="@drawable/abc_btn_rating_star_on_mtrl_alpha"
-            app:backgroundTint="#838383"
-            app:borderWidth="0dp"
-            app:fabSize="mini"/>
-    </RelativeLayout>
+            android:layout_gravity="center"
+            android:layout_marginTop="-10dp">
 
-</ScrollView>
+            <Button
+                android:id="@+id/button_mediaPlayer_pause"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/round_button_pause"
+                />
+
+            <Button
+                android:id="@+id/button_mediaPlayer_play"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentTop="true"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="10dp"
+                android:layout_toEndOf="@+id/button_mediaPlayer_pause"
+                android:background="@drawable/round_button_play"
+                android:visibility="gone"
+                />
+        </RelativeLayout>
+    </LinearLayout>
+
+</RelativeLayout>

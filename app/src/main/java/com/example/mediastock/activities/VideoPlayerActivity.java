@@ -17,6 +17,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
@@ -51,11 +52,11 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
     private WeakReference<SurfaceHolder> surfaceHolder;
     private MediaPlayer mediaPlayer;
     private SurfaceView surfaceView;
-    private Button play, pause;
+    private Button pause, play;
     private SeekBar seekbar;
     private TextView tx1, tx2;
     private boolean isPaused = false;
-    private FloatingActionButton fabFavorites;
+    private FloatingActionButton favorites;
     private boolean videoToDB = false;
     private boolean offlineWork = false;
     private String url;
@@ -71,8 +72,17 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         // the database
         db = new DBController(this);
 
-        fabFavorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
-        fabFavorites.setOnClickListener(this);
+        final ImageView goBack = (ImageView) this.findViewById(R.id.imageView_goBack);
+        goBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                onBackPressed();
+            }
+        });
+
+        favorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
+        favorites.setOnClickListener(this);
 
         constructProgressDialog();
         showProgressDialog("Loading...", 1);
@@ -112,8 +122,6 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
             @Override
             public void onClick(View v) {
-                pause.setTextColor(Color.BLACK);
-                play.setTextColor(Color.RED);
                 playVideo(surfaceHolder.get());
             }
         });
@@ -122,11 +130,9 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
             @Override
             public void onClick(View v) {
-                play.setTextColor(Color.BLACK);
-                pause.setTextColor(Color.RED);
+                play.setVisibility(View.VISIBLE);
+                pause.setVisibility(View.GONE);
                 mediaPlayer.pause();
-                pause.setEnabled(false);
-                play.setEnabled(true);
             }
         });
 
@@ -135,7 +141,6 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
             computeOfflineWork();
 
         } else {
-
 
             try {
 
@@ -189,7 +194,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
     private void checkExistingVideoInDB(int videoID) {
         if (db.checkExistingVideo(videoID)) {
             videoToDB = true;
-            fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+            favorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
         }
     }
 
@@ -221,12 +226,26 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
 
     @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
+            isPaused = true;
+            play.setVisibility(View.VISIBLE);
+            pause.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
 
         if (mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
             isPaused = true;
+            play.setVisibility(View.VISIBLE);
+            pause.setVisibility(View.GONE);
         }
     }
 
@@ -246,11 +265,11 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
 
     private void playVideo(SurfaceHolder holder) {
-        play.setTextColor(Color.RED);
+        pause.setVisibility(View.VISIBLE);
+        play.setVisibility(View.GONE);
 
-        if (mediaPlayer.isPlaying()) {
+        if (mediaPlayer.isPlaying())
             mediaPlayer.reset();
-        }
 
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mediaPlayer.setDisplay(holder);
@@ -278,8 +297,6 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
         seekbar.setProgress((int) startTime);
         myHandler.postDelayed(new UpdateTime(this), 100);
-        pause.setEnabled(true);
-        play.setEnabled(false);
     }
 
     private void constructProgressDialog() {
@@ -341,7 +358,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
             // if the video is already saved in the db, it means we want to remove the video
             if (videoToDB) {
                 videoToDB = false;
-                fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
+                favorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
 
                 showProgressDialog("Removing video to favorites...", 2);
 
@@ -370,7 +387,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                 // we have to add the video to favorites
             } else {
                 videoToDB = true;
-                fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+                favorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
                 showProgressDialog("Adding video to favorites...", 2);
 
@@ -444,15 +461,16 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         }
 
         public void run() {
+            VideoPlayerActivity context = activity.get();
 
-            if (activity.get().mediaPlayer != null && activity.get().mediaPlayer.isPlaying()) {
-                activity.get().startTime = activity.get().mediaPlayer.getCurrentPosition();
-                activity.get().tx1.setText(String.format("%d:%d",
-                        TimeUnit.MILLISECONDS.toMinutes((long) activity.get().startTime),
-                        TimeUnit.MILLISECONDS.toSeconds((long) activity.get().startTime) -
-                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) activity.get().startTime))));
+            if (context.mediaPlayer != null && context.mediaPlayer.isPlaying()) {
+                context.startTime = context.mediaPlayer.getCurrentPosition();
+                context.tx1.setText(String.format("%d:%d",
+                        TimeUnit.MILLISECONDS.toMinutes((long) context.startTime),
+                        TimeUnit.MILLISECONDS.toSeconds((long) context.startTime) -
+                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) context.startTime))));
 
-                activity.get().seekbar.setProgress((int) activity.get().startTime);
+                context.seekbar.setProgress((int) context.startTime);
                 myHandler.postDelayed(this, 100);
             }
         }

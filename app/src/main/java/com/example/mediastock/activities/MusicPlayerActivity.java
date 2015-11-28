@@ -11,7 +11,6 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -49,7 +48,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
     private SeekBar seekbar;
     private TextView tx1, tx2, title;
     private ProgressDialog progressDialog;
-    private FloatingActionButton fabFavorites;
+    private FloatingActionButton favorites;
     private DBController db;
     private MusicBean bean;
     private String url;
@@ -65,8 +64,8 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
         // the database
         db = new DBController(this);
 
-        fabFavorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites_music);
-        fabFavorites.setOnClickListener(this);
+        favorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites_music);
+        favorites.setOnClickListener(this);
         final ImageView goBack = (ImageView) this.findViewById(R.id.imageView_goBack);
         goBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -117,8 +116,8 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
 
             @Override
             public void onClick(View v) {
-                pause.setTextColor(Color.BLACK);
-                play.setTextColor(Color.RED);
+                pause.setVisibility(View.VISIBLE);
+                play.setVisibility(View.GONE);
                 playMusic();
             }
         });
@@ -127,11 +126,9 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
 
             @Override
             public void onClick(View v) {
-                play.setTextColor(Color.BLACK);
-                pause.setTextColor(Color.RED);
+                play.setVisibility(View.VISIBLE);
+                pause.setVisibility(View.GONE);
                 mediaPlayer.pause();
-                pause.setEnabled(false);
-                play.setEnabled(true);
             }
         });
 
@@ -184,7 +181,6 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
     protected void onDestroy() {
         super.onDestroy();
 
-        Log.i("music", "destroy");
         if (mediaPlayer != null) {
             mediaPlayer.stop();
             mediaPlayer.release();
@@ -225,7 +221,6 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
     }
 
     private void playMusic() {
-        play.setTextColor(Color.RED);
         finalTime = mediaPlayer.getDuration();
         startTime = mediaPlayer.getCurrentPosition();
 
@@ -250,8 +245,6 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
 
         seekbar.setProgress((int) startTime);
         myHandler.postDelayed(new UpdateSongTime(this), 100);
-        pause.setEnabled(true);
-        play.setEnabled(false);
     }
 
     /**
@@ -263,7 +256,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
     private void checkExistingMusicInDB(int music_id) {
         if (db.checkExistingMusic(music_id)) {
             musicToDB = true;
-            fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+            favorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
         }
     }
 
@@ -276,7 +269,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
             // if the music is already saved in the db, it means we want to remove the music
             if (musicToDB) {
                 musicToDB = false;
-                fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
+                favorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
 
                 showProgressDialog("Removing music from favorites...");
 
@@ -306,7 +299,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
                 // we have to add the music to favorites
             } else {
                 musicToDB = true;
-                fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+                favorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
                 showProgressDialog("Adding music to favorites...");
 
@@ -391,15 +384,16 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
         }
 
         public void run() {
+            MusicPlayerActivity context = activity.get();
 
-            if (activity.get().mediaPlayer != null && activity.get().mediaPlayer.isPlaying()) {
-                activity.get().startTime = activity.get().mediaPlayer.getCurrentPosition();
-                activity.get().tx1.setText(String.format("%d:%d",
-                        TimeUnit.MILLISECONDS.toMinutes((long) activity.get().startTime),
-                        TimeUnit.MILLISECONDS.toSeconds((long) activity.get().startTime) -
-                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) activity.get().startTime))));
+            if (context.mediaPlayer != null && context.mediaPlayer.isPlaying()) {
+                context.startTime = context.mediaPlayer.getCurrentPosition();
+                context.tx1.setText(String.format("%d:%d",
+                        TimeUnit.MILLISECONDS.toMinutes((long) context.startTime),
+                        TimeUnit.MILLISECONDS.toSeconds((long) context.startTime) -
+                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) context.startTime))));
 
-                activity.get().seekbar.setProgress((int) activity.get().startTime);
+                context.seekbar.setProgress((int) context.startTime);
                 myHandler.postDelayed(this, 100);
             }
         }
