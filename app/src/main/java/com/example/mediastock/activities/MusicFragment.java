@@ -46,6 +46,7 @@ import java.nio.charset.Charset;
  */
 public class MusicFragment extends AbstractFragment implements DownloadResultReceiver.Receiver {
     public static final String MUSIC_RECEIVER = "mreceiver";
+    // the keywords to search for
     private static String keyWord1;
     private static String keyWord2;
     private static Context context;
@@ -143,7 +144,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
             }
         });
 
-        // endless list. load more data when reaching the bottom of the view
+        // endless list which loads more data when reaching the bottom of the view
         musicAdapter.setOnBottomListener(new MusicVideoAdapter.OnBottomListener() {
 
             @Override
@@ -185,7 +186,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
 
 
     /**
-     * Method to get the recent music
+     * Method to get the recent music asynchronously
      */
     public void getRecentMusic() {
         if (!Utilities.deviceOnline(context) || working)
@@ -197,7 +198,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
     }
 
     /**
-     * It searches the music by one or two keys
+     * It searches asynchronously the music by one or two keys
      */
     public void searchMusicByKey(String key1, String key2) {
         if (working)
@@ -213,7 +214,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
 
 
     /**
-     * Start the filter search. The bundle contains alla the users input.
+     * Start the filter search asynchronously. The bundle contains alla the users input.
      * We pass all the info to DownloadService service to start to download the images.
      */
     public void startFilterSearch(Bundle bundle) {
@@ -294,7 +295,8 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
     }
 
     /**
-     * Static inner class to search for music and to get the recent music from the server.
+     * Static inner class to do asynchronous operations.
+     * This class is used to search for music and to get the recent music from the server.
      *
      * @author Dinu
      */

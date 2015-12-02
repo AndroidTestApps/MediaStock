@@ -5,8 +5,8 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
+import android.support.v7.graphics.Palette;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -23,6 +23,8 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 
 import static org.apache.commons.codec.binary.Base64.encodeBase64;
@@ -96,7 +98,7 @@ public class Utilities {
         try {
 
             fos = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 50, fos);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
 
             fos.flush();
             fos.close();
@@ -170,10 +172,9 @@ public class Utilities {
      *
      * @param context the context
      * @param path    the path of the image
-     * @param width   the width that the image should have
-     * @return a new scaled bitmap
+     * @return the file containing the blob image
      */
-    public static Bitmap loadImageFromInternalStorage(Context context, String path, int width) {
+    public static File loadImageFromInternalStorage(Context context, String path) {
         ContextWrapper cw = new ContextWrapper(context.getApplicationContext());
         File imageDir = cw.getDir("imageDir", Context.MODE_PRIVATE);
 
@@ -184,18 +185,7 @@ public class Utilities {
             if (fileNames[i].getName().equals(path))
                 target = fileNames[i];
 
-        Log.i("path", target.getName());
-
-        Bitmap bitmap = null;
-        try {
-
-            bitmap = BitmapFactory.decodeStream(new FileInputStream(target));
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        return Bitmap.createScaledBitmap(bitmap, width, width, false);
+        return target;
     }
 
     /**
@@ -252,6 +242,18 @@ public class Utilities {
         }
     }
 
+    /**
+     * Find most represented swatch of the palette, based on population.
+     */
+    public static Palette.Swatch getDominantSwatch(Palette palette) {
+
+        return Collections.max(palette.getSwatches(), new Comparator<Palette.Swatch>() {
+            @Override
+            public int compare(Palette.Swatch sw1, Palette.Swatch sw2) {
+                return Integer.compare(sw1.getPopulation(), sw2.getPopulation());
+            }
+        });
+    }
 
 
     /**

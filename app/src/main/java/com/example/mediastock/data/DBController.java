@@ -69,6 +69,7 @@ public class DBController {
         return cursor;
     }
 
+
     /**
      * Query to get the music info from db.
      *
@@ -143,7 +144,7 @@ public class DBController {
      *
      * @param imageID the id of the image
      */
-    public long insertColorPalette(int imageID, int vibrant, int lightVibrant, int darkVibrant, int muted, int lightMuted, int darkMuted) {
+    public long insertColorPalette(int imageID, int vibrant, int lightVibrant, int darkVibrant, int muted, int lightMuted, int darkMuted, int dominantColor) {
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(DBHelper.IMG_ID, imageID);
@@ -153,6 +154,7 @@ public class DBController {
         contentValues.put(DBHelper.MUTED, muted);
         contentValues.put(DBHelper.LIGHT_MUTED, lightMuted);
         contentValues.put(DBHelper.DARK_MUTED, darkMuted);
+        contentValues.put(DBHelper.DOMINANT_COLOR, dominantColor);
 
         return db.insert(DBHelper.TABLE_COLORS, null, contentValues);
     }
@@ -238,6 +240,23 @@ public class DBController {
     }
 
     /**
+     * Method to get the dominant color of the image with id imageID
+     *
+     * @param imageID the id of the image
+     * @return the dominant color
+     */
+    public int getDominantColorOfImage(int imageID) {
+        Cursor cursor = db.rawQuery("select " + DBHelper.DOMINANT_COLOR + " from " + DBHelper.TABLE_COLORS +
+                " where " + DBHelper.IMG_ID + " = ? ", new String[]{String.valueOf(imageID)});
+
+        cursor.moveToFirst();
+        int color = cursor.getInt(cursor.getColumnIndex(DBHelper.DOMINANT_COLOR));
+        cursor.close();
+
+        return color;
+    }
+
+    /**
      * Method to get the path of the video with id videoID
      *
      * @param videoID the id of the video
@@ -319,6 +338,15 @@ public class DBController {
         db.execSQL("DROP TABLE IF EXISTS " + DBHelper.TABLE_MUSIC);
         db.execSQL("DROP TABLE IF EXISTS " + DBHelper.TABLE_VIDEOS);
         db.execSQL("DROP TABLE IF EXISTS " + DBHelper.TABLE_COLORS);
+    }
+
+    public void deleteTableColorAndImage() {
+        db.execSQL("DROP TABLE IF EXISTS " + DBHelper.TABLE_IMAGES);
+        db.execSQL("DROP TABLE IF EXISTS " + DBHelper.TABLE_COLORS);
+    }
+
+    public void createTableColorAndImage() {
+        dbHelper.createTables(db);
     }
 
     public void createTables() {

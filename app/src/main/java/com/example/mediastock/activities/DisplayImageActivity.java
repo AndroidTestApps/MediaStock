@@ -1,5 +1,6 @@
 package com.example.mediastock.activities;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
@@ -23,6 +24,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 import com.example.mediastock.R;
 import com.example.mediastock.data.DBController;
 import com.example.mediastock.data.ImageBean;
@@ -32,7 +37,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.squareup.picasso.Picasso;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -52,6 +56,7 @@ import java.util.Iterator;
  */
 public class DisplayImageActivity extends AppCompatActivity implements View.OnClickListener {
     private static Handler handler;
+    private ProgressDialog progressDialog;
     private int imageId;
     private int width;
     private boolean offlineWork = false;
@@ -82,6 +87,8 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             }
         });
 
+        constructProgressDialog();
+
         // the database
         db = new DBController(this);
 
@@ -93,6 +100,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         imageView = (ImageView) findViewById(R.id.imageView_displayImage);
         ViewGroup.LayoutParams param = imageView.getLayoutParams();
         param.height = width;
+        param.width = width;
         imageView.setLayoutParams(param);
         TextView labelDescription = (TextView) this.findViewById(R.id.textView_description_label);
         labelDescription.setTypeface(null, Typeface.BOLD);
@@ -121,7 +129,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                     // online work
                 } else {
                     bundle.putInt("type", 1);
-                    intent.putExtra("image", (String) imageView.getTag());
+                    intent.putExtra("image", (String) description.getTag());
                 }
 
                 intent.putExtra("bean", bundle);
@@ -150,7 +158,9 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         imageToDB = true;
         fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
-        imageView.setImageBitmap(Utilities.loadImageFromInternalStorage(this, bean.getPath(), width));
+        Glide.with(this).load(Utilities.loadImageFromInternalStorage(this, bean.getPath())).diskCacheStrategy(DiskCacheStrategy.RESULT).fitCenter().centerCrop().crossFade()
+                .placeholder(R.drawable.border).error(R.drawable.border).into(imageView);
+
         description.setText(bean.getDescription());
         author.setText(bean.getAuthor());
     }
@@ -166,7 +176,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         recyclerView.setLayoutManager(grid);
         recyclerView.setHasFixedSize(true);
         ViewGroup.LayoutParams params = recyclerView.getLayoutParams();
-        params.height = ((width / 3) * 2) + 5;
+        params.height = ((width / 3) * 2) + 2;
         recyclerView.setLayoutParams(params);
         adapter = new ImageAdapter(this, 2);
         recyclerView.setAdapter(adapter);
@@ -188,7 +198,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
 
     /**
-     * Method which updates the UI with the main image, authors name and the similar images.
+     * Method to update the UI with the main image, authors name and the similar images.
      *
      * @param bean the image bean
      */
@@ -198,18 +208,18 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         getMainImage(bean);
 
         // get the authors name
-        AsyncWork thread_author = new AsyncWork(1);
+        AsyncWork thread_author = new AsyncWork(1, this);
         thread_author.setAuthorID(bean.getIdContributor());
         thread_author.start();
 
         // get the similar images to the current image
-        AsyncWork thread_similarImages = new AsyncWork(2);
+        AsyncWork thread_similarImages = new AsyncWork(2, this);
         thread_similarImages.setImageID(bean.getId());
         thread_similarImages.start();
     }
 
     /**
-     * Favorites action button
+     * Handle the favorites action button
      *
      * @param v the button
      */
@@ -231,11 +241,17 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                 imageToDB = true;
                 fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
+                showProgressDialog("Adding image to favorites...");
+
                 // thread used to get the favorite image and then save it
-                AsyncWork thread_favoriteImage = new AsyncWork(3);
-                thread_favoriteImage.setUrl((String) imageView.getTag());
-                AsyncWork.setContext(this);
-                thread_favoriteImage.start();
+                Glide.with(this).load((String) description.getTag()).asBitmap().into(new SimpleTarget<Bitmap>() {
+
+                    @Override
+                    public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+
+                        addImageToFavorites(resource);
+                    }
+                });
             }
         }
     }
@@ -245,7 +261,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         super.onDestroy();
         imageView = null;
     }
-
 
     @Override
     public void onBackPressed() {
@@ -292,15 +307,33 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         // if the image is already in the database we change the color of the fab
         checkExistingImageInDB(imageId);
 
+        // get main image
         if (bean.getUrl() != null) {
-
-            // get main image
-            Picasso.with(getApplicationContext()).load(bean.getUrl()).resize(width, width).placeholder(R.drawable.border).centerCrop().into(imageView);
-            imageView.setTag(bean.getUrl());
+            Glide.with(this).load(bean.getUrl()).diskCacheStrategy(DiskCacheStrategy.RESULT).placeholder(R.drawable.border).crossFade().fitCenter().centerCrop().error(R.drawable.border).into(imageView);
+            description.setTag(bean.getUrl());
         }
 
         // set description of the image
         description.setText(bean.getDescription());
+    }
+
+    /**
+     * Method that start a thread to add the image to favorites
+     *
+     * @param resource the image
+     */
+    private void addImageToFavorites(Bitmap resource) {
+        new AsyncDbWork(this, 2, resource, imageId, description.getText().toString(), author.getText().toString()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    private void constructProgressDialog() {
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setCancelable(false);
+    }
+
+    private void showProgressDialog(String message) {
+        progressDialog.setMessage(message);
+        progressDialog.show();
     }
 
 
@@ -320,11 +353,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
             switch (msg.what) {
 
-                // update the UI with the authors name
-                case 1:
-                    context.author.setText(msg.getData().getString("name"));
-                    break;
-
                 // update the UI with the similar images
                 case 2:
                     context.adapter.addItem((ImageBean) msg.getData().getParcelable("bean"));
@@ -335,12 +363,6 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                     context.adapter.deleteItems();
                     break;
 
-                // save favorite image to storage
-                case 4:
-                    new AsyncDbWork(context, 2, msg, context.imageId, context.description.getText().toString(), context.author.getText().toString()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
-                    break;
-
                 default:
                     break;
             }
@@ -349,7 +371,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
 
     /**
-     * Static inner class to download the authors name, the favorite image and the similar images in the background.
+     * Static inner class to download the authors name and the similar images in the background.
      *
      * @author Dinu
      */
@@ -358,20 +380,17 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         private final int type;
         private int authorID;
         private int imageID;
-        private String url;
 
         /**
          * The constructor.
          *
-         * @param type 1-get authors name, 2-get similar images 3-get favorite image
+         * @param type 1-get authors name; 2-get similar images;
          */
-        public AsyncWork(int type) {
+        public AsyncWork(int type, DisplayImageActivity context) {
+            activity = new WeakReference<>(context);
             this.type = type;
         }
 
-        public static void setContext(DisplayImageActivity context) {
-            activity = new WeakReference<>(context);
-        }
 
         @Override
         public void run() {
@@ -387,42 +406,13 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                     getSimilarImages(imageID);
                     break;
 
-                case 3:
-                    getFavoriteImage(url);
-
                 default:
                     break;
             }
-
-        }
-
-        private void getFavoriteImage(String url) {
-            final Bundle bundle = new Bundle();
-            final Message msg = new Message();
-
-            try {
-
-                bundle.putParcelable("img", Picasso.with(activity.get()).load(url).resize(activity.get().width, activity.get().width).get());
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            msg.setData(bundle);
-            msg.what = 4;
-
-            // alert the handler to save the image to storage
-            handler.post(new Runnable() {
-
-                @Override
-                public void run() {
-
-                    handler.dispatchMessage(msg);
-                }
-            });
         }
 
         private void getAuthor(int id) {
+            final DisplayImageActivity context = activity.get();
             String urlStr = "https://@api.shutterstock.com/v2/contributors/";
             urlStr += id;
 
@@ -457,19 +447,14 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                 }
             }
 
-            final Message msg = new Message();
-            final Bundle bundle = new Bundle();
-            bundle.putString("name", author);
-            msg.setData(bundle);
-            msg.what = 1;
+            final String result = author;
 
-            // update the UI with the author
-            handler.post(new Runnable() {
+            // display authors name
+            context.author.post(new Runnable() {
 
                 @Override
                 public void run() {
-
-                    handler.dispatchMessage(msg);
+                    context.author.setText(result);
                 }
             });
         }
@@ -561,29 +546,25 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         private void setAuthorID(int authorID) {
             this.authorID = authorID;
         }
-
-        public void setUrl(String url) {
-            this.url = url;
-        }
     }
 
 
     /**
-     * Class to handle the background work for the database
+     * Class to handle the background work with the database
      */
     private static class AsyncDbWork extends AsyncTask<Void, Void, Void> {
         private static WeakReference<DisplayImageActivity> activity;
         private final int type;
         private final int imageID;
-        private final Message msg;
         private final String description;
         private final String author;
+        private final Bitmap bitmap;
 
-        public AsyncDbWork(DisplayImageActivity context, int type, Message msg, int imageID, String description, String author) {
+        public AsyncDbWork(DisplayImageActivity context, int type, Bitmap bitmap, int imageID, String description, String author) {
             activity = new WeakReference<>(context);
             this.type = type;
             this.imageID = imageID;
-            this.msg = msg;
+            this.bitmap = bitmap;
             this.description = description;
             this.author = author;
 
@@ -592,6 +573,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         public AsyncDbWork(DisplayImageActivity context, int type, int imageID) {
             this(context, type, null, imageID, null, null);
         }
+
 
         @Override
         protected Void doInBackground(Void... params) {
@@ -604,22 +586,28 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             return null;
         }
 
+
         /**
-         * Method to add an image and the colors of the image to db
+         * Method to save an image to the storage and to save the color palette and the images info to database
          */
         private void addImageToFavorites() {
             final DisplayImageActivity context = activity.get();
-            final Bitmap bitmap = msg.getData().getParcelable("img");
 
             // get the color palette of the image
             Palette palette = Palette.from(bitmap).generate();
 
-            int vibrantSwatchColor = 0;
-            int lightVibrantSwatchColor = 0;
-            int darkVibrantSwatchColor = 0;
-            int mutedSwatchColor = 0;
-            int lightMutedSwatchColor = 0;
-            int darkMutedSwatchColor = 0;
+            // color palette
+            int vibrant = 0;
+            int lightVibrant = 0;
+            int darkVibrant = 0;
+            int muted = 0;
+            int lightMuted = 0;
+            int darkMuted = 0;
+            int dominantColor = 0;
+
+            // get the dominant color of the image
+            Palette.Swatch dominantSwatch = Utilities.getDominantSwatch(palette);
+            dominantColor = dominantSwatch.getRgb();
 
             Palette.Swatch vibrantSwatch = palette.getVibrantSwatch();
             Palette.Swatch darkVibrantSwatch = palette.getDarkVibrantSwatch();
@@ -630,22 +618,22 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             Palette.Swatch darkMutedSwatch = palette.getDarkMutedSwatch();
 
             if (vibrantSwatch != null)
-                vibrantSwatchColor = vibrantSwatch.getRgb();
+                vibrant = vibrantSwatch.getRgb();
 
             if (lightVibrantSwatch != null)
-                lightVibrantSwatchColor = lightVibrantSwatch.getRgb();
+                lightVibrant = lightVibrantSwatch.getRgb();
 
             if (darkVibrantSwatch != null)
-                darkVibrantSwatchColor = darkVibrantSwatch.getRgb();
+                darkVibrant = darkVibrantSwatch.getRgb();
 
             if (mutedSwatch != null)
-                mutedSwatchColor = mutedSwatch.getRgb();
+                muted = mutedSwatch.getRgb();
 
             if (darkMutedSwatch != null)
-                darkMutedSwatchColor = darkMutedSwatch.getRgb();
+                darkMuted = darkMutedSwatch.getRgb();
 
             if (lightMutedSwatch != null)
-                lightMutedSwatchColor = lightMutedSwatch.getRgb();
+                lightMuted = lightMutedSwatch.getRgb();
 
             // save the image into the internal storage
             String path = Utilities.saveImageToInternalStorage(context, bitmap, imageID);
@@ -654,8 +642,8 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             context.db.insertImageInfo(path, imageID, description, author);
 
             // add to db the color palette of the image
-            context.db.insertColorPalette(imageID, vibrantSwatchColor, lightVibrantSwatchColor, darkVibrantSwatchColor,
-                    mutedSwatchColor, lightMutedSwatchColor, darkMutedSwatchColor);
+            context.db.insertColorPalette(imageID, vibrant, lightVibrant, darkVibrant,
+                    muted, lightMuted, darkMuted, dominantColor);
         }
 
 
@@ -663,24 +651,27 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
          * Method to remove an image from favorites
          */
         private void removeImageFromFavorites() {
+            DisplayImageActivity context = activity.get();
 
             // path of the image
-            String path = activity.get().db.getImagePath(imageID);
+            String path = context.db.getImagePath(imageID);
 
             // delete images info
-            activity.get().db.deleteImageInfo(imageID);
+            context.db.deleteImageInfo(imageID);
 
             // delete the images color palette
-            activity.get().db.deleteColorPalette(imageID);
+            context.db.deleteColorPalette(imageID);
 
             // delete image from storage
-            Utilities.deleteSpecificMediaFromInternalStorage(Utilities.IMG_DIR, activity.get(), path);
+            Utilities.deleteSpecificMediaFromInternalStorage(Utilities.IMG_DIR, context, path);
         }
 
 
         @Override
         protected void onPostExecute(Void value) {
             super.onPostExecute(value);
+
+            activity.get().progressDialog.dismiss();
 
             if (type == 2)
                 Toast.makeText(activity.get().getApplicationContext(), "Image added to favorites", Toast.LENGTH_SHORT).show();

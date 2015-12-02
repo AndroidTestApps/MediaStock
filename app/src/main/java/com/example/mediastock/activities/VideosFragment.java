@@ -45,6 +45,7 @@ import java.nio.charset.Charset;
  * @author Dinu
  */
 public class VideosFragment extends AbstractFragment implements LoaderCallbacks<Void> {
+    // the keywords to search for
     private static String keyWord1;
     private static String keyWord2;
     private static Context context;
@@ -143,7 +144,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
             }
         });
 
-        // endless list. load more data when reaching the bottom of the view
+        // endless list which loads more data when reaching the bottom of the view
         videoAdapter.setOnBottomListener(new MusicVideoAdapter.OnBottomListener() {
 
             @Override
@@ -189,7 +190,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
 
     /**
-     * Method to get the recent videos
+     * Method to get the recent videos. It starts the loader to load asynchronously the videos.
      */
     public void getRecentVideos() {
         if (!Utilities.deviceOnline(context) || working)
@@ -206,7 +207,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
 
 
     /**
-     * It searches the videos by one or two keys
+     * It searches the videos by one or two keys. It starts the loader to load asynchronously the videos.
      */
     public void searchVideosByKey(String key1, String key2) {
         if (working)
@@ -220,6 +221,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
         startSearching(2, key1, key2, 30);
     }
 
+
     private void startSearching(int loaderType, String key1, String key2, int loadingPageNumber) {
         Bundle bundle = new Bundle();
         bundle.putString("key1", key1);
@@ -230,7 +232,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
     }
 
     /**
-     * Start the filter search. The bundle contains alla the users input.
+     * Start the filter search. The bundle contains alla the users input. It starts the loader to load asynchronously the videos.
      */
     public void startFilterSearch(Bundle bundle) {
         if (!Utilities.deviceOnline(context) || working)
@@ -355,7 +357,8 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
     }
 
     /**
-     * Static inner class to search for videos, to get the recent videos and to do a filter search from the server.
+     * Static inner class to do asynchronous operations.
+     * This class is used to search for videos, to get the recent videos and to do a filter search.
      *
      * @author Dinu
      */

@@ -8,9 +8,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.mediastock.R;
 import com.example.mediastock.data.ImageBean;
-import com.squareup.picasso.Picasso;
 
 import java.lang.ref.WeakReference;
 
@@ -21,14 +22,12 @@ public class ImageAdapter extends AbstractMediaAdapter {
     public ImageAdapter(Context context, int type) {
         super(context, type);
 
-        if (type == 1) {
+        if (type == 1)
             layout_param = new RelativeLayout.LayoutParams(this.getWidth() / 2, this.getWidth() / 2);
-            layout_param.setMargins(3, 2, 0, 2);
-
-        } else {
+        else
             layout_param = new RelativeLayout.LayoutParams(this.getWidth() / 3, this.getWidth() / 3);
-            layout_param.setMargins(0, 2, 2, 2);
-        }
+
+        layout_param.setMargins(1, 0, 0, 1);
     }
 
     @Override
@@ -42,14 +41,10 @@ public class ImageAdapter extends AbstractMediaAdapter {
     public void onBindViewHolder(AbstractMediaAdapter.MediaHolder holder, int position) {
         ImageBean item = (ImageBean) this.getBeanAt(position);
 
-        if (item.getUrl() != null) {
-            if (getType() == 2)
-                Picasso.with(this.getContext()).load(Uri.parse(item.getUrl())).resize(this.getWidth() / 3, this.getWidth() / 3).placeholder(R.drawable.border).centerCrop().into(((ImageHolder) holder).ivIcon);
-            else
-                Picasso.with(this.getContext()).load(Uri.parse(item.getUrl())).resize(this.getWidth() / 2, this.getWidth() / 2).placeholder(R.drawable.border).centerCrop().into(((ImageHolder) holder).ivIcon);
-        } else
+        if (item.getUrl() != null)
+            Glide.with(getContext()).load(Uri.parse(item.getUrl())).diskCacheStrategy(DiskCacheStrategy.RESULT).crossFade().centerCrop().placeholder(R.drawable.border).error(R.drawable.border).into(((ImageHolder) holder).ivIcon);
+        else
             ((ImageHolder) holder).ivIcon.setBackgroundResource(R.drawable.border);
-
 
         // scrolled to the bottom
         if (position >= getPageNumber() - 1) {

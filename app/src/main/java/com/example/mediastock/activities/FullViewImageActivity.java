@@ -4,10 +4,11 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.mediastock.R;
 import com.example.mediastock.data.ImageBean;
 import com.example.mediastock.util.Utilities;
-import com.squareup.picasso.Picasso;
 
 /**
  * Class to display a full screen image.
@@ -24,11 +25,11 @@ public class FullViewImageActivity extends AppCompatActivity {
         if (getIntentType() == 1) {
             String url = getIntent().getStringExtra("image");
 
-            Picasso.with(getApplicationContext()).load(url).placeholder(R.drawable.border).fit().centerInside().into(image);
+            Glide.with(this).load(url).diskCacheStrategy(DiskCacheStrategy.NONE).skipMemoryCache(true).placeholder(R.drawable.border).error(R.drawable.border).into(image);
 
         } else
-            image.setImageBitmap(Utilities.loadImageFromInternalStorage(
-                    this, getBeanFromIntent().getPath(), getResources().getDisplayMetrics().widthPixels));
+            Glide.with(this).load(Utilities.loadImageFromInternalStorage(this, getBeanFromIntent().getPath()))
+                    .diskCacheStrategy(DiskCacheStrategy.NONE).skipMemoryCache(true).placeholder(R.drawable.border).error(R.drawable.border).into(image);
 
 
     }

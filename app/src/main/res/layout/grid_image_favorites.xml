@@ -11,6 +11,8 @@
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:adjustViewBounds="true"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
         android:scaleType="centerCrop"
         />
 
@@ -21,6 +23,30 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
         android:layout_gravity="left"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
         android:src="@drawable/ic_action_important_yel"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerHorizontal="true"
+        android:layout_centerInParent="true"
+        android:layout_centerVertical="true"
+        android:focusable="false"
+        android:focusableInTouchMode="false">
+
+        <CheckBox
+            android:id="@+id/checkbox_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:scaleX="1.7"
+            android:scaleY="1.7"
+            android:visibility="gone"/>
+    </RelativeLayout>
 
 </RelativeLayout>

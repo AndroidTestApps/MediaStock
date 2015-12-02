@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
@@ -55,22 +55,50 @@
                 android:spinnerMode="dialog"
                 />
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_marginTop="10dp"
+                android:paddingBottom="5dp"
+                android:paddingTop="5dp"
+                android:text="Image"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textColor="#DE000000"/>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:id="@+id/button_selectImage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:paddingEnd="20dp"
+                    android:paddingStart="20dp"
+                    android:text="select image"/>
+            </RelativeLayout>
+
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:layout_marginTop="30dp"
+                android:background="#5e5e5e"
                 android:gravity="center"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                >
 
                 <Button
                     android:id="@+id/dismiss"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_gravity="left|bottom"
-                    android:layout_marginBottom="10dp"
+                    android:layout_marginBottom="3dp"
                     android:layout_marginRight="2dp"
-                    android:layout_marginTop="50dp"
+                    android:layout_marginTop="3dp"
                     android:text="Cancel"/>
 
 
@@ -79,13 +107,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_gravity="right|bottom"
-                    android:layout_marginBottom="10dp"
+                    android:layout_marginBottom="3dp"
                     android:layout_marginLeft="2dp"
-                    android:layout_marginTop="50dp"
+                    android:layout_marginTop="3dp"
                     android:text="   OK   "
                     />
             </LinearLayout>
 
         </LinearLayout>
     </RelativeLayout>
-</RelativeLayout>
+</ScrollView>

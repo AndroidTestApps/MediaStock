@@ -9,11 +9,11 @@ import android.graphics.Color;
 public class ColorHelper {
     // black, white, red, blue, green, yellow, orange, magenta, grey, cyan
     private final static String[] colorsID = {"#000000", "#ffffff", "#dc020e", "#0226dc", "#15a415", "#ffea00", "#ff8800", "#ff00ff", "#888888", "#00ffff"};
-    private final boolean colorSimilarity;
-    private final int usersColor, darkVibrantSwatch, lightVibrantSwatch, vibrantSwatch, mutedSwatch, darkMutedSwatch, lightMutedSwatch;
+    private final int darkVibrantSwatch, lightVibrantSwatch, vibrantSwatch, mutedSwatch, darkMutedSwatch, lightMutedSwatch;
+    private boolean colorSimilarity;
+    private int usersColor;
 
-
-    public ColorHelper(int selectedColorPosition, int vibrantSwatch, int darkVibrantSwatch, int lightVibrantSwatch,
+    public ColorHelper(int vibrantSwatch, int darkVibrantSwatch, int lightVibrantSwatch,
                        int mutedSwatch, int darkMutedSwatch, int lightMutedSwatch) {
 
         this.vibrantSwatch = vibrantSwatch;
@@ -22,12 +22,6 @@ public class ColorHelper {
         this.mutedSwatch = mutedSwatch;
         this.darkMutedSwatch = darkMutedSwatch;
         this.lightMutedSwatch = lightMutedSwatch;
-
-        // the color to search for
-        this.usersColor = getUsersColor(selectedColorPosition);
-
-        // it determines if the swatches are similar to the users color
-        this.colorSimilarity = analyseSwatches();
     }
 
     /**
@@ -41,9 +35,9 @@ public class ColorHelper {
                 colorsSimilarity(lightMutedSwatch) || colorsSimilarity(darkMutedSwatch);
     }
 
-    private boolean isValid(int num) {
+    private boolean isValid(int target) {
 
-        return num > 0 && num < 100;
+        return target > 0 && target < 80;
     }
 
     /**
@@ -69,7 +63,18 @@ public class ColorHelper {
         return Color.parseColor(colorsID[selectedColorPosition]);
     }
 
+    public void setUsersColor(int color) {
+        this.usersColor = color;
+    }
+
+    public void setUserColorFromArray(int position) {
+        this.usersColor = getUsersColor(position);
+    }
+
     public boolean getColorSimilarity() {
+        // it determines if the swatches are similar to the users color
+        this.colorSimilarity = analyseSwatches();
+
         return colorSimilarity;
     }
 }

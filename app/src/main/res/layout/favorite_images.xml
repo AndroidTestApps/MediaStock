@@ -36,10 +36,16 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="?attr/actionBarSize">
 
-        <android.support.v7.widget.RecyclerView
+        <GridView
             android:id="@+id/gridView_fav_images"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:drawSelectorOnTop="true"
+            android:gravity="center"
+            android:numColumns="auto_fit"
+            android:stretchMode="columnWidth"
+            />
     </FrameLayout>
 
     <android.support.design.widget.FloatingActionButton

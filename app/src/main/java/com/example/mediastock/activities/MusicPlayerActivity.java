@@ -41,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 public class MusicPlayerActivity extends Activity implements OnSeekBarChangeListener, View.OnClickListener {
     private static Handler myHandler = new Handler();
     public int oneTimeOnly = 0;
+    private ProgressDialog progressDialog;
     private double startTime = 0;
     private double finalTime = 0;
     private boolean finished = false;
@@ -48,7 +49,6 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
     private MediaPlayer mediaPlayer;
     private SeekBar seekbar;
     private TextView tx1, tx2, title;
-    private ProgressDialog progressDialog;
     private FloatingActionButton favorites;
     private DBController db;
     private MusicBean bean;
@@ -212,7 +212,6 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
 
     private void constructProgressDialog() {
         progressDialog = new ProgressDialog(MusicPlayerActivity.this);
-        progressDialog.setIndeterminate(true);
         progressDialog.setCancelable(false);
     }
 

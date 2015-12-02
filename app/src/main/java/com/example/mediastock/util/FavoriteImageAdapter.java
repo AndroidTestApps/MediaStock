@@ -1,93 +1,154 @@
 package com.example.mediastock.util;
 
+
+import android.app.Activity;
 import android.content.Context;
-import android.graphics.Bitmap;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.mediastock.R;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
-
-public class FavoriteImageAdapter extends AbstractMediaAdapter {
+public class FavoriteImageAdapter extends BaseAdapter {
+    public final ArrayList<CheckBox> checkBoxesViews = new ArrayList<>();
     private final RelativeLayout.LayoutParams layout_param;
-    private final ArrayList<Bitmap> bitmaps = new ArrayList<>();
+    private final int width;
+    private final Context context;
+    private final ArrayList<String> pathList = new ArrayList<>();
+    private final ArrayList<Integer> filteredImagesPositions = new ArrayList<>();
+    private final SparseArray<Integer> checkBoxes = new SparseArray<>();
 
-    public FavoriteImageAdapter(final Context context) {
-        super(context, 0);
+    public FavoriteImageAdapter(Context context) {
+        super();
 
-        this.layout_param = new RelativeLayout.LayoutParams(getWidth() / 2, getWidth() / 2);
-        this.layout_param.setMargins(3, 2, 0, 2);
+        this.context = context;
+        this.width = context.getResources().getDisplayMetrics().widthPixels;
+        this.layout_param = new RelativeLayout.LayoutParams(width / 2, width / 2);
+        this.layout_param.setMargins(1, 0, 0, 1);
     }
 
     @Override
-    public AbstractMediaAdapter.MediaHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(getContext()).inflate(R.layout.grid_image_favorites, parent, false);
-
-        return new ViewHolder(view, this);
+    public int getCount() {
+        return pathList.size();
     }
 
     @Override
-    public void onBindViewHolder(MediaHolder holder, int position) {
-        ((ViewHolder) holder).ivIcon.setImageBitmap(bitmaps.get(position));
-        ((ViewHolder) holder).ivIcon.setTag(position);
+    public Object getItem(int position) {
+        return pathList.get(position);
     }
 
     @Override
-    public int getItemCount() {
-        return bitmaps.size();
+    public long getItemId(int position) {
+        return 0;
     }
 
-    public void addBitmap(Bitmap image, int position) {
-        bitmaps.add(position, image);
-
-        // Android dev said it is a bug on the RecyclerView invoking notifyItemInserted() at pos 0
-        if (position != 0)
-            notifyItemInserted(position);
-        else
-            notifyDataSetChanged();
+    public void addPath(String image, int position) {
+        pathList.add(position, image);
+        notifyDataSetChanged();
     }
 
-    public void deleteBitmaps() {
-        if (!bitmaps.isEmpty()) {
-            bitmaps.clear();
+    public void deletePathList() {
+        if (!pathList.isEmpty()) {
+            pathList.clear();
             notifyDataSetChanged();
         }
     }
 
-    public void deleteBitmapAt(int position) {
-        bitmaps.remove(position);
 
-        // Android dev said it is a bug on the RecyclerView invoking notifyItemInserted() at pos 0
-        if (position != 0)
-            notifyItemRemoved(position);
-        else
-            notifyDataSetChanged();
+    public void addFilteredImagesPosition(int position) {
+        filteredImagesPositions.add(position);
+    }
+
+    public int getFilteredImagePositionAt(int position) {
+        return filteredImagesPositions.get(position);
+    }
+
+    public void clearFilteredImagesPositions() {
+        if (filteredImagesPositions.size() > 0)
+            filteredImagesPositions.clear();
     }
 
 
-    public static class ViewHolder extends AbstractMediaAdapter.MediaHolder {
-        public ImageView ivIcon;
-        private WeakReference<FavoriteImageAdapter> ref;
+    public void dismissCheckBoxes() {
+        for (CheckBox checkBox : checkBoxesViews) {
+            checkBox.setVisibility(View.GONE);
 
-        public ViewHolder(View itemView, FavoriteImageAdapter adapter) {
-            super(itemView);
-
-            ref = new WeakReference<>(adapter);
-            ivIcon = (ImageView) itemView.findViewById(R.id.ivIconn);
-            ivIcon.setLayoutParams(ref.get().layout_param);
-            ivIcon.setOnClickListener(this);
+            if (checkBox.isChecked())
+                checkBox.setChecked(false);
         }
+    }
 
-        @Override
-        public void onClick(View v) {
-            if (ref.get().getItemClickListener() != null)
-                ref.get().getItemClickListener().onItemClick(v, getAdapterPosition());
-        }
+    public void showCheckBoxes() {
+        for (CheckBox checkBox : checkBoxesViews)
+            checkBox.setVisibility(View.VISIBLE);
+    }
+
+
+    public void addCheckBoxPosition(int position, int value) {
+        checkBoxes.put(position, value);
+    }
+
+    public void removeCheckBoxPosition(int position) {
+        checkBoxes.remove(position);
+    }
+
+    public int getSelectedCheckBoxPosition() {
+
+        for (int i = 0; i < checkBoxes.size(); i++)
+            if (checkBoxes.get(checkBoxes.keyAt(i)) != null)
+                return checkBoxes.get(checkBoxes.keyAt(i));
+
+        return -1;
+    }
+
+    public void clearCheckBoxes() {
+        if (checkBoxes.size() > 0)
+            checkBoxes.clear();
+    }
+
+    public int getCheckBoxesSize() {
+        return checkBoxes.size();
+    }
+
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        ImageHolder holder;
+        View view = convertView;
+
+        if (view == null) {
+            LayoutInflater inflater = ((Activity) context).getLayoutInflater();
+            view = inflater.inflate(R.layout.grid_image_favorites, parent, false);
+            holder = new ImageHolder();
+            holder.imageView = (ImageView) view.findViewById(R.id.ivIconn);
+            holder.imageView.setLayoutParams(layout_param);
+            view.setTag(holder);
+        } else
+            holder = (ImageHolder) view.getTag();
+
+        // add the checkbox
+        CheckBox checkBox = (CheckBox) view.findViewById(R.id.checkbox_view);
+        checkBoxesViews.add(checkBox);
+
+        String path = pathList.get(position);
+
+        Glide.with(context).load(Utilities.loadImageFromInternalStorage(context, path)).diskCacheStrategy(DiskCacheStrategy.RESULT).crossFade().centerCrop()
+                .placeholder(R.drawable.border).error(R.drawable.border).into(holder.imageView);
+
+        return view;
+    }
+
+
+    public static class ImageHolder {
+        public ImageView imageView;
     }
 }

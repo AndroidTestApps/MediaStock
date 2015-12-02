@@ -34,9 +34,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Main activity that contains a View Pager with has six fragments
+ * Main activity that contains a View Pager with six fragments
  */
 public class BaseActivity extends AppCompatActivity implements FilterImageFragment.FilterImageMessage, FilterMusicFragment.FilterMusicMessage, FilterVideoFragment.FilterVideoMessage {
+    // the keywords to search for
     private static String key1;
     private static String key2;
     private CustomPagerAdapter adapter;
@@ -46,10 +47,10 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
     private FloatingActionButton favorites;
 
     /**
-     * We parse the users input
-     * If the user wrote two words, we parse the text and search for the words.
+     * We parse the users input.
+     * If the user wrote two words, we parse the text and search the words.
      *
-     * @param query the editText
+     * @param query the users input
      * @return true if the user wrote two words, false otherwise
      */
     private static boolean parseQuery(String query) {
@@ -76,13 +77,12 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         if (!Utilities.deviceOnline(getApplicationContext()))
             showAlertDialogNoInternet();
 
-        /*
+/*
         DBController db = new DBController(this);
-        db.deleteAllRowsMusic();
-
-        Utilities.deleteAllMediaFromInternalStorage(Utilities.MUSIC_DIR, this);
-        Utilities.deleteAllMediaFromInternalStorage(Utilities.VIDEO_DIR, this); */
-
+        db.deleteTableColorAndImage();
+        db.createTableColorAndImage();
+        Utilities.deleteAllMediaFromInternalStorage(Utilities.IMG_DIR, this);
+*/
         LeakCanary.install(getApplication());
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
@@ -147,7 +147,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
             }
         });
 
-
+        // favorites button; it starts the activity
         favorites.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -431,7 +431,10 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
     }
 
     /**
-     * Method to search for images, music or videos
+     * Method to search images, videos, or music.
+     *
+     * @param query the users input
+     * @param editText the view editText
      */
     private void startSearch(String query, View editText) {
         isFocused = false;

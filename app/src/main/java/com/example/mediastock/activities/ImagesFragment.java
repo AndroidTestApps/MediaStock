@@ -44,6 +44,7 @@ import java.nio.charset.Charset;
  */
 public class ImagesFragment extends AbstractFragment implements DownloadResultReceiver.Receiver {
     public static final String IMG_RECEIVER = "ireceiver";
+    // the keywords to search for
     private static String keyWord1;
     private static String keyWord2;
     private static Context context;
@@ -133,8 +134,12 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
             @Override
             public void onItemClick(View view, int position) {
 
-                if (Utilities.deviceOnline(context))
-                    goToDisplayImageActivity((ImageBean) adapter.getBeanAt(position));
+                if (!Utilities.deviceOnline(context)) {
+                    Toast.makeText(context.getApplicationContext(), "Not online", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                goToDisplayImageActivity((ImageBean) adapter.getBeanAt(position));
             }
         });
 
@@ -158,7 +163,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
 
     /**
-     * Method to get the recent images
+     * Method to get the recent images asynchronously
      */
     public void getRecentImages() {
         if (!Utilities.deviceOnline(context) || working)
@@ -170,7 +175,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
     }
 
     /**
-     * It searches the images by one or two keys
+     * It searches asynchronously the images by one or two keys
      */
     public void searchImagesByKey(String key1, String key2) {
         if (working)
@@ -186,7 +191,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
 
     /**
-     * Start the filter search. The bundle contains alla the users input.
+     * Start the filter search asynchronously. The bundle contains alla the users input.
      * We pass all the info to DownloadService service to start to download the images.
      */
     public void startFilterSearch(Bundle bundle) {
@@ -282,7 +287,8 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
     }
 
     /**
-     * Static inner class to search for images and to get the recent images from the server.
+     * Static inner class to do asynchronous operations.
+     * This class is used to search for images and to get the recent images from the server.
      *
      * @author Dinu
      */

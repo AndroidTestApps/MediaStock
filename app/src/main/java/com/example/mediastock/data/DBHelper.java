@@ -9,19 +9,23 @@ public class DBHelper extends SQLiteOpenHelper {
     public final static String TABLE_MUSIC = "table_music";
     public final static String TABLE_VIDEOS = "table_video";
     public final static String TABLE_COLORS = "table_colors";
+
     // image attributes
     public final static String IMG_PATH = "path";
     public final static String DESCRIPTION_IMG = "description";
     public final static String AUTHOR_IMG = "author";
     public final static String IMG_ID = "imageid";
+
     // music attributes
     public final static String MUSIC_PATH = "path";
     public final static String TITLE_MUSIC = "title";
     public final static String MUSIC_ID = "musicid";
+
     // video attributes
     public final static String VIDEO_PATH = "path";
     public final static String DESCRIPTION_VIDEO = "description";
     public final static String VIDEO_ID = "videoid";
+
     // names of the color palette of an image
     public final static String VIBRANT = "vibrant";
     public final static String LIGHT_VIBRANT = "lightvibrant";
@@ -29,7 +33,9 @@ public class DBHelper extends SQLiteOpenHelper {
     public final static String MUTED = "muted";
     public final static String LIGHT_MUTED = "lightmuted";
     public final static String DARK_MUTED = "darkmuted";
+    public final static String DOMINANT_COLOR = "dominantcolor";
     private final static String DB_NAME = "db_mediastock";
+
     // the db instance
     private static DBHelper instance;
 
@@ -46,7 +52,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     private final String createTableColors = "create table " + TABLE_COLORS +
             "(_id integer primary key autoincrement, " + IMG_ID + " integer, " + VIBRANT + " integer, " + LIGHT_VIBRANT + " integer, " +
-            DARK_VIBRANT + " integer, " + MUTED + " integer, " + LIGHT_MUTED + " integer, " + DARK_MUTED + " integer)";
+            DARK_VIBRANT + " integer, " + MUTED + " integer, " + LIGHT_MUTED + " integer, " + DARK_MUTED + " integer, " + DOMINANT_COLOR + " integer)";
 
 
     private DBHelper(Context context) {
@@ -82,6 +88,11 @@ public class DBHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    public void createTables(SQLiteDatabase db) {
+        db.execSQL(createTableImages);
+        db.execSQL(createTableColors);
+
+    }
 }
 
 

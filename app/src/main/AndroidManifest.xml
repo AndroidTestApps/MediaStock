@@ -28,6 +28,9 @@
             </intent-filter>
         </activity>
 
+        <meta-data
+            android:name="com.example.mediastock.util.GlideConfiguration"
+            android:value="GlideModule"/>
 
         <activity
             android:name="com.example.mediastock.activities.DisplayImageActivity"

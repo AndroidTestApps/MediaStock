@@ -12,7 +12,6 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
-import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -87,7 +86,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         favorites.bringToFront();
 
         constructProgressDialog();
-        showProgressDialog("Loading...", 1);
+        showProgressDialog("Loading...");
 
         play = (Button) this.findViewById(R.id.button_playvideoplayer);
         pause = (Button) this.findViewById(R.id.button_pausevideoplayer);
@@ -316,16 +315,10 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
     private void constructProgressDialog() {
         progressDialog = new ProgressDialog(VideoPlayerActivity.this);
-        progressDialog.setIndeterminate(true);
         progressDialog.setCancelable(false);
     }
 
-    private void showProgressDialog(String message, int where) {
-        if (where == 1)
-            progressDialog.getWindow().setGravity(Gravity.CENTER);
-        else
-            progressDialog.getWindow().setGravity(Gravity.BOTTOM);
-
+    private void showProgressDialog(String message) {
         progressDialog.setMessage(message);
         progressDialog.show();
     }
@@ -375,7 +368,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                 videoToDB = false;
                 favorites.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#838383")));
 
-                showProgressDialog("Removing video to favorites...", 2);
+                showProgressDialog("Removing video from favorites...");
 
                 // thread to remove the video from db
                 new ExecuteExecutor(this, new ExecuteExecutor.CallableAsyncTask(this) {
@@ -404,7 +397,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                 videoToDB = true;
                 favorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
-                showProgressDialog("Adding video to favorites...", 2);
+                showProgressDialog("Adding video to favorites...");
 
                 // thread to add the video to favorites
                 new ExecuteExecutor(this, new ExecuteExecutor.CallableAsyncTask(this) {

@@ -4,6 +4,14 @@
 
 
     <item
+        android:id="@+id/item_ok"
+        android:icon="@drawable/ic_action_accept"
+        android:title="ok"
+        android:visible="false"
+        app:showAsAction="always"
+        />
+
+    <item
         android:id="@+id/item_refresh"
         android:icon="@drawable/ic_action_refresh"
         android:title="Refresh"
