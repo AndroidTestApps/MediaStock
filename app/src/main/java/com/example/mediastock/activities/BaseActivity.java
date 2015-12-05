@@ -28,7 +28,6 @@ import android.widget.Toast;
 import com.example.mediastock.R;
 import com.example.mediastock.util.CustomPagerAdapter;
 import com.example.mediastock.util.Utilities;
-import com.squareup.leakcanary.LeakCanary;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,7 +82,6 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
         db.createTableColorAndImage();
         Utilities.deleteAllMediaFromInternalStorage(Utilities.IMG_DIR, this);
 */
-        LeakCanary.install(getApplication());
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         tabLayout.setTabTextColors(Color.parseColor("#FF9F9F9F"), Color.parseColor("#ff453f"));

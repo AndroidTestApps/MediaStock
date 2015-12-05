@@ -42,7 +42,7 @@ public class ImageAdapter extends AbstractMediaAdapter {
         ImageBean item = (ImageBean) this.getBeanAt(position);
 
         if (item.getUrl() != null)
-            Glide.with(getContext()).load(Uri.parse(item.getUrl())).diskCacheStrategy(DiskCacheStrategy.RESULT).crossFade().centerCrop().placeholder(R.drawable.border).error(R.drawable.border).into(((ImageHolder) holder).ivIcon);
+            Glide.with(getContext()).load(Uri.parse(item.getUrl())).diskCacheStrategy(DiskCacheStrategy.RESULT).centerCrop().placeholder(R.drawable.border).error(R.drawable.border).into(((ImageHolder) holder).ivIcon);
         else
             ((ImageHolder) holder).ivIcon.setBackgroundResource(R.drawable.border);
 

@@ -17,8 +17,8 @@ import java.util.ArrayList;
 
 
 public class CustomSpinnerRowAdapter extends ArrayAdapter<String> {
-    // black, white, red, blue, green, yellow, orange, magenta, grey, cyan
-    private final static String[] colorsID = {"#000000", "#ffffff", "#dc020e", "#0226dc", "#15a415", "#ffea00", "#ff8800", "#ff00ff", "#888888", "#00ffff"};
+    // black, white, red, blue, green, yellow, orange, magenta, cyan
+    private final static String[] colorsID = {"#000000", "#ffffff", "#dc020e", "#0226dc", "#15a415", "#ffea00", "#ff8800", "#ff00ff", "#00ffff"};
     private final LayoutInflater inflater;
     private final ArrayList<String> data;
 

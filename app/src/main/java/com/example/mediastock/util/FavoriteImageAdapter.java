@@ -8,7 +8,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
@@ -19,13 +18,13 @@ import com.example.mediastock.R;
 import java.util.ArrayList;
 
 public class FavoriteImageAdapter extends BaseAdapter {
-    public final ArrayList<CheckBox> checkBoxesViews = new ArrayList<>();
+    private final ArrayList<Integer> filteredImagesPositions = new ArrayList<>();
+    private final SparseArray<Integer> selectedImages = new SparseArray<>();
+    private final ArrayList<String> pathList = new ArrayList<>();
     private final RelativeLayout.LayoutParams layout_param;
     private final int width;
     private final Context context;
-    private final ArrayList<String> pathList = new ArrayList<>();
-    private final ArrayList<Integer> filteredImagesPositions = new ArrayList<>();
-    private final SparseArray<Integer> checkBoxes = new SparseArray<>();
+
 
     public FavoriteImageAdapter(Context context) {
         super();
@@ -78,45 +77,30 @@ public class FavoriteImageAdapter extends BaseAdapter {
     }
 
 
-    public void dismissCheckBoxes() {
-        for (CheckBox checkBox : checkBoxesViews) {
-            checkBox.setVisibility(View.GONE);
-
-            if (checkBox.isChecked())
-                checkBox.setChecked(false);
-        }
+    public void addSelectedImagePosition(int position, int value) {
+        selectedImages.put(position, value);
     }
 
-    public void showCheckBoxes() {
-        for (CheckBox checkBox : checkBoxesViews)
-            checkBox.setVisibility(View.VISIBLE);
+    public void removeSelectedImagePosition(int position) {
+        selectedImages.remove(position);
     }
 
+    public int getSelectedImagePosition() {
 
-    public void addCheckBoxPosition(int position, int value) {
-        checkBoxes.put(position, value);
-    }
-
-    public void removeCheckBoxPosition(int position) {
-        checkBoxes.remove(position);
-    }
-
-    public int getSelectedCheckBoxPosition() {
-
-        for (int i = 0; i < checkBoxes.size(); i++)
-            if (checkBoxes.get(checkBoxes.keyAt(i)) != null)
-                return checkBoxes.get(checkBoxes.keyAt(i));
+        for (int i = 0; i < selectedImages.size(); i++)
+            if (selectedImages.get(selectedImages.keyAt(i)) != null)
+                return selectedImages.get(selectedImages.keyAt(i));
 
         return -1;
     }
 
-    public void clearCheckBoxes() {
-        if (checkBoxes.size() > 0)
-            checkBoxes.clear();
+    public void clearSelectedImages() {
+        if (selectedImages.size() > 0)
+            selectedImages.clear();
     }
 
-    public int getCheckBoxesSize() {
-        return checkBoxes.size();
+    public int getSelectedImagesSize() {
+        return selectedImages.size();
     }
 
 
@@ -134,10 +118,6 @@ public class FavoriteImageAdapter extends BaseAdapter {
             view.setTag(holder);
         } else
             holder = (ImageHolder) view.getTag();
-
-        // add the checkbox
-        CheckBox checkBox = (CheckBox) view.findViewById(R.id.checkbox_view);
-        checkBoxesViews.add(checkBox);
 
         String path = pathList.get(position);
 

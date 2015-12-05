@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -15,8 +16,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
@@ -33,8 +34,11 @@ import com.example.mediastock.util.FavoriteImageAdapter;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
+/**
+ * Activity to display the favorite images. It also filter the images by color or by another image.
+ */
 public class FavoriteImagesActivity extends AppCompatActivity implements View.OnClickListener {
-    private final static String[] colors = {"Black", "White", "Red", "Blue", "Green", "Yellow", "Orange", "Magenta", "Grey", "Cyan"};
+    private final static String[] colors = {"Black", "White", "Red", "Blue", "Green", "Yellow", "Orange", "Magenta", "Cyan"};
     private final ArrayList<String> rows = new ArrayList<>();
     private CustomSpinnerRowAdapter spinnerRowAdapter;
     private FavoriteImageAdapter adapter;
@@ -91,18 +95,18 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
                 else {
 
                     // mark the image as selected
-                    CheckBox checkBox = (CheckBox) view.findViewById(R.id.checkbox_view);
-                    if (!checkBox.isChecked()) {
-                        checkBox.setChecked(true);
-                        adapter.addCheckBoxPosition(position, position);
+                    ImageView checkImage = (ImageView) view.findViewById(R.id.checkImage);
+
+                    if (checkImage.getVisibility() == View.VISIBLE) {
+                        checkImage.setVisibility(View.GONE);
+                        adapter.removeSelectedImagePosition(position);
                     } else {
-                        checkBox.setChecked(false);
-                        adapter.removeCheckBoxPosition(position);
+                        checkImage.setVisibility(View.VISIBLE);
+                        adapter.addSelectedImagePosition(position, position);
                     }
                 }
             }
         });
-
 
         if (cursor.getCount() == 0)
             Toast.makeText(getApplicationContext(), "There are no images saved!", Toast.LENGTH_SHORT).show();
@@ -126,10 +130,9 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
 
         // refresh the image list
         if (item.getItemId() == R.id.item_refresh) {
-            filteredImages = false;
 
             if (selectImageForFilter)
-                dismissCheckBoxesVisibility();
+                dismissSelectImageOption();
 
             refreshGridView();
         }
@@ -137,13 +140,13 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         // filter the images by the image selected
         if (item.getItemId() == R.id.item_ok) {
 
-            if (adapter.getCheckBoxesSize() > 1) {
+            if (adapter.getSelectedImagesSize() > 1) {
                 Toast.makeText(getApplicationContext(), "You can select only one image!", Toast.LENGTH_SHORT).show();
                 return true;
             }
 
-            dismissCheckBoxesVisibility();
-            filterImageByImage();
+            dismissSelectImageOption();
+            filterImagesByImage();
         }
 
         return true;
@@ -152,8 +155,8 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
     /**
      * Is starts a thread to filter the images by an image selected by the user
      */
-    private void filterImageByImage() {
-        int selectedPos = adapter.getSelectedCheckBoxPosition();
+    private void filterImagesByImage() {
+        int selectedPos = adapter.getSelectedImagePosition();
 
         if (selectedPos == -1) {
             Toast.makeText(getApplicationContext(), "You have to select an image!", Toast.LENGTH_SHORT).show();
@@ -166,9 +169,10 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         else
             cursor.moveToPosition(selectedPos);
 
-        int imageID = cursor.getInt(cursor.getColumnIndex(DBHelper.IMG_ID));
-
+        // the images will be filtered
         filteredImages = true;
+
+        int imageID = cursor.getInt(cursor.getColumnIndex(DBHelper.IMG_ID));
 
         // remove the old filtered positions
         adapter.clearFilteredImagesPositions();
@@ -178,7 +182,6 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
 
         // start thread to filter the images
         new AsyncDBWork(this, 3).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, imageID);
-
     }
 
     /**
@@ -189,6 +192,8 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
     private void goToDisplayImageActivity(int position) {
         final Bundle bundle = new Bundle();
         final ImageBean bean = new ImageBean();
+
+        Log.i("debug", "display images boolean: " + String.valueOf(filteredImages));
 
         // if the images were filtered, move the cursor to the right position
         if (filteredImages)
@@ -257,7 +262,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
      */
     private void showPopupMenu() {
         if (selectImageForFilter)
-            dismissCheckBoxesVisibility();
+            dismissSelectImageOption();
 
         int layoutWidth = (width / 2) + (width / 3);
 
@@ -286,6 +291,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         Button buttonOK = (Button) popupView.findViewById(R.id.accept);
         Button buttonSelectImg = (Button) popupView.findViewById(R.id.button_selectImage);
 
+        // select images
         buttonSelectImg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -294,10 +300,11 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
                 popupWindow.dismiss();
                 fabFilter.setClickable(true);
 
-                selectImage();
+                showSelectImageOption();
             }
         });
 
+        // dismiss
         buttonDismiss.setOnClickListener(new Button.OnClickListener() {
 
             @Override
@@ -308,6 +315,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
             }
         });
 
+        // filter by color
         buttonOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -335,6 +343,8 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
      * Method to refresh the gridView. It loads the images from the storage
      */
     private void refreshGridView() {
+        filteredImages = false;
+
         // delete filtered images positions elements
         adapter.clearFilteredImagesPositions();
 
@@ -346,9 +356,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
     }
 
 
-    private void dismissCheckBoxesVisibility() {
-        // dismiss checkboxes
-        adapter.dismissCheckBoxes();
+    private void dismissSelectImageOption() {
 
         // restore values
         setTitle("Favorite images");
@@ -356,19 +364,16 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         selectImageForFilter = false;
     }
 
-    private void selectImage() {
+    private void showSelectImageOption() {
         setTitle("Select image");
         menuAcceptSelectedImgs.setVisible(true);
 
-        // clear previous saved checkboxes
-        adapter.clearCheckBoxes();
-
-        // show the checkboxes
-        adapter.showCheckBoxes();
+        // clear previous selected images
+        adapter.clearSelectedImages();
     }
 
     private void createSpinnerModelRows() {
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 9; i++)
             rows.add(colors[i]);
 
         // adapter for the spinner
@@ -447,16 +452,19 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
             // get from the db the color palettes of the images
             Cursor cursorColor = context.db.getColorPalettes();
 
+            ColorHelper colorHelper = new ColorHelper();
+            colorHelper.setTargetColorFromArray(colorTarget);
             do {
 
-                ColorHelper colorHelper = new ColorHelper(cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.VIBRANT)),
-                        cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.LIGHT_VIBRANT)), cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.DARK_VIBRANT)),
-                        cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.MUTED)), cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.LIGHT_MUTED)), cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.DARK_MUTED)));
-
-                colorHelper.setUserColorFromArray(colorTarget);
+                int vibrant = cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.VIBRANT));
+                int lightVibrant = cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.LIGHT_VIBRANT));
+                int darkVibrant = cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.DARK_VIBRANT));
+                int muted = cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.MUTED));
+                int lightMuted = cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.LIGHT_MUTED));
+                int darkMuted = cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.DARK_MUTED));
 
                 // if the color palette of the current image is similar to the color chosen by the user
-                if (colorHelper.getColorSimilarity()) {
+                if (colorHelper.getColorSimilarity(vibrant, darkVibrant, lightVibrant, muted, darkMuted, lightMuted)) {
                     context.cursor.moveToPosition(cursorColor.getPosition());
 
                     // save the position of this image
@@ -488,16 +496,19 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
             // get the dominant color of the image selected
             int dominantColor = context.db.getDominantColorOfImage(imageID);
 
+            ColorHelper colorHelper = new ColorHelper();
+            colorHelper.setTargetColor(dominantColor);
             do {
 
-                ColorHelper colorHelper = new ColorHelper(cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.VIBRANT)),
-                        cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.LIGHT_VIBRANT)), cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.DARK_VIBRANT)),
-                        cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.MUTED)), cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.LIGHT_MUTED)), cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.DARK_MUTED)));
-
-                colorHelper.setUsersColor(dominantColor);
+                int vibrant = cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.VIBRANT));
+                int lightVibrant = cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.LIGHT_VIBRANT));
+                int darkVibrant = cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.DARK_VIBRANT));
+                int muted = cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.MUTED));
+                int lightMuted = cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.LIGHT_MUTED));
+                int darkMuted = cursorColor.getInt(cursorColor.getColumnIndex(DBHelper.DARK_MUTED));
 
                 // if the color palette of the current image is similar to the dominant color of the image selected
-                if (colorHelper.getColorSimilarity()) {
+                if (colorHelper.getColorSimilarity(vibrant, darkVibrant, lightVibrant, muted, darkMuted, lightMuted)) {
                     context.cursor.moveToPosition(cursorColor.getPosition());
 
                     // save the position of this image

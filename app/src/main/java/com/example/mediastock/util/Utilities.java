@@ -7,7 +7,6 @@ import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.support.v7.graphics.Palette;
-import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
@@ -188,6 +187,7 @@ public class Utilities {
         return target;
     }
 
+
     /**
      * It loads a media file from the storage.
      *
@@ -207,8 +207,6 @@ public class Utilities {
             if (fileNames[i].getName().equals(path))
                 target = fileNames[i];
 
-        Log.i("path", target.getName());
-
         FileInputStream fis = null;
         try {
 
@@ -216,10 +214,7 @@ public class Utilities {
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-
         return fis;
     }
 

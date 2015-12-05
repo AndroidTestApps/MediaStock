@@ -158,7 +158,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
         imageToDB = true;
         fabFavorites.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
-        Glide.with(this).load(Utilities.loadImageFromInternalStorage(this, bean.getPath())).diskCacheStrategy(DiskCacheStrategy.RESULT).fitCenter().centerCrop().crossFade()
+        Glide.with(this).load(Utilities.loadImageFromInternalStorage(this, bean.getPath())).diskCacheStrategy(DiskCacheStrategy.RESULT).centerCrop()
                 .placeholder(R.drawable.border).error(R.drawable.border).into(imageView);
 
         description.setText(bean.getDescription());
