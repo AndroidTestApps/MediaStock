@@ -20,11 +20,13 @@ public class DBHelper extends SQLiteOpenHelper {
     public final static String MUSIC_PATH = "path";
     public final static String TITLE_MUSIC = "title";
     public final static String MUSIC_ID = "musicid";
+    public final static String MUSIC_GENRE = "genre";
 
     // video attributes
     public final static String VIDEO_PATH = "path";
     public final static String DESCRIPTION_VIDEO = "description";
     public final static String VIDEO_ID = "videoid";
+    public final static String VIDEO_CATEGORY = "category";
 
     // names of the color palette of an image
     public final static String VIBRANT = "vibrant";
@@ -45,10 +47,10 @@ public class DBHelper extends SQLiteOpenHelper {
             DESCRIPTION_IMG + " text, " + AUTHOR_IMG + " text)";
 
     private final String createTableMusic = "create table " + TABLE_MUSIC +
-            "(_id integer primary key autoincrement, " + MUSIC_PATH + " text, " + MUSIC_ID + " integer, " + TITLE_MUSIC + " text)";
+            "(_id integer primary key autoincrement, " + MUSIC_PATH + " text, " + MUSIC_ID + " integer, " + TITLE_MUSIC + " text, " + MUSIC_GENRE + " text)";
 
     private final String createTableVideos = "create table " + TABLE_VIDEOS +
-            "(_id integer primary key autoincrement, " + VIDEO_PATH + " text, " + VIDEO_ID + " integer, " + DESCRIPTION_VIDEO + " text)";
+            "(_id integer primary key autoincrement, " + VIDEO_PATH + " text, " + VIDEO_ID + " integer, " + DESCRIPTION_VIDEO + " text, " + VIDEO_CATEGORY + " text)";
 
     private final String createTableColors = "create table " + TABLE_COLORS +
             "(_id integer primary key autoincrement, " + IMG_ID + " integer, " + VIBRANT + " integer, " + LIGHT_VIBRANT + " integer, " +
@@ -88,10 +90,12 @@ public class DBHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    /*
+    * Test methods to create tables
+    */
     public void createTables(SQLiteDatabase db) {
-        db.execSQL(createTableImages);
-        db.execSQL(createTableColors);
-
+        db.execSQL(createTableVideos);
+        db.execSQL(createTableMusic);
     }
 }
 

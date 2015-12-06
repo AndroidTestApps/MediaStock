@@ -26,15 +26,21 @@ import com.example.mediastock.data.DBController;
 import com.example.mediastock.data.VideoBean;
 import com.example.mediastock.util.ExecuteExecutor;
 import com.example.mediastock.util.Utilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -371,7 +377,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                 showProgressDialog("Removing video from favorites...");
 
                 // thread to remove the video from db
-                new ExecuteExecutor(this, new ExecuteExecutor.CallableAsyncTask(this) {
+                new ExecuteExecutor(this, 1, new ExecuteExecutor.CallableAsyncTask(this) {
 
                     @Override
                     public String call() {
@@ -400,61 +406,115 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                 showProgressDialog("Adding video to favorites...");
 
                 // thread to add the video to favorites
-                new ExecuteExecutor(this, new ExecuteExecutor.CallableAsyncTask(this) {
+                new ExecuteExecutor(this, 1, new ExecuteExecutor.CallableAsyncTask(this) {
 
                     @Override
                     public String call() {
                         VideoPlayerActivity context = (VideoPlayerActivity) getContextRef();
-
                         HttpURLConnection con = null;
                         InputStream stream = null;
+                        String path = "";
+
                         try {
 
                             URL urll = new URL(context.url);
                             con = (HttpURLConnection) urll.openConnection();
-                            con.setConnectTimeout(25000);
                             stream = con.getInputStream();
 
                             // save stream video to storage
-                            String path = Utilities.saveMediaToInternalStorage(Utilities.VIDEO_DIR, context, stream, context.videoID);
+                            path += Utilities.saveMediaToInternalStorage(Utilities.VIDEO_DIR, context, stream, context.videoID);
 
-                            // save video info to database
-                            context.db.insertVideoInfo(path, context.videoID, context.bean.getDescription());
-
-                        } catch (SocketTimeoutException e) {
-                            if (con != null)
-                                con.disconnect();
-                        } catch (MalformedURLException e) {
-                            e.printStackTrace();
                         } catch (IOException e) {
                             e.printStackTrace();
-
                         } finally {
-
                             // clean the objects
-                            if (stream != null) {
-                                con.disconnect();
-
-                                try {
-
-                                    stream.close();
-
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-
-                                if (con != null)
+                            try {
+                                if (stream != null) {
                                     con.disconnect();
+                                    stream.close();
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
                             }
                         }
 
+                        // add video info to database
+                        context.addVideoInfoToDB(path, context.videoID, context.bean.getDescription());
                         context.progressDialog.dismiss();
 
                         return "Video added to favorites";
                     }
                 });
+
+
             }
         }
+    }
+
+    /**
+     * Thread to add to database the videos info
+     *
+     * @param path        the path where the video is stored
+     * @param videoID     the id of the video
+     * @param description the description of the video
+     */
+    private void addVideoInfoToDB(final String path, final int videoID, final String description) {
+
+        new ExecuteExecutor(this, 2, new ExecuteExecutor.CallableAsyncTask(this) {
+
+            @Override
+            public String call() {
+                VideoPlayerActivity context = (VideoPlayerActivity) getContextRef();
+                HttpURLConnection con = null;
+                InputStream is = null;
+                String category = "";
+
+                // first, get the category of the video
+                try {
+                    URL url = new URL("https://api.shutterstock.com/v2/videos/" + context.videoID);
+                    con = (HttpURLConnection) url.openConnection();
+                    con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
+                    con.setConnectTimeout(25000);
+                    con.setReadTimeout(25000);
+
+                    if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                        is = con.getInputStream();
+
+                        BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+                        String jsonText = Utilities.readAll(rd);
+                        rd.close();
+
+                        JsonElement json = new JsonParser().parse(jsonText);
+                        JsonObject o = json.getAsJsonObject();
+                        JsonArray array = o.get("categories") != null ? o.get("categories").getAsJsonArray() : null;
+
+                        if (array != null) {
+                            if (array.size() > 0)
+                                category += array.get(0).getAsJsonObject().get("name") != null ? array.get(0).getAsJsonObject().get("name").getAsString() : " - ";
+                        }
+
+                        // save video info to database
+                        context.db.insertVideoInfo(path, videoID, description, category);
+                    }
+                } catch (SocketTimeoutException e) {
+                    if (con != null)
+                        con.disconnect();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    // clean the objects
+                    try {
+                        if (is != null) {
+                            con.disconnect();
+                            is.close();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return null;
+            }
+        });
     }
 
 

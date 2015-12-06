@@ -20,9 +20,9 @@ import android.widget.Toast;
 import com.example.mediastock.R;
 import com.example.mediastock.data.Bean;
 import com.example.mediastock.data.MusicBean;
+import com.example.mediastock.model.MusicVideoAdapter;
 import com.example.mediastock.util.DownloadResultReceiver;
 import com.example.mediastock.util.DownloadService;
-import com.example.mediastock.util.MusicVideoAdapter;
 import com.example.mediastock.util.Utilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -371,7 +371,9 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                     if (array.size() < 1) {
                         int yesterday = day;
                         yesterday += 1;
+
                         con.disconnect();
+                        is.close();
 
                         getRecentMusic(yesterday, loadingPageNumber);
                         return;
@@ -453,25 +455,24 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
                     if (array.size() == 0) {
                         searchSuccess = false;
 
-                        con.disconnect();
-                        return;
-                    }
+                    } else {
 
-                    for (int i = loadingPageNumber - 30; i < array.size(); i++) {
-                        JsonObject jsonObj = array.get(i).getAsJsonObject();
-                        JsonObject assets = jsonObj.get("assets").getAsJsonObject();
-                        final MusicBean bean = new MusicBean();
+                        for (int i = loadingPageNumber - 30; i < array.size(); i++) {
+                            JsonObject jsonObj = array.get(i).getAsJsonObject();
+                            JsonObject assets = jsonObj.get("assets").getAsJsonObject();
+                            final MusicBean bean = new MusicBean();
 
-                        if (assets != null) {
-                            bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
-                            bean.setTitle(jsonObj.get("title") == null ? null : jsonObj.get("title").getAsString());
-                            bean.setPreview(assets.get("preview_mp3") == null ? null : assets.get("preview_mp3").getAsJsonObject().get("url").getAsString());
+                            if (assets != null) {
+                                bean.setId(jsonObj.get("id") == null ? null : jsonObj.get("id").getAsString());
+                                bean.setTitle(jsonObj.get("title") == null ? null : jsonObj.get("title").getAsString());
+                                bean.setPreview(assets.get("preview_mp3") == null ? null : assets.get("preview_mp3").getAsJsonObject().get("url").getAsString());
+                            }
+
+                            bean.setPos(i);
+
+                            // update the UI
+                            publishProgress(bean);
                         }
-
-                        bean.setPos(i);
-
-                        // update the UI
-                        publishProgress(bean);
                     }
                 }
             } catch (SocketTimeoutException e) {
@@ -515,7 +516,7 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
 
             if (!searchSuccess) {
                 activity.get().dismissProgressBar();
-                Toast.makeText(activity.get().getActivity(), "Sorry, no music with " + result + " was found!", Toast.LENGTH_LONG).show();
+                Toast.makeText(activity.get().context, "Sorry, no music with " + result + " was found!", Toast.LENGTH_LONG).show();
             }
 
             activity.get().working = false;

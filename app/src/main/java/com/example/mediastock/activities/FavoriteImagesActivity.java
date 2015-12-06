@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -27,20 +26,21 @@ import com.example.mediastock.R;
 import com.example.mediastock.data.DBController;
 import com.example.mediastock.data.DBHelper;
 import com.example.mediastock.data.ImageBean;
+import com.example.mediastock.model.FavoriteImageAdapter;
+import com.example.mediastock.model.ImagesSpinnerRowAdapter;
 import com.example.mediastock.util.ColorHelper;
-import com.example.mediastock.util.CustomSpinnerRowAdapter;
-import com.example.mediastock.util.FavoriteImageAdapter;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
- * Activity to display the favorite images. It also filter the images by color or by another image.
+ * Activity to display the favorite images. It also filters the images by color or by another image.
  */
 public class FavoriteImagesActivity extends AppCompatActivity implements View.OnClickListener {
     private final static String[] colors = {"Black", "White", "Red", "Blue", "Green", "Yellow", "Orange", "Magenta", "Cyan"};
     private final ArrayList<String> rows = new ArrayList<>();
-    private CustomSpinnerRowAdapter spinnerRowAdapter;
+    private ImagesSpinnerRowAdapter spinnerRowAdapter;
     private FavoriteImageAdapter adapter;
     private FloatingActionButton fabFilter;
     private DBController db;
@@ -78,7 +78,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         createSpinnerModelRows();
 
         // layout init
-        fabFilter = (FloatingActionButton) this.findViewById(R.id.fab_fav_img_search);
+        fabFilter = (FloatingActionButton) this.findViewById(R.id.fab_options);
         fabFilter.setOnClickListener(this);
         width = getResources().getDisplayMetrics().widthPixels;
 
@@ -193,8 +193,6 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         final Bundle bundle = new Bundle();
         final ImageBean bean = new ImageBean();
 
-        Log.i("debug", "display images boolean: " + String.valueOf(filteredImages));
-
         // if the images were filtered, move the cursor to the right position
         if (filteredImages)
             cursor.moveToPosition(adapter.getFilteredImagePositionAt(position));
@@ -235,8 +233,15 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
     protected void onRestart() {
         super.onRestart();
 
-        // get the cursor
+        // get the current cursor
         cursor = db.getImagesInfo();
+
+        if (cursor.getCount() == 0) {
+            adapter.deletePathList();
+
+            Toast.makeText(getApplicationContext(), "There are no images saved", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         // an image has been removed from favorites
         if (cursorTempCount > cursor.getCount())
@@ -250,7 +255,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
     @Override
     public void onClick(View v) {
 
-        if (v.getId() == R.id.fab_fav_img_search) {
+        if (v.getId() == R.id.fab_options) {
             fabFilter.setClickable(false);
 
             showPopupMenu();
@@ -267,7 +272,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         int layoutWidth = (width / 2) + (width / 3);
 
         LayoutInflater layoutInflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
-        final View popupView = layoutInflater.inflate(R.layout.popup_window, null);
+        final View popupView = layoutInflater.inflate(R.layout.popup_window_images, null);
 
         Spinner rows = (Spinner) popupView.findViewById(R.id.spinner_rows);
         rows.setAdapter(spinnerRowAdapter);
@@ -348,7 +353,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         // delete filtered images positions elements
         adapter.clearFilteredImagesPositions();
 
-        // first remove the existing images
+        // first remove current images
         adapter.deletePathList();
 
         // get the favorite images
@@ -373,11 +378,10 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
     }
 
     private void createSpinnerModelRows() {
-        for (int i = 0; i < 9; i++)
-            rows.add(colors[i]);
+        rows.addAll(Arrays.asList(colors));
 
         // adapter for the spinner
-        spinnerRowAdapter = new CustomSpinnerRowAdapter(FavoriteImagesActivity.this, R.layout.spinner_rows, rows);
+        spinnerRowAdapter = new ImagesSpinnerRowAdapter(FavoriteImagesActivity.this, R.layout.images_spinner_rows, rows);
     }
 
 

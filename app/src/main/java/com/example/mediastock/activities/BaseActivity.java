@@ -21,12 +21,13 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mediastock.R;
-import com.example.mediastock.util.CustomPagerAdapter;
+import com.example.mediastock.model.CustomPagerAdapter;
 import com.example.mediastock.util.Utilities;
 
 import java.util.ArrayList;
@@ -78,9 +79,10 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
 /*
         DBController db = new DBController(this);
-        db.deleteTableColorAndImage();
-        db.createTableColorAndImage();
-        Utilities.deleteAllMediaFromInternalStorage(Utilities.IMG_DIR, this);
+        db.deleteTableMusicAndVideo();
+        db.createTableMusicAndVideo();
+        Utilities.deleteAllMediaFromInternalStorage(Utilities.MUSIC_DIR, this);
+        Utilities.deleteAllMediaFromInternalStorage(Utilities.VIDEO_DIR, this);
 */
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
@@ -386,7 +388,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
         editText = (EditText) v.findViewById(R.id.actionbar_search);
         editText.requestFocus();
-        Utilities.showKeyboard(getApplicationContext());
+        showKeyboard();
 
         editText.setOnTouchListener(new View.OnTouchListener() {
 
@@ -400,11 +402,11 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
                         isFocused = false;
                         editText.setVisibility(View.GONE);
                         setTitle("MediaStock");
-                        Utilities.hideKeyboard(getApplicationContext(), editText);
+                        hideKeyboard(editText);
 
                     } else {
                         isFocused = true;
-                        Utilities.showKeyboard(getApplicationContext());
+                        showKeyboard();
                     }
                 }
 
@@ -439,7 +441,7 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
 
         this.editText.setVisibility(View.GONE);
         setTitle("MediaStock");
-        Utilities.hideKeyboard(getApplicationContext(), editText);
+        hideKeyboard(editText);
 
         boolean twoWords = parseQuery(query);
 
@@ -479,6 +481,23 @@ public class BaseActivity extends AppCompatActivity implements FilterImageFragme
             default:
                 break;
         }
+    }
+
+
+    /**
+     * It displays the keyboard.
+     */
+    public void showKeyboard() {
+        InputMethodManager imm = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
+    }
+
+    /**
+     * It removes the keyboard.
+     */
+    public void hideKeyboard(View view) {
+        InputMethodManager imm = (InputMethodManager) this.getApplicationContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
 }

@@ -19,58 +19,54 @@ import java.util.concurrent.FutureTask;
  */
 public class ExecuteExecutor {
     private static ExecutorService executor;
-    private FutureWork futureTask;
+    private final FutureWork futureTask;
 
-    public ExecuteExecutor(Context context, CallableAsyncTask callableAsyncTask) {
+    public ExecuteExecutor(Context context, int type, CallableAsyncTask callableAsyncTask) {
         executor = Executors.newSingleThreadExecutor();
-        futureTask = new FutureWork(callableAsyncTask, context);
+        futureTask = new FutureWork(callableAsyncTask, context, type);
 
         // execute the task
         executor.execute(futureTask);
     }
 
+    /**
+     * Class to compute an asynchronous computation and to control the operation. It wraps a callable object.
+     */
     private static class FutureWork extends FutureTask<String> {
         private static Handler handler;
-        private static WeakReference<Context> contextRef;
+        private final int type;
 
-        public FutureWork(Callable<String> callable, final Context context) {
+        public FutureWork(Callable<String> callable, final Context context, int type) {
             super(callable);
-            contextRef = new WeakReference<>(context);
+            this.type = type;
 
-            // handler to display a message on the UI (video added/removed from favorites)
+            // handler to display a message on the UI (video/music added/removed from favorites)
             // after the thread finished the task
-            handler = new Handler(Looper.getMainLooper()) {
-
-                @Override
-                public void handleMessage(Message inputMessage) {
-
-                    String msg = (String) inputMessage.obj;
-                    Toast.makeText(contextRef.get().getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-
-                    // clear resource
-                    contextRef = null;
-                }
-            };
+            if (type == 1)
+                handler = new MyHandler(Looper.getMainLooper(), context);
         }
 
         @Override
         protected void done() {
             super.done();
 
-            String result = "";
-            try {
+            if (type == 1) {
 
-                result = get(); // get resulting string
+                String result = "";
+                try {
 
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
+                    result += get(); // get resulting message
+
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+
+                // send message to the handler
+                Message message = handler.obtainMessage(1, result);
+                message.sendToTarget();
             }
-
-            // send string to the handler
-            Message message = handler.obtainMessage(1, result);
-            message.sendToTarget();
 
             // after the thread finished the task, we clear the resources
             executor.shutdown();
@@ -78,7 +74,7 @@ public class ExecuteExecutor {
     }
 
     /**
-     * Abstract runnable class
+     * Abstract callable class thaht computes a background operation.
      */
     public static abstract class CallableAsyncTask implements Callable<String> {
         private static WeakReference<Activity> contextRef;
@@ -93,6 +89,30 @@ public class ExecuteExecutor {
 
         @Override
         public abstract String call();
+    }
+
+    /**
+     * Handler class to get the message from the background thread and to display a result message on the the main thread
+     */
+    private static class MyHandler extends Handler {
+        private static WeakReference<Context> ref;
+
+        public MyHandler(Looper looper, Context context) {
+            super(looper);
+
+            ref = new WeakReference<>(context);
+        }
+
+        @Override
+        public void handleMessage(Message inputMsg) {
+            super.handleMessage(inputMsg);
+
+            String msg = (String) inputMsg.obj;
+            Toast.makeText(ref.get().getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+
+            // clear resource
+            ref = null;
+        }
     }
 
 }

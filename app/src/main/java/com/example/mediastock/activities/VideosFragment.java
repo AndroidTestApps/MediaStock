@@ -22,7 +22,7 @@ import android.widget.Toast;
 
 import com.example.mediastock.R;
 import com.example.mediastock.data.VideoBean;
-import com.example.mediastock.util.MusicVideoAdapter;
+import com.example.mediastock.model.MusicVideoAdapter;
 import com.example.mediastock.util.Utilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -309,7 +309,7 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
     }
 
     /**
-     * Handler to update the UI
+     * Handler to get the message from the background thread and to update the result message on the the main thread
      */
     private static class MyHandler extends Handler {
         private static WeakReference<VideosFragment> activity;
@@ -459,6 +459,8 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                         });
 
                         con.disconnect();
+                        is.close();
+
                         return;
                     }
 
@@ -593,6 +595,8 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                         });
 
                         con.disconnect();
+                        is.close();
+
                         return;
                     }
 
@@ -707,7 +711,9 @@ public class VideosFragment extends AbstractFragment implements LoaderCallbacks<
                     if (array.size() == 0) {
                         int yesterday = day;
                         yesterday += 1;
+
                         con.disconnect();
+                        is.close();
 
                         getRecentVideos(yesterday, loadingPageNumber);
                         return;

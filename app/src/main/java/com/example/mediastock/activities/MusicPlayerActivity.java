@@ -23,14 +23,21 @@ import com.example.mediastock.data.DBController;
 import com.example.mediastock.data.MusicBean;
 import com.example.mediastock.util.ExecuteExecutor;
 import com.example.mediastock.util.Utilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -94,7 +101,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
         seekbar.getThumb().setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_ATOP);
         seekbar.getProgressDrawable().setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_ATOP);
 
-        // get bean infos
+        // get beans info
         bean = getBeanFromIntent();
         url = bean.getPreview();
         musicID = Integer.valueOf(bean.getId());
@@ -290,7 +297,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
                 showProgressDialog("Removing music from favorites...");
 
                 // thread to remove the music from db
-                new ExecuteExecutor(this, new ExecuteExecutor.CallableAsyncTask(this) {
+                new ExecuteExecutor(this, 1, new ExecuteExecutor.CallableAsyncTask(this) {
 
                     @Override
                     public String call() {
@@ -299,7 +306,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
                         // path of the music
                         String path = context.db.getMusicPath(context.musicID);
 
-                        // delete music infos
+                        // delete musics info
                         context.db.deleteMusicInfo(context.musicID);
 
                         // delete music from storage
@@ -320,15 +327,16 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
                 showProgressDialog("Adding music to favorites...");
 
                 // thread to save the music
-                new ExecuteExecutor(this, new ExecuteExecutor.CallableAsyncTask(this) {
+                new ExecuteExecutor(this, 1, new ExecuteExecutor.CallableAsyncTask(this) {
 
                     // thread to add the music to favorites
                     @Override
                     public String call() {
                         MusicPlayerActivity context = (MusicPlayerActivity) getContextRef();
-
                         HttpURLConnection con = null;
                         InputStream stream = null;
+                        String path = "";
+
                         try {
 
                             URL urll = new URL(context.url);
@@ -336,32 +344,24 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
                             stream = con.getInputStream();
 
                             // save stream music to storage
-                            String path = Utilities.saveMediaToInternalStorage(Utilities.MUSIC_DIR, context, stream, context.musicID);
+                            path += Utilities.saveMediaToInternalStorage(Utilities.MUSIC_DIR, context, stream, context.musicID);
 
-                            // save music info to database
-                            context.db.insertMusicInfo(path, context.musicID, context.bean.getTitle());
-
-                        } catch (MalformedURLException e) {
-                            e.printStackTrace();
                         } catch (IOException e) {
                             e.printStackTrace();
-
                         } finally {
-
                             // and finally we close the objects
-                            if (con != null && stream != null) {
-                                con.disconnect();
-
-                                try {
-
+                            try {
+                                if (stream != null) {
+                                    con.disconnect();
                                     stream.close();
-
-                                } catch (IOException e) {
-                                    e.printStackTrace();
                                 }
+                            } catch (IOException e) {
+                                e.printStackTrace();
                             }
                         }
 
+                        // add music info to database
+                        context.addMusicInfoToDB(path, context.musicID, context.bean.getTitle());
                         context.progressDialog.dismiss();
 
                         return "Music added to favorites";
@@ -371,6 +371,71 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
         }
     }
 
+    /**
+     * Thread to add the info of the music to database
+     *
+     * @param path    the path where the music is stored
+     * @param musicID the id of the music
+     * @param title   the title of the music
+     */
+    private void addMusicInfoToDB(final String path, final int musicID, final String title) {
+
+        new ExecuteExecutor(this, 2, new ExecuteExecutor.CallableAsyncTask(this) {
+
+            @Override
+            public String call() {
+                MusicPlayerActivity context = (MusicPlayerActivity) getContextRef();
+                HttpURLConnection con = null;
+                InputStream is = null;
+                String genre = "";
+
+                // first, get the genre of the music
+                try {
+                    URL url = new URL("https://api.shutterstock.com/v2/audio/" + context.musicID);
+                    con = (HttpURLConnection) url.openConnection();
+                    con.setRequestProperty("Authorization", "Basic " + Utilities.getLicenseKey());
+                    con.setConnectTimeout(25000);
+                    con.setReadTimeout(25000);
+
+                    if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                        is = con.getInputStream();
+
+                        BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+                        String jsonText = Utilities.readAll(rd);
+                        rd.close();
+
+                        JsonElement json = new JsonParser().parse(jsonText);
+                        JsonObject o = json.getAsJsonObject();
+                        JsonArray array = o.get("genres") != null ? o.get("genres").getAsJsonArray() : null;
+
+                        if (array != null) {
+                            if (array.size() > 0)
+                                genre += array.get(0) != null ? array.get(0).getAsString() : " - ";
+                        }
+
+                        // save music info to database
+                        context.db.insertMusicInfo(path, musicID, title, genre);
+                    }
+                } catch (SocketTimeoutException e) {
+                    if (con != null)
+                        con.disconnect();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    // and finally we close the objects
+                    try {
+                        if (is != null) {
+                            con.disconnect();
+                            is.close();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return null;
+            }
+        });
+    }
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {

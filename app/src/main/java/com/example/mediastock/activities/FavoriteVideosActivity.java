@@ -4,11 +4,23 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mediastock.R;
@@ -16,23 +28,32 @@ import com.example.mediastock.data.Bean;
 import com.example.mediastock.data.DBController;
 import com.example.mediastock.data.DBHelper;
 import com.example.mediastock.data.VideoBean;
-import com.example.mediastock.util.MusicVideoAdapter;
+import com.example.mediastock.model.MusicSpinnerRowAdapter;
+import com.example.mediastock.model.MusicVideoAdapter;
+import com.example.mediastock.util.ExecuteExecutor;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 
-
-public class FavoriteVideosActivity extends AppCompatActivity {
-    //private FloatingActionButton fabFilter;
+/**
+ * Activity to display the favorite videos. It also filters the videos by color or by category.
+ */
+public class FavoriteVideosActivity extends AppCompatActivity implements View.OnClickListener {
+    private final ArrayList<String> rowsModel = new ArrayList<>();
+    private MusicSpinnerRowAdapter spinnerRowAdapter;
+    private FloatingActionButton fabFilter;
     private MusicVideoAdapter adapter;
+    private int width;
+    private int categorySelectedPosition;
     private DBController db;
     private Cursor cursor;
-    private int videoID_temp = 0;
     private int cursorTempCount = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.favorite_music_video);
+        width = getResources().getDisplayMetrics().widthPixels;
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -50,6 +71,11 @@ public class FavoriteVideosActivity extends AppCompatActivity {
         db = new DBController(this);
         cursor = db.getVideosInfo();
 
+        // create the spinner model rows and the adapter
+        createSpinnerModelRows();
+
+        fabFilter = (FloatingActionButton) this.findViewById(R.id.fab_options);
+        fabFilter.setOnClickListener(this);
         RecyclerView recyclerView = (RecyclerView) this.findViewById(R.id.list_music_video_fav);
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager llm = new LinearLayoutManager(getApplicationContext());
@@ -71,8 +97,29 @@ public class FavoriteVideosActivity extends AppCompatActivity {
         if (cursor.getCount() == 0)
             Toast.makeText(getApplicationContext(), "There are no videos saved", Toast.LENGTH_SHORT).show();
         else
-            new AsyncDBWork(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR); //get video info from db
+            new AsyncDBWork(this, 1).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR); //get video info from db
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.favorites_menu, menu);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        super.onOptionsItemSelected(item);
+
+        // refresh the video list
+        if (item.getItemId() == R.id.item_refresh) {
+
+            refreshList();
+        }
+
+        return true;
     }
 
     /**
@@ -86,9 +133,6 @@ public class FavoriteVideosActivity extends AppCompatActivity {
         bundle.putParcelable("bean", bean);
         intent.putExtra("bean", bundle);
         bundle.putInt("type", 2);
-
-        // save the position that this items has in the adapter
-        videoID_temp = position;
 
         startActivity(intent);
         overridePendingTransition(R.anim.trans_corner_from, R.anim.trans_corner_to);
@@ -113,43 +157,172 @@ public class FavoriteVideosActivity extends AppCompatActivity {
     protected void onRestart() {
         super.onRestart();
 
-        // get the cursor
+        // get the current cursor
         cursor = db.getVideosInfo();
+
+        if (cursor.getCount() == 0) {
+            adapter.deleteItems();
+
+            Toast.makeText(getApplicationContext(), "There are no videos saved", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         // a video has been removed from favorites
         if (cursorTempCount > cursor.getCount())
-            adapter.deleteItemAt(videoID_temp);
+            refreshList();
 
         // a new video has been added to favorites
-        if (cursorTempCount < cursor.getCount()) {
-            cursor.moveToLast();
+        if (cursorTempCount < cursor.getCount())
+            refreshList();
+    }
 
-            final VideoBean bean = new VideoBean();
-            bean.setPos(adapter.getItemCount());
-            bean.setId(String.valueOf(cursor.getInt(cursor.getColumnIndex(DBHelper.VIDEO_ID))));
-            bean.setDescription(cursor.getString(cursor.getColumnIndex(DBHelper.DESCRIPTION_VIDEO)));
-            bean.setPath(cursor.getString(cursor.getColumnIndex(DBHelper.MUSIC_PATH)));
 
-            adapter.addItem(bean);
+    /**
+     * Method to refresh the view. It loads the videos from the storage
+     */
+    private void refreshList() {
+        // first remove current videos
+        adapter.deleteItems();
+
+        // get videos info from db
+        new AsyncDBWork(this, 1).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    @Override
+    public void onClick(View v) {
+
+        if (v.getId() == R.id.fab_options) {
+            fabFilter.setClickable(false);
+            showPopupMenu();
         }
+    }
+
+    /**
+     * Method to show a popup menu to filter the music
+     */
+    private void showPopupMenu() {
+        int layoutWidth = (width / 2) + (width / 3);
+
+        LayoutInflater layoutInflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
+        final View popupView = layoutInflater.inflate(R.layout.popup_window_music, null);
+
+        final Spinner rows = (Spinner) popupView.findViewById(R.id.spinner_rows);
+        rows.setAdapter(spinnerRowAdapter);
+        rows.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+                // the selected genre position
+                categorySelectedPosition = position;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
+        final PopupWindow popupWindow = new PopupWindow(popupView, layoutWidth, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        TextView filterVideos = (TextView) popupView.findViewById(R.id.textFilterOption);
+        filterVideos.setText("Filter videos");
+        TextView labelCategory = (TextView) popupView.findViewById(R.id.labelFirstOption);
+        labelCategory.setText("Category");
+        Button buttonDismiss = (Button) popupView.findViewById(R.id.dismiss);
+        Button buttonOK = (Button) popupView.findViewById(R.id.accept);
+
+
+        // dismiss
+        buttonDismiss.setOnClickListener(new Button.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+
+                popupWindow.dismiss();
+                fabFilter.setClickable(true);
+            }
+        });
+
+        // ok
+        buttonOK.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                popupWindow.dismiss();
+                fabFilter.setClickable(true);
+            }
+        });
+
+        popupWindow.showAtLocation(fabFilter, Gravity.CENTER, 0, 0);
+    }
+
+    /*
+   * Thread to create the spinner model rows. It gets from database the category of each video
+   */
+    private void createSpinnerModelRows() {
+        new ExecuteExecutor(this, 2, new ExecuteExecutor.CallableAsyncTask(this) {
+
+            @Override
+            public String call() {
+                FavoriteVideosActivity context = (FavoriteVideosActivity) this.getContextRef();
+                Cursor cursor = context.db.getVideoCategory();
+
+                do {
+
+                    context.rowsModel.add(cursor.getString(cursor.getColumnIndex(DBHelper.VIDEO_CATEGORY)));
+
+                } while (cursor.moveToNext());
+
+                cursor.close();
+
+                // adapter for the spinner
+                context.spinnerRowAdapter = new MusicSpinnerRowAdapter(context, R.layout.media_spinner_rows, context.rowsModel);
+
+                return null;
+            }
+        });
     }
 
 
     /**
      * Class to get in background the video info from the database.
      */
-    private static class AsyncDBWork extends AsyncTask<Void, Bean, Void> {
+    private static class AsyncDBWork extends AsyncTask<String, Bean, Void> {
         private static WeakReference<FavoriteVideosActivity> activity;
+        private final int type;
 
-        public AsyncDBWork(FavoriteVideosActivity context) {
+        public AsyncDBWork(FavoriteVideosActivity context, int type) {
             activity = new WeakReference<>(context);
+            this.type = type;
         }
 
         @Override
-        protected Void doInBackground(Void... params) {
+        protected Void doInBackground(String... params) {
+
+            switch (type) {
+
+                case 1:
+                    getFavoriteVideos();
+                    break;
+
+                case 2:
+                    filterVideosByCategory(params[0]);
+                    break;
+
+                default:
+                    break;
+            }
+
+            return null;
+        }
+
+        /**
+         * It gets the videos info from database. The result is wrapped in a bean and then sent to the adapter to update the view.
+         */
+        private void getFavoriteVideos() {
             final FavoriteVideosActivity context = activity.get();
             int pos = 0;
 
+            context.cursor.moveToFirst();
             do {
 
                 final VideoBean bean = new VideoBean();
@@ -162,10 +335,11 @@ public class FavoriteVideosActivity extends AppCompatActivity {
 
                 pos++;
             } while (context.cursor.moveToNext());
-
-            return null;
         }
 
+        private void filterVideosByCategory(String genre) {
+
+        }
 
         @Override
         protected void onProgressUpdate(Bean... values) {

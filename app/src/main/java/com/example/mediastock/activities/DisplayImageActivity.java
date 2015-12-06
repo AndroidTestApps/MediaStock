@@ -31,7 +31,7 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.example.mediastock.R;
 import com.example.mediastock.data.DBController;
 import com.example.mediastock.data.ImageBean;
-import com.example.mediastock.util.ImageAdapter;
+import com.example.mediastock.model.ImageAdapter;
 import com.example.mediastock.util.Utilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -49,7 +49,7 @@ import java.nio.charset.Charset;
 import java.util.Iterator;
 
 /**
- * Activity to display the image that the user clicked. It displays the description of the image and the similar images.
+ * Activity to display the image that the user clicked. It displays the description of the image, the author  and the similar images.
  * The image can be added to favorites or removed from favorites.
  *
  * @author Dinu
@@ -338,7 +338,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
 
 
     /**
-     * Handler to update the UI
+     * Handler to get the message from the background thread and to update the result message on the the main thread
      */
     private static class MyHandler extends Handler {
         private static WeakReference<DisplayImageActivity> activity;
@@ -431,7 +431,7 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
                     rd.close();
 
                     JsonElement json = new JsonParser().parse(jsonText);
-                    author = json.getAsJsonObject().get("display_name") == null ? " - " : json.getAsJsonObject().get("display_name").getAsString();
+                    author += json.getAsJsonObject().get("display_name") == null ? " - " : json.getAsJsonObject().get("display_name").getAsString();
                 }
 
                 con.disconnect();
@@ -603,11 +603,10 @@ public class DisplayImageActivity extends AppCompatActivity implements View.OnCl
             int muted = 0;
             int lightMuted = 0;
             int darkMuted = 0;
-            int dominantColor = 0;
 
             // get the dominant color of the image
             Palette.Swatch dominantSwatch = Utilities.getDominantSwatch(palette);
-            dominantColor = dominantSwatch.getRgb();
+            int dominantColor = dominantSwatch.getRgb();
 
             Palette.Swatch vibrantSwatch = palette.getVibrantSwatch();
             Palette.Swatch darkVibrantSwatch = palette.getDarkVibrantSwatch();

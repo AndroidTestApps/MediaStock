@@ -1,4 +1,4 @@
-package com.example.mediastock.util;
+package com.example.mediastock.model;
 
 
 import android.app.Activity;
@@ -14,6 +14,7 @@ import android.widget.RelativeLayout;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.mediastock.R;
+import com.example.mediastock.util.Utilities;
 
 import java.util.ArrayList;
 

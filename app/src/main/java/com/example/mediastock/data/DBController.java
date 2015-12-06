@@ -85,39 +85,71 @@ public class DBController {
     }
 
 
+    /**
+     * Query to get the genre of each music.
+     *
+     * @return the cursor object
+     */
+    public Cursor getMusicGenre() {
+        Cursor cursor = db.rawQuery("select " + DBHelper.MUSIC_GENRE + " from " + DBHelper.TABLE_MUSIC, null);
+
+        if (cursor.getCount() > 0)
+            cursor.moveToFirst();
+
+        return cursor;
+    }
+
 
     /**
-     * Method to add to database the music infos
+     * Query to get the category of each video.
      *
-     * @param path    the path of the music
-     * @param musicId the id of the music
-     * @param title    the title of the music
+     * @return the cursor object
      */
-    public long insertMusicInfo(String path, int musicId, String title) {
+    public Cursor getVideoCategory() {
+        Cursor cursor = db.rawQuery("select " + DBHelper.VIDEO_CATEGORY + " from " + DBHelper.TABLE_VIDEOS, null);
+
+        if (cursor.getCount() > 0)
+            cursor.moveToFirst();
+
+        return cursor;
+    }
+
+    /**
+     * Method to add to database the music info
+     *
+     * @param path     the path of the music
+     * @param musicId  the id of the music
+     * @param title    the title of the music
+     * @param genre    the genre of the music
+     */
+    public void insertMusicInfo(String path, int musicId, String title, String genre) {
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(DBHelper.MUSIC_PATH, path);
         contentValues.put(DBHelper.MUSIC_ID, new Integer(musicId));
         contentValues.put(DBHelper.TITLE_MUSIC, title);
+        contentValues.put(DBHelper.MUSIC_GENRE, genre);
 
-        return db.insert(DBHelper.TABLE_MUSIC, null, contentValues);
+        db.insert(DBHelper.TABLE_MUSIC, null, contentValues);
     }
 
     /**
-     * Method to add to database the videos infos
+     * Method to add to database the videos info
      *
      * @param path        the path of the video
      * @param videoID     the id of the video
      * @param description the description of the video
+     * @param category    the category of the video
      */
-    public long insertVideoInfo(String path, int videoID, String description) {
+    public void insertVideoInfo(String path, int videoID, String description, String category) {
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(DBHelper.VIDEO_PATH, path);
         contentValues.put(DBHelper.VIDEO_ID, new Integer(videoID));
         contentValues.put(DBHelper.DESCRIPTION_VIDEO, description);
+        contentValues.put(DBHelper.VIDEO_CATEGORY, category);
 
-        return db.insert(DBHelper.TABLE_VIDEOS, null, contentValues);
+        db.insert(DBHelper.TABLE_VIDEOS, null, contentValues);
     }
 
     /**
@@ -128,7 +160,7 @@ public class DBController {
      * @param description the description of the image
      * @param author      the author of the image
      */
-    public long insertImageInfo(String imagePath, int imgId, String description, String author) {
+    public void insertImageInfo(String imagePath, int imgId, String description, String author) {
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(DBHelper.IMG_PATH, imagePath);
@@ -136,7 +168,7 @@ public class DBController {
         contentValues.put(DBHelper.DESCRIPTION_IMG, description);
         contentValues.put(DBHelper.AUTHOR_IMG, author);
 
-        return db.insert(DBHelper.TABLE_IMAGES, null, contentValues);
+        db.insert(DBHelper.TABLE_IMAGES, null, contentValues);
     }
 
     /**
@@ -144,7 +176,7 @@ public class DBController {
      *
      * @param imageID the id of the image
      */
-    public long insertColorPalette(int imageID, int vibrant, int lightVibrant, int darkVibrant, int muted, int lightMuted, int darkMuted, int dominantColor) {
+    public void insertColorPalette(int imageID, int vibrant, int lightVibrant, int darkVibrant, int muted, int lightMuted, int darkMuted, int dominantColor) {
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(DBHelper.IMG_ID, imageID);
@@ -156,7 +188,7 @@ public class DBController {
         contentValues.put(DBHelper.DARK_MUTED, darkMuted);
         contentValues.put(DBHelper.DOMINANT_COLOR, dominantColor);
 
-        return db.insert(DBHelper.TABLE_COLORS, null, contentValues);
+        db.insert(DBHelper.TABLE_COLORS, null, contentValues);
     }
 
 
@@ -332,6 +364,9 @@ public class DBController {
         return false;
     }
 
+    /*************
+     * test methods
+     ************/
 
     public void deleteTables() {
         db.execSQL("DROP TABLE IF EXISTS " + DBHelper.TABLE_IMAGES);
@@ -340,12 +375,12 @@ public class DBController {
         db.execSQL("DROP TABLE IF EXISTS " + DBHelper.TABLE_COLORS);
     }
 
-    public void deleteTableColorAndImage() {
-        db.execSQL("DROP TABLE IF EXISTS " + DBHelper.TABLE_IMAGES);
-        db.execSQL("DROP TABLE IF EXISTS " + DBHelper.TABLE_COLORS);
+    public void deleteTableMusicAndVideo() {
+        db.execSQL("DROP TABLE IF EXISTS " + DBHelper.TABLE_VIDEOS);
+        db.execSQL("DROP TABLE IF EXISTS " + DBHelper.TABLE_MUSIC);
     }
 
-    public void createTableColorAndImage() {
+    public void createTableMusicAndVideo() {
         dbHelper.createTables(db);
     }
 
@@ -353,15 +388,11 @@ public class DBController {
         dbHelper.onCreate(db);
     }
 
-    public void deleteAllRowsMusic() {
-        db.execSQL("delete from " + DBHelper.TABLE_MUSIC);
-    }
-
 
     /**
      * Close the database. Done automatically by the android kernel
      */
- /*   public void close() {
+    /*public void close() {
         db.close();
         dbHelper.close();
     } */

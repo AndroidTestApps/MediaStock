@@ -1,4 +1,4 @@
-package com.example.mediastock.util;
+package com.example.mediastock.model;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;

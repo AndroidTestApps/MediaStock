@@ -17,9 +17,9 @@ import android.widget.Toast;
 
 import com.example.mediastock.R;
 import com.example.mediastock.data.ImageBean;
+import com.example.mediastock.model.ImageAdapter;
 import com.example.mediastock.util.DownloadResultReceiver;
 import com.example.mediastock.util.DownloadService;
-import com.example.mediastock.util.ImageAdapter;
 import com.example.mediastock.util.Utilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -373,6 +373,8 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                     if (array.size() == 0) {
                         searchSuccess = false;
                         con.disconnect();
+                        is.close();
+
                         return;
                     }
 
@@ -449,7 +451,9 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
                     if (array.size() == 0) {
                         int yesterday = day;
                         yesterday += 1;
+
                         con.disconnect();
+                        is.close();
 
                         getRecentImages(yesterday, loadingPageNumber);
                         return;
@@ -511,7 +515,7 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
         protected void onPostExecute(String result) {
             if (!searchSuccess) {
                 activity.get().dismissProgressBar();
-                Toast.makeText(context, "Sorry, no image with " + result + " was found!", Toast.LENGTH_LONG).show();
+                Toast.makeText(activity.get().context, "Sorry, no image with " + result + " was found!", Toast.LENGTH_LONG).show();
             }
 
             activity.get().working = false;

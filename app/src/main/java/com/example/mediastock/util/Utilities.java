@@ -7,8 +7,6 @@ import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.support.v7.graphics.Palette;
-import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 
 import com.example.mediastock.R;
 
@@ -306,20 +304,4 @@ public class Utilities {
         return (int) context.getResources().getDimension(R.dimen.tabsHeight);
     }
 
-
-    /**
-     * It displays the keyboard.
-     */
-    public static void showKeyboard(Context context) {
-        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
-    }
-
-    /**
-     * It removes the keyboard.
-     */
-    public static void hideKeyboard(Context context, View view) {
-        InputMethodManager imm = (InputMethodManager) context.getApplicationContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-    }
 }

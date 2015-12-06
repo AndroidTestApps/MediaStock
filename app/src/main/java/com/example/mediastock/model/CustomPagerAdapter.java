@@ -1,4 +1,4 @@
-package com.example.mediastock.util;
+package com.example.mediastock.model;
 
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;

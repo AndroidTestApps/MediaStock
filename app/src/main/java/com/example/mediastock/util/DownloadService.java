@@ -160,6 +160,7 @@ public class DownloadService extends IntentService {
                     publishImageResult(null, 3, receiver);
 
                     con.disconnect();
+                    is.close();
                     return;
                 }
 
@@ -233,6 +234,7 @@ public class DownloadService extends IntentService {
                     publishMusicResult(null, 3, receiver);
 
                     con.disconnect();
+                    is.close();
                     return;
                 }
 
