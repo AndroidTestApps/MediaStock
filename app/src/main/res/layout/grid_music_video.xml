@@ -30,15 +30,15 @@
                 android:id="@+id/ivIcon_music_video"
                 android:layout_width="60dp"
                 android:layout_height="70dp"
-                android:layout_marginLeft="5dp"/>
+                android:layout_marginStart="5dp"/>
 
             <TextView
                 android:id="@+id/textView_grid_music_video"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginLeft="15dp"
+                android:layout_marginStart="12dp"
                 android:ellipsize="end"
-                android:gravity="left|center"
+                android:gravity="start|center"
                 android:maxLines="3"
                 android:scrollHorizontally="true"
                 android:textColor="#DE000000"

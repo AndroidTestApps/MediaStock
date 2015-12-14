@@ -1,6 +1,7 @@
 package com.example.mediastock.util;
 
 import android.graphics.Color;
+import android.util.Log;
 import android.util.SparseArray;
 
 
@@ -43,6 +44,9 @@ public class ColorHelper {
 
         if (darkMutedSwatch != 0)
             darkMuted = colorsSimilarity(darkMutedSwatch);
+
+        Log.i("img", "values: " + String.valueOf(vibrant) + "  " + String.valueOf(lightVibrant) + " " + String.valueOf(darkVibrant) +
+                " " + String.valueOf(muted) + " " + String.valueOf(darkMuted) + " " + String.valueOf(lightMuted));
 
         return vibrant || lightVibrant || darkVibrant || muted || lightMuted || darkMuted;
     }
@@ -117,8 +121,7 @@ public class ColorHelper {
     public boolean getColorSimilarity(int vibrantSwatch, int darkVibrantSwatch, int lightVibrantSwatch,
                                       int mutedSwatch, int darkMutedSwatch, int lightMutedSwatch) {
 
-        boolean result = analyseSwatches(vibrantSwatch, darkVibrantSwatch, lightVibrantSwatch, mutedSwatch, darkMutedSwatch, lightMutedSwatch);
-
-        return result;
+        return analyseSwatches(vibrantSwatch, darkVibrantSwatch, lightVibrantSwatch, mutedSwatch, darkMutedSwatch, lightMutedSwatch);
     }
+
 }

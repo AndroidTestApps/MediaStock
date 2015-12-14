@@ -47,7 +47,6 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
     private Cursor cursor;
     private int width;
     private boolean selectImageForFilter = false;
-    private boolean filteredImages = false;
     private int cursorTempCount = 0;
     private int colorSelectedPosition;
     private MenuItem menuAcceptSelectedImgs;
@@ -163,25 +162,14 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
             return;
         }
 
-        // if the images were filtered, move the cursor to the right position
-        if (filteredImages)
-            cursor.moveToPosition(adapter.getFilteredImagePositionAt(selectedPos));
-        else
-            cursor.moveToPosition(selectedPos);
-
-        // the images will be filtered
-        filteredImages = true;
-
-        int imageID = cursor.getInt(cursor.getColumnIndex(DBHelper.IMG_ID));
-
-        // remove the old filtered positions
-        adapter.clearFilteredImagesPositions();
+        // get bean at the position selected
+        final ImageBean bean = (ImageBean) adapter.getItem(selectedPos);
 
         // first remove the images from the adapter
-        adapter.deletePathList();
+        adapter.deleteBeansList();
 
         // start thread to filter the images
-        new AsyncDBWork(this, 3).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, imageID);
+        new AsyncDBWork(this, 3).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, bean.getId());
     }
 
     /**
@@ -191,18 +179,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
      */
     private void goToDisplayImageActivity(int position) {
         final Bundle bundle = new Bundle();
-        final ImageBean bean = new ImageBean();
-
-        // if the images were filtered, move the cursor to the right position
-        if (filteredImages)
-            cursor.moveToPosition(adapter.getFilteredImagePositionAt(position));
-        else
-            cursor.moveToPosition(position);
-
-        bean.setId(cursor.getInt(cursor.getColumnIndex(DBHelper.IMG_ID)));
-        bean.setDescription(cursor.getString(cursor.getColumnIndex(DBHelper.DESCRIPTION_IMG)));
-        bean.setAuthor(cursor.getString(cursor.getColumnIndex(DBHelper.AUTHOR_IMG)));
-        bean.setPath(cursor.getString(cursor.getColumnIndex(DBHelper.IMG_PATH)));
+        final ImageBean bean = (ImageBean) adapter.getItem(position);
 
         Intent intent = new Intent(getApplicationContext(), DisplayImageActivity.class);
         bundle.putInt("type", 2);
@@ -237,7 +214,7 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         cursor = db.getImagesInfo();
 
         if (cursor.getCount() == 0) {
-            adapter.deletePathList();
+            adapter.deleteBeansList();
 
             Toast.makeText(getApplicationContext(), "There are no images saved", Toast.LENGTH_SHORT).show();
             return;
@@ -324,13 +301,9 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         buttonOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                filteredImages = true;
-
-                // remove the old filtered positions
-                adapter.clearFilteredImagesPositions();
 
                 // first remove the images from the adapter
-                adapter.deletePathList();
+                adapter.deleteBeansList();
 
                 // thread to filter the images by color
                 new AsyncDBWork(FavoriteImagesActivity.this, 2).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, colorSelectedPosition);
@@ -348,13 +321,9 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
      * Method to refresh the gridView. It loads the images from the storage
      */
     private void refreshGridView() {
-        filteredImages = false;
-
-        // delete filtered images positions elements
-        adapter.clearFilteredImagesPositions();
 
         // first remove current images
-        adapter.deletePathList();
+        adapter.deleteBeansList();
 
         // get the favorite images
         new AsyncDBWork(this, 1).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -388,10 +357,9 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
     /**
      * Class to do asynchronous operations. It loads the images from the storage or it filters the images.
      */
-    private static class AsyncDBWork extends AsyncTask<Integer, String, Void> {
+    private static class AsyncDBWork extends AsyncTask<Integer, ImageBean, Void> {
         private static WeakReference<FavoriteImagesActivity> activity;
         private final int type;
-        private int position = 0;
         private boolean success = false;
 
         /**
@@ -432,26 +400,36 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         }
 
         /**
-         * It gets the path from database of each image. The result is added to the adapters list to load the image from storage
+         * It gets the images info from database and then it adds the result to the adapters list to load the images from storage
          */
         private void getFavoriteImages() {
             FavoriteImagesActivity context = activity.get();
+            int pos = 0;
 
             context.cursor.moveToFirst();
             do {
 
-                // get path of the image
-                publishProgress(context.cursor.getString(context.cursor.getColumnIndex(DBHelper.IMG_PATH)));
+                final ImageBean bean = new ImageBean();
+                bean.setPos(pos);
+                bean.setId(context.cursor.getInt(context.cursor.getColumnIndex(DBHelper.IMG_ID)));
+                bean.setDescription(context.cursor.getString(context.cursor.getColumnIndex(DBHelper.DESCRIPTION_IMG)));
+                bean.setAuthor(context.cursor.getString(context.cursor.getColumnIndex(DBHelper.AUTHOR_IMG)));
+                bean.setPath(context.cursor.getString(context.cursor.getColumnIndex(DBHelper.IMG_PATH)));
 
+                // add the image bean to the adapter to update the UI
+                publishProgress(bean);
+
+                pos++;
             } while (context.cursor.moveToNext());
         }
 
         /**
          * Iterate over all images and find out if the color colorTarget is similar to the color palette of each image.
-         * When an image is found, we add the path of the image to the adapters list, to load the image from storage
+         * When an image is found, we add the images info to the adapters list, to load the image from storage
          */
         private void filterImages(int colorTarget) {
             FavoriteImagesActivity context = activity.get();
+            int pos = 0;
 
             // get from the db the color palettes of the images
             Cursor cursorColor = context.db.getColorPalettes();
@@ -471,12 +449,18 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
                 if (colorHelper.getColorSimilarity(vibrant, darkVibrant, lightVibrant, muted, darkMuted, lightMuted)) {
                     context.cursor.moveToPosition(cursorColor.getPosition());
 
-                    // save the position of this image
-                    context.adapter.addFilteredImagesPosition(cursorColor.getPosition());
+                    final ImageBean bean = new ImageBean();
+                    bean.setPos(pos);
+                    bean.setId(context.cursor.getInt(context.cursor.getColumnIndex(DBHelper.IMG_ID)));
+                    bean.setDescription(context.cursor.getString(context.cursor.getColumnIndex(DBHelper.DESCRIPTION_IMG)));
+                    bean.setAuthor(context.cursor.getString(context.cursor.getColumnIndex(DBHelper.AUTHOR_IMG)));
+                    bean.setPath(context.cursor.getString(context.cursor.getColumnIndex(DBHelper.IMG_PATH)));
 
-                    // we add the path of the image to the list adapter
-                    publishProgress(context.cursor.getString(context.cursor.getColumnIndex(DBHelper.IMG_PATH)));
+                    // we add the image bean to the adapter to update the UI
+                    publishProgress(bean);
+
                     success = true;
+                    pos++;
                 }
 
             } while (cursorColor.moveToNext());
@@ -487,12 +471,13 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
         /**
          * First we get the dominant color of the image selected and then we iterate over all images and find out if the
          * dominant color of the image selected is similar to the color palette of each image.
-         * When an image is found, we add the path of the image to the adapters list, to load the image from storage
+         * When an image is found, we add the images info to the adapters list, to load the image from storage
          *
          * @param imageID the id of the image
          */
         private void filterImagesByImage(int imageID) {
             FavoriteImagesActivity context = activity.get();
+            int pos = 0;
 
             // get from database the color palette of the images
             Cursor cursorColor = context.db.getColorPalettes();
@@ -515,26 +500,30 @@ public class FavoriteImagesActivity extends AppCompatActivity implements View.On
                 if (colorHelper.getColorSimilarity(vibrant, darkVibrant, lightVibrant, muted, darkMuted, lightMuted)) {
                     context.cursor.moveToPosition(cursorColor.getPosition());
 
-                    // save the position of this image
-                    context.adapter.addFilteredImagesPosition(cursorColor.getPosition());
+                    final ImageBean bean = new ImageBean();
+                    bean.setPos(pos);
+                    bean.setId(context.cursor.getInt(context.cursor.getColumnIndex(DBHelper.IMG_ID)));
+                    bean.setDescription(context.cursor.getString(context.cursor.getColumnIndex(DBHelper.DESCRIPTION_IMG)));
+                    bean.setAuthor(context.cursor.getString(context.cursor.getColumnIndex(DBHelper.AUTHOR_IMG)));
+                    bean.setPath(context.cursor.getString(context.cursor.getColumnIndex(DBHelper.IMG_PATH)));
 
-                    // we add the path of the image to the list adapter
-                    publishProgress(context.cursor.getString(context.cursor.getColumnIndex(DBHelper.IMG_PATH)));
+                    // we add the image bean to adapter to update the UI
+                    publishProgress(bean);
+
                     success = true;
+                    pos++;
                 }
 
             } while (cursorColor.moveToNext());
-
 
             cursorColor.close();
         }
 
         @Override
-        protected void onProgressUpdate(String... values) {
+        protected void onProgressUpdate(ImageBean... values) {
             super.onProgressUpdate(values);
 
-            activity.get().adapter.addPath(values[0], position);
-            position++;
+            activity.get().adapter.addImageBean(values[0]);
         }
 
         @Override

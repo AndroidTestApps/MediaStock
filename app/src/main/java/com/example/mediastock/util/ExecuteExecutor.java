@@ -23,7 +23,7 @@ public class ExecuteExecutor {
 
     public ExecuteExecutor(Context context, int type, CallableAsyncTask callableAsyncTask) {
         executor = Executors.newSingleThreadExecutor();
-        futureTask = new FutureWork(callableAsyncTask, context, type);
+        futureTask = new FutureWork(this, callableAsyncTask, context, type);
 
         // execute the task
         executor.execute(futureTask);
@@ -34,10 +34,12 @@ public class ExecuteExecutor {
      */
     private static class FutureWork extends FutureTask<String> {
         private static Handler handler;
+        private final WeakReference<ExecuteExecutor> ref;
         private final int type;
 
-        public FutureWork(Callable<String> callable, final Context context, int type) {
+        public FutureWork(ExecuteExecutor executeExecutor, Callable<String> callable, final Context context, int type) {
             super(callable);
+            this.ref = new WeakReference<>(executeExecutor);
             this.type = type;
 
             // handler to display a message on the UI (video/music added/removed from favorites)
@@ -68,13 +70,13 @@ public class ExecuteExecutor {
                 message.sendToTarget();
             }
 
-            // after the thread finished the task, we clear the resources
+            // after the thread finished the task, we close the eexecutor
             executor.shutdown();
         }
     }
 
     /**
-     * Abstract callable class thaht computes a background operation.
+     * Abstract callable class that computes a background operation.
      */
     public static abstract class CallableAsyncTask implements Callable<String> {
         private static WeakReference<Activity> contextRef;

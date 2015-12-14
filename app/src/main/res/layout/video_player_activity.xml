@@ -6,36 +6,30 @@
     android:layout_height="match_parent"
     android:background="#fdfdfd">
 
-    <ImageView
-        android:id="@+id/imageView_goBack"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="10dp"
-        android:src="@drawable/ic_action_back"
-        />
 
     <LinearLayout
-        android:id="@+id/video_linearLayoutVideo_title"
+        android:id="@+id/layoutVideo_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/imageView_goBack"
-        android:layout_marginEnd="3dp"
-        android:layout_marginStart="2dp"
-        android:layout_marginTop="5dp"
-        android:layout_toEndOf="@+id/imageView_goBack"
-        android:orientation="vertical">
+        android:orientation="horizontal">
 
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:paddingStart="3dp"
+            android:src="@drawable/video"/>
         <TextView
             android:id="@+id/textView_video_player_title"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:ellipsize="end"
             android:gravity="center"
-            android:padding="2dp"
+            android:paddingBottom="3dp"
+            android:paddingEnd="3dp"
+            android:paddingStart="4dp"
+            android:paddingTop="7dp"
             android:text="text"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="#DE000000"
+            android:textColor="#d6000000"
             />
     </LinearLayout>
 
@@ -43,9 +37,8 @@
         android:id="@+id/nestedView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/relll"
-        android:layout_below="@id/video_linearLayoutVideo_title"
-        android:layout_marginTop="5dp">
+        android:layout_above="@+id/layout_controller"
+        android:layout_below="@id/layoutVideo_title">
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/fab_favorites"
@@ -69,13 +62,12 @@
             android:layout_height="match_parent"
             android:background="#000000"
             android:orientation="vertical"
-            >
+            android:padding="3dp">
 
             <SurfaceView
                 android:id="@+id/surfaceview"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="1dp"/>
+                android:layout_height="wrap_content"/>
         </LinearLayout>
 
     </RelativeLayout>
@@ -83,7 +75,7 @@
 
     <!-- seekabar -->
     <LinearLayout
-        android:id="@+id/relll"
+        android:id="@+id/layout_controller"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"

@@ -14,16 +14,15 @@ import android.widget.RelativeLayout;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.mediastock.R;
+import com.example.mediastock.data.ImageBean;
 import com.example.mediastock.util.Utilities;
 
 import java.util.ArrayList;
 
 public class FavoriteImageAdapter extends BaseAdapter {
-    private final ArrayList<Integer> filteredImagesPositions = new ArrayList<>();
     private final SparseArray<Integer> selectedImages = new SparseArray<>();
-    private final ArrayList<String> pathList = new ArrayList<>();
+    private final ArrayList<ImageBean> beans = new ArrayList<>();
     private final RelativeLayout.LayoutParams layout_param;
-    private final int width;
     private final Context context;
 
 
@@ -31,19 +30,19 @@ public class FavoriteImageAdapter extends BaseAdapter {
         super();
 
         this.context = context;
-        this.width = context.getResources().getDisplayMetrics().widthPixels;
+        int width = context.getResources().getDisplayMetrics().widthPixels;
         this.layout_param = new RelativeLayout.LayoutParams(width / 2, width / 2);
         this.layout_param.setMargins(1, 0, 0, 1);
     }
 
     @Override
     public int getCount() {
-        return pathList.size();
+        return beans.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return pathList.get(position);
+        return beans.get(position);
     }
 
     @Override
@@ -51,30 +50,17 @@ public class FavoriteImageAdapter extends BaseAdapter {
         return 0;
     }
 
-    public void addPath(String image, int position) {
-        pathList.add(position, image);
+
+    public void addImageBean(ImageBean bean) {
+        beans.add(bean.getPos(), bean);
         notifyDataSetChanged();
     }
 
-    public void deletePathList() {
-        if (!pathList.isEmpty()) {
-            pathList.clear();
+    public void deleteBeansList() {
+        if (!beans.isEmpty()) {
+            beans.clear();
             notifyDataSetChanged();
         }
-    }
-
-
-    public void addFilteredImagesPosition(int position) {
-        filteredImagesPositions.add(position);
-    }
-
-    public int getFilteredImagePositionAt(int position) {
-        return filteredImagesPositions.get(position);
-    }
-
-    public void clearFilteredImagesPositions() {
-        if (filteredImagesPositions.size() > 0)
-            filteredImagesPositions.clear();
     }
 
 
@@ -120,9 +106,9 @@ public class FavoriteImageAdapter extends BaseAdapter {
         } else
             holder = (ImageHolder) view.getTag();
 
-        String path = pathList.get(position);
+        final ImageBean bean = (ImageBean) getItem(position);
 
-        Glide.with(context).load(Utilities.loadImageFromInternalStorage(context, path)).diskCacheStrategy(DiskCacheStrategy.RESULT).crossFade().centerCrop()
+        Glide.with(context).load(Utilities.loadImageFromInternalStorage(context, bean.getPath())).diskCacheStrategy(DiskCacheStrategy.RESULT).crossFade().centerCrop()
                 .placeholder(R.drawable.border).error(R.drawable.border).into(holder.imageView);
 
         return view;

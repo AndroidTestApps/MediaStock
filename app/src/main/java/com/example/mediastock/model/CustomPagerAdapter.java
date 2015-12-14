@@ -51,8 +51,6 @@ public class CustomPagerAdapter extends FragmentStatePagerAdapter {
             default:
                 return this.fragments.get(position);
         }
-
-
     }
 
 

@@ -45,15 +45,14 @@ public class MusicVideoAdapter extends AbstractMediaAdapter {
     public void onBindViewHolder(MediaHolder holder, int position) {
 
         if (getType() == 1) {
-            MusicBean item = (MusicBean) getBeanAt(position);
+            final MusicBean itemMusic = (MusicBean) getBeanAt(position);
             ((MusicVideoHolder) holder).ivIcon.setImageDrawable(icon_music);
-            ((MusicVideoHolder) holder).text.setText(item.getTitle());
+            ((MusicVideoHolder) holder).text.setText(itemMusic.getTitle());
         } else {
-            VideoBean item_video = (VideoBean) getBeanAt(position);
+            final VideoBean itemVideo = (VideoBean) getBeanAt(position);
             ((MusicVideoHolder) holder).ivIcon.setImageDrawable(icon_video);
-            ((MusicVideoHolder) holder).text.setText(item_video.getDescription());
+            ((MusicVideoHolder) holder).text.setText(itemVideo.getDescription());
         }
-
 
         // scrolled to the bottom
         if (position >= getPageNumber() - 1)

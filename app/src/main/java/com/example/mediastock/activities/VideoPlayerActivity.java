@@ -4,19 +4,23 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.media.AudioManager;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.graphics.Palette;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
@@ -41,6 +45,8 @@ import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -51,6 +57,7 @@ import java.util.concurrent.TimeUnit;
 public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callback, OnSeekBarChangeListener, View.OnClickListener {
     private static Handler myHandler = new Handler();
     public int oneTimeOnly = 0;
+    private LinearLayout layoutController, layoutDescription;
     private ProgressDialog progressDialog;
     private double startTime = 0;
     private double finalTime = 0;
@@ -70,6 +77,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
     private DBController db;
     private VideoBean bean;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,15 +86,8 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         // the database
         db = new DBController(this);
 
-        final ImageView goBack = (ImageView) this.findViewById(R.id.imageView_goBack);
-        goBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                onBackPressed();
-            }
-        });
-
+        layoutDescription = (LinearLayout) this.findViewById(R.id.layoutVideo_title);
+        layoutController = (LinearLayout) this.findViewById(R.id.layout_controller);
         favorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites);
         favorites.setOnClickListener(this);
         favorites.bringToFront();
@@ -99,13 +100,13 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         tx2 = (TextView) findViewById(R.id.textView2_video);
         tx1 = (TextView) findViewById(R.id.textView3_video);
 
-        // get bean infos
+        // get beans info
         bean = getBeanFromIntent();
         url = bean.getPreview();
         videoID = Integer.valueOf(bean.getId());
 
         // set description of the video
-        TextView description = (TextView) this.findViewById(R.id.textView_video_player_title);
+        final TextView description = (TextView) this.findViewById(R.id.textView_video_player_title);
         description.setText(bean.getDescription());
 
         // seekbar
@@ -122,6 +123,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
             public void onPrepared(MediaPlayer mp) {
                 progressDialog.dismiss();
                 playVideo(surfaceHolder.get());
+                getColors();
             }
         });
 
@@ -175,11 +177,29 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         surfaceHolder = new WeakReference<>(surfaceView.getHolder());
         surfaceHolder.get().addCallback(this);
         surfaceHolder.get().setSizeFromLayout();
+        surfaceView.setOnClickListener(this);
 
         // did we saved the video previously ? if so .. change the fab color
         checkExistingVideoInDB(videoID);
     }
 
+    /**
+     * Show/hide some views when the screen configuration changes
+     */
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        // checks the orientation of the screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            layoutController.setVisibility(View.GONE);
+            layoutDescription.setVisibility(View.GONE);
+
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            layoutController.setVisibility(View.VISIBLE);
+            layoutDescription.setVisibility(View.VISIBLE);
+        }
+    }
 
     /**
      * Method to compute all the offline work. We play the video that is saved to the internal storage
@@ -386,7 +406,7 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                         // path of the video
                         String path = activity.db.getVideoPath(activity.videoID);
 
-                        // delete video infos
+                        // delete videos info
                         activity.db.deleteVideoInfo(activity.videoID);
 
                         // delete video from storage
@@ -448,6 +468,14 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
 
 
             }
+        }
+
+        // click on the view
+        if (v.getId() == R.id.surfaceview) {
+            if (layoutController.getVisibility() == View.GONE)
+                layoutController.setVisibility(View.VISIBLE);
+            else if (layoutController.getVisibility() == View.VISIBLE)
+                layoutController.setVisibility(View.GONE);
         }
     }
 
@@ -515,7 +543,95 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
                 return null;
             }
         });
+
+
     }
+
+    private void getColors() {
+        final Set<Integer> set = new HashSet<>();
+
+        // extract the frames from the favorite video
+        new ExecuteExecutor(this, 2, new ExecuteExecutor.CallableAsyncTask(this) {
+
+            @Override
+            public String call() {
+                final VideoPlayerActivity context = (VideoPlayerActivity) this.getContextRef();
+
+                // get path of the video
+                FileInputStream fileInputStream = Utilities.loadMediaFromInternalStorage(Utilities.VIDEO_DIR, context, context.bean.getPath());
+
+                MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+                try {
+                    retriever.setDataSource(fileInputStream.getFD());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                // get frames
+                final Bitmap[] img = new Bitmap[3];
+                img[0] = retriever.getFrameAtTime(10);
+                img[1] = retriever.getFrameAtTime(context.mediaPlayer.getDuration() / 2);
+                img[2] = retriever.getFrameAtTime(context.mediaPlayer.getDuration() - 1);
+
+                for (int i = 0; i < 3; i++) {
+
+                    // get the color palette of the frames
+                    Palette.from(img[0]).generate(new Palette.PaletteAsyncListener() {
+                        @Override
+                        public void onGenerated(Palette palette) {
+
+                            // color palette
+                            int vibrant = 0;
+                            int lightVibrant = 0;
+                            int darkVibrant = 0;
+                            int muted = 0;
+                            int lightMuted = 0;
+                            int darkMuted = 0;
+
+                            Palette.Swatch vibrantSwatch = palette.getVibrantSwatch();
+                            Palette.Swatch darkVibrantSwatch = palette.getDarkVibrantSwatch();
+                            Palette.Swatch lightVibrantSwatch = palette.getLightVibrantSwatch();
+
+                            Palette.Swatch mutedSwatch = palette.getMutedSwatch();
+                            Palette.Swatch lightMutedSwatch = palette.getLightMutedSwatch();
+                            Palette.Swatch darkMutedSwatch = palette.getDarkMutedSwatch();
+
+                            if (vibrantSwatch != null)
+                                vibrant = vibrantSwatch.getRgb();
+
+                            if (lightVibrantSwatch != null)
+                                lightVibrant = lightVibrantSwatch.getRgb();
+
+                            if (darkVibrantSwatch != null)
+                                darkVibrant = darkVibrantSwatch.getRgb();
+
+                            if (mutedSwatch != null)
+                                muted = mutedSwatch.getRgb();
+
+                            if (darkMutedSwatch != null)
+                                darkMuted = darkMutedSwatch.getRgb();
+
+                            if (lightMutedSwatch != null)
+                                lightMuted = lightMutedSwatch.getRgb();
+
+                            set.add(vibrant);
+                            set.add(lightVibrant);
+                            set.add(darkVibrant);
+                            set.add(muted);
+                            set.add(lightMuted);
+                            set.add(darkMuted);
+                        }
+                    });
+                }
+
+                retriever.release();
+                return null;
+            }
+        });
+
+
+    }
+
 
 
     /**

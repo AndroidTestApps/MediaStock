@@ -513,12 +513,21 @@ public class ImagesFragment extends AbstractFragment implements DownloadResultRe
 
         @Override
         protected void onPostExecute(String result) {
+            ImagesFragment context = activity.get();
+
             if (!searchSuccess) {
-                activity.get().dismissProgressBar();
-                Toast.makeText(activity.get().context, "Sorry, no image with " + result + " was found!", Toast.LENGTH_LONG).show();
+                context.dismissProgressBar();
+                Toast.makeText(ImagesFragment.context, "Sorry, no image with " + result + " was found!", Toast.LENGTH_LONG).show();
             }
 
-            activity.get().working = false;
+            if (context.progressBar.isShown())
+                context.dismissProgressBar();
+
+
+            if (context.progressBar_bottom.isShown())
+                context.progressBar_bottom.setVisibility(View.GONE);
+
+            working = false;
             activity = null;
         }
     }

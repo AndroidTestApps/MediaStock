@@ -70,9 +70,8 @@ public class Utilities {
     public static String getLicenseKey(){
 		String authString = "3bcee2a0f5bc8879f49f:3a24e63a54e171fe231ea2c777ea2dd21884c072";
         byte[] authEncBytes = encodeBase64(authString.getBytes());
-        String authStringEnc = new String(authEncBytes);
-	
-		return authStringEnc;
+
+        return new String(authEncBytes);
     }
 
     /**
@@ -132,8 +131,6 @@ public class Utilities {
             fos.flush();
             fos.close();
             inputStream.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -157,9 +154,10 @@ public class Utilities {
         final File[] fileNames = dir.listFiles();
 
         boolean result = false;
-        for (int i = 0; i < fileNames.length; i++)
-            if (fileNames[i].getName().equals(path))
-                result = fileNames[i].delete();
+        for (File file : fileNames) {
+            if (file.getName().equals(path))
+                result = file.delete();
+        }
 
         return result;
     }
@@ -178,9 +176,10 @@ public class Utilities {
         final File[] fileNames = imageDir.listFiles();
 
         File target = null;
-        for (int i = 0; i < fileNames.length; i++)
-            if (fileNames[i].getName().equals(path))
-                target = fileNames[i];
+        for (File file : fileNames) {
+            if (file.getName().equals(path))
+                target = file;
+        }
 
         return target;
     }
@@ -201,9 +200,10 @@ public class Utilities {
         final File[] fileNames = dir.listFiles();
 
         File target = null;
-        for (int i = 0; i < fileNames.length; i++)
-            if (fileNames[i].getName().equals(path))
-                target = fileNames[i];
+        for (File file : fileNames) {
+            if (file.getName().equals(path))
+                target = file;
+        }
 
         FileInputStream fis = null;
         try {
@@ -213,9 +213,17 @@ public class Utilities {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+
         return fis;
     }
 
+
+    public static String getAbsolutePath(String type, String path, Context context) {
+        ContextWrapper cw = new ContextWrapper(context.getApplicationContext());
+        File dir = cw.getDir(type + "Dir", Context.MODE_PRIVATE);
+
+        return dir.getAbsolutePath() + "/" + path;
+    }
 
     /**
      * Method to delete all the files within the directory typeDir, where type can be music, image or video
@@ -230,8 +238,8 @@ public class Utilities {
         final File[] fileNames = dir.listFiles();
 
         if (fileNames.length > 0) {
-            for (int i = 0; i < fileNames.length; i++)
-                fileNames[i].delete();
+            for (File file : fileNames)
+                file.delete();
         }
     }
 
@@ -263,7 +271,7 @@ public class Utilities {
         int bufferSize = 1024;
         byte[] buffer = new byte[bufferSize];
 
-        int len = 0;
+        int len;
         while ((len = inputStream.read(buffer)) != -1) {
             byteBuffer.write(buffer, 0, len);
         }

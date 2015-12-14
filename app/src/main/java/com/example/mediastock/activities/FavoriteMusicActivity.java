@@ -35,6 +35,8 @@ import com.example.mediastock.util.ExecuteExecutor;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Activity to display the favorite music. It also filters the music by genre.
@@ -83,6 +85,7 @@ public class FavoriteMusicActivity extends AppCompatActivity implements View.OnC
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(llm);
         adapter = new MusicVideoAdapter(this, 1, true);
+        adapter.setLoadingType(4);   // no loading when reaching bottom (no endless list)
         recyclerView.setAdapter(adapter);
 
         // on item click
@@ -248,6 +251,11 @@ public class FavoriteMusicActivity extends AppCompatActivity implements View.OnC
         buttonOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // first remove the music from the list
+                adapter.deleteItems();
+
+                // thread to filter the music by genre
+                new AsyncDBWork(FavoriteMusicActivity.this, 2).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, rowsModel.get(genreSelectedPosition));
 
                 popupWindow.dismiss();
                 fabFilter.setClickable(true);
@@ -268,14 +276,17 @@ public class FavoriteMusicActivity extends AppCompatActivity implements View.OnC
             public String call() {
                 FavoriteMusicActivity context = (FavoriteMusicActivity) this.getContextRef();
                 Cursor cursor = context.db.getMusicGenre();
+                final Set<String> set = new HashSet<>();
 
                 do {
 
-                    context.rowsModel.add(cursor.getString(cursor.getColumnIndex(DBHelper.MUSIC_GENRE)));
+                    set.add(cursor.getString(cursor.getColumnIndex(DBHelper.MUSIC_GENRE)));
 
                 } while (cursor.moveToNext());
 
                 cursor.close();
+
+                context.rowsModel.addAll(set);
 
                 // adapter for the spinner
                 context.spinnerRowAdapter = new MusicSpinnerRowAdapter(context, R.layout.media_spinner_rows, context.rowsModel);
@@ -292,6 +303,7 @@ public class FavoriteMusicActivity extends AppCompatActivity implements View.OnC
     private static class AsyncDBWork extends AsyncTask<String, Bean, Void> {
         private static WeakReference<FavoriteMusicActivity> activity;
         private final int type;
+        private boolean success = false;
 
         public AsyncDBWork(FavoriteMusicActivity context, int type) {
             activity = new WeakReference<>(context);
@@ -342,8 +354,39 @@ public class FavoriteMusicActivity extends AppCompatActivity implements View.OnC
         }
 
 
-        private void filterMusicByGenre(String category) {
+        /**
+         * Method to iterate over all musics and to filter them by the genre with the name genre.
+         *
+         * @param genre the genre of the music
+         */
+        private void filterMusicByGenre(String genre) {
+            FavoriteMusicActivity context = activity.get();
+            int pos = 0;
 
+            // get the genre of the music
+            Cursor cursor = context.db.getMusicGenre();
+            do {
+
+                if (cursor.getString(cursor.getColumnIndex(DBHelper.MUSIC_GENRE)).equals(genre)) {
+                    // move the main cursor to the position of the cursor genre to fetch the data
+                    context.cursor.moveToPosition(cursor.getPosition());
+
+                    final MusicBean bean = new MusicBean();
+                    bean.setPos(pos);
+                    bean.setId(String.valueOf(context.cursor.getInt(context.cursor.getColumnIndex(DBHelper.MUSIC_ID))));
+                    bean.setTitle(context.cursor.getString(context.cursor.getColumnIndex(DBHelper.TITLE_MUSIC)));
+                    bean.setPath(context.cursor.getString(context.cursor.getColumnIndex(DBHelper.MUSIC_PATH)));
+
+                    // add music to the adapter to update the UI
+                    publishProgress(bean);
+
+                    success = true;
+                    pos++;
+                }
+
+            } while (cursor.moveToNext());
+
+            cursor.close();
         }
 
         @Override
@@ -356,6 +399,11 @@ public class FavoriteMusicActivity extends AppCompatActivity implements View.OnC
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+
+            if (type == 2) {
+                if (!success)
+                    Toast.makeText(activity.get().getApplicationContext(), "No music was found!", Toast.LENGTH_SHORT).show();
+            }
 
             activity = null;
         }

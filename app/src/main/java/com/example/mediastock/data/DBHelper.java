@@ -9,6 +9,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public final static String TABLE_MUSIC = "table_music";
     public final static String TABLE_VIDEOS = "table_video";
     public final static String TABLE_COLORS = "table_colors";
+    public final static String TABLE_VIDEO_COLORS = "table_video_colors";
 
     // image attributes
     public final static String IMG_PATH = "path";
@@ -51,6 +52,10 @@ public class DBHelper extends SQLiteOpenHelper {
 
     private final String createTableVideos = "create table " + TABLE_VIDEOS +
             "(_id integer primary key autoincrement, " + VIDEO_PATH + " text, " + VIDEO_ID + " integer, " + DESCRIPTION_VIDEO + " text, " + VIDEO_CATEGORY + " text)";
+
+    private final String createTableVideoColors = "create table " + TABLE_VIDEO_COLORS +
+            "(_id integer primary key autoincrement, " + VIDEO_ID + " integer, " + VIBRANT + " integer, " + LIGHT_VIBRANT + " integer, " +
+            DARK_VIBRANT + " integer, " + MUTED + " integer, " + LIGHT_MUTED + " integer, " + DARK_MUTED + " integer)";
 
     private final String createTableColors = "create table " + TABLE_COLORS +
             "(_id integer primary key autoincrement, " + IMG_ID + " integer, " + VIBRANT + " integer, " + LIGHT_VIBRANT + " integer, " +

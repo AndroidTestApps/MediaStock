@@ -7,13 +7,13 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.media.AudioManager;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
@@ -74,14 +74,6 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
 
         favorites = (FloatingActionButton) this.findViewById(R.id.fab_favorites_music);
         favorites.setOnClickListener(this);
-        final ImageView goBack = (ImageView) this.findViewById(R.id.imageView_goBack);
-        goBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                onBackPressed();
-            }
-        });
 
         constructProgressDialog();
         showProgressDialog("Loading...");
@@ -107,7 +99,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
         musicID = Integer.valueOf(bean.getId());
 
         // set the title of the music
-        title.setText(bean.getTitle());
+        // title.setText(bean.getTitle());
 
         // the media player
         mediaPlayer = new MediaPlayer();
@@ -155,7 +147,6 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
 
         } else {
 
-
             try {
 
                 // set online source
@@ -164,6 +155,8 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            title.setText(bean.getTitle());
         }
 
         mediaPlayer.prepareAsync();
@@ -177,20 +170,29 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
      */
     private void computeOfflineWork() {
         offlineWork = true;
-
         // path of the music file
         String path = bean.getPath();
 
-        try {
+        FileInputStream fileInputStream = Utilities.loadMediaFromInternalStorage(Utilities.MUSIC_DIR, this, path);
+        MediaMetadataRetriever ret = new MediaMetadataRetriever();
 
-            FileInputStream fileInputStream = Utilities.loadMediaFromInternalStorage(Utilities.MUSIC_DIR, this, path);
+        try {
+            ret.setDataSource(fileInputStream.getFD());
 
             mediaPlayer.setDataSource(fileInputStream.getFD());
 
             fileInputStream.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
+            ret.release();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
+        // extract artist name from the mp3 binary
+        String artist = ret.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+        if (artist != null)
+            title.setText(artist + " - " + bean.getTitle());
+        else
+            title.setText(bean.getTitle());
     }
 
     @Override
@@ -436,6 +438,7 @@ public class MusicPlayerActivity extends Activity implements OnSeekBarChangeList
             }
         });
     }
+
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {

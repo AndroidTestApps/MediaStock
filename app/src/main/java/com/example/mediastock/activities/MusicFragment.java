@@ -513,13 +513,20 @@ public class MusicFragment extends AbstractFragment implements DownloadResultRec
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
+            MusicFragment context = activity.get();
 
             if (!searchSuccess) {
-                activity.get().dismissProgressBar();
-                Toast.makeText(activity.get().context, "Sorry, no music with " + result + " was found!", Toast.LENGTH_LONG).show();
+                context.dismissProgressBar();
+                Toast.makeText(MusicFragment.context, "Sorry, no music with " + result + " was found!", Toast.LENGTH_LONG).show();
             }
 
-            activity.get().working = false;
+            if (context.progressBar.isShown())
+                context.dismissProgressBar();
+
+            if (context.progressbar_bottom.isShown())
+                context.progressbar_bottom.setVisibility(View.GONE);
+
+            working = false;
             activity = null;
         }
     }

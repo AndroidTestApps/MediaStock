@@ -34,6 +34,8 @@ import com.example.mediastock.util.ExecuteExecutor;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Activity to display the favorite videos. It also filters the videos by color or by category.
@@ -67,7 +69,7 @@ public class FavoriteVideosActivity extends AppCompatActivity implements View.On
             }
         });
 
-        // get video infos
+        // get video info
         db = new DBController(this);
         cursor = db.getVideosInfo();
 
@@ -82,6 +84,7 @@ public class FavoriteVideosActivity extends AppCompatActivity implements View.On
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(llm);
         adapter = new MusicVideoAdapter(this, 2, true);
+        adapter.setLoadingType(4);   // no loading when reaching bottom (no endless list)
         recyclerView.setAdapter(adapter);
 
         // on item click
@@ -114,10 +117,8 @@ public class FavoriteVideosActivity extends AppCompatActivity implements View.On
         super.onOptionsItemSelected(item);
 
         // refresh the video list
-        if (item.getItemId() == R.id.item_refresh) {
-
+        if (item.getItemId() == R.id.item_refresh)
             refreshList();
-        }
 
         return true;
     }
@@ -198,7 +199,7 @@ public class FavoriteVideosActivity extends AppCompatActivity implements View.On
     }
 
     /**
-     * Method to show a popup menu to filter the music
+     * Method to show a popup menu to filter the videos by the user.
      */
     private void showPopupMenu() {
         int layoutWidth = (width / 2) + (width / 3);
@@ -213,7 +214,7 @@ public class FavoriteVideosActivity extends AppCompatActivity implements View.On
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-                // the selected genre position
+                // the selected category position
                 categorySelectedPosition = position;
             }
 
@@ -223,8 +224,8 @@ public class FavoriteVideosActivity extends AppCompatActivity implements View.On
         });
 
         final PopupWindow popupWindow = new PopupWindow(popupView, layoutWidth, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        TextView filterVideos = (TextView) popupView.findViewById(R.id.textFilterOption);
-        filterVideos.setText("Filter videos");
+        final TextView filter = (TextView) popupView.findViewById(R.id.textFilterOption);
+        filter.setText("Filter videos");
         TextView labelCategory = (TextView) popupView.findViewById(R.id.labelFirstOption);
         labelCategory.setText("Category");
         Button buttonDismiss = (Button) popupView.findViewById(R.id.dismiss);
@@ -246,6 +247,11 @@ public class FavoriteVideosActivity extends AppCompatActivity implements View.On
         buttonOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // first remove the videos from the list
+                adapter.deleteItems();
+
+                // thread to filter the videos by category
+                new AsyncDBWork(FavoriteVideosActivity.this, 2).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, rowsModel.get(categorySelectedPosition));
 
                 popupWindow.dismiss();
                 fabFilter.setClickable(true);
@@ -259,20 +265,25 @@ public class FavoriteVideosActivity extends AppCompatActivity implements View.On
    * Thread to create the spinner model rows. It gets from database the category of each video
    */
     private void createSpinnerModelRows() {
+
+
         new ExecuteExecutor(this, 2, new ExecuteExecutor.CallableAsyncTask(this) {
 
             @Override
             public String call() {
                 FavoriteVideosActivity context = (FavoriteVideosActivity) this.getContextRef();
                 Cursor cursor = context.db.getVideoCategory();
+                final Set<String> set = new HashSet<>();
 
                 do {
 
-                    context.rowsModel.add(cursor.getString(cursor.getColumnIndex(DBHelper.VIDEO_CATEGORY)));
+                    set.add(cursor.getString(cursor.getColumnIndex(DBHelper.VIDEO_CATEGORY)));
 
                 } while (cursor.moveToNext());
 
                 cursor.close();
+
+                context.rowsModel.addAll(set);
 
                 // adapter for the spinner
                 context.spinnerRowAdapter = new MusicSpinnerRowAdapter(context, R.layout.media_spinner_rows, context.rowsModel);
@@ -289,6 +300,7 @@ public class FavoriteVideosActivity extends AppCompatActivity implements View.On
     private static class AsyncDBWork extends AsyncTask<String, Bean, Void> {
         private static WeakReference<FavoriteVideosActivity> activity;
         private final int type;
+        private boolean success = false;
 
         public AsyncDBWork(FavoriteVideosActivity context, int type) {
             activity = new WeakReference<>(context);
@@ -331,14 +343,46 @@ public class FavoriteVideosActivity extends AppCompatActivity implements View.On
                 bean.setDescription(context.cursor.getString(context.cursor.getColumnIndex(DBHelper.DESCRIPTION_VIDEO)));
                 bean.setPath(context.cursor.getString(context.cursor.getColumnIndex(DBHelper.MUSIC_PATH)));
 
+                // add video to the adapter to update the UI
                 publishProgress(bean);
 
                 pos++;
             } while (context.cursor.moveToNext());
         }
 
-        private void filterVideosByCategory(String genre) {
+        /**
+         * Method to iterate over all videos and to filter them by the category with the name category.
+         *
+         * @param category the category of the video
+         */
+        private void filterVideosByCategory(String category) {
+            FavoriteVideosActivity context = activity.get();
+            int pos = 0;
 
+            // get the category of the videos
+            Cursor cursor = context.db.getVideoCategory();
+            do {
+
+                if (cursor.getString(cursor.getColumnIndex(DBHelper.VIDEO_CATEGORY)).equals(category)) {
+                    // move the main cursor to the position of the cursor category to fetch the data
+                    context.cursor.moveToPosition(cursor.getPosition());
+
+                    final VideoBean bean = new VideoBean();
+                    bean.setPos(pos);
+                    bean.setId(String.valueOf(context.cursor.getInt(context.cursor.getColumnIndex(DBHelper.VIDEO_ID))));
+                    bean.setDescription(context.cursor.getString(context.cursor.getColumnIndex(DBHelper.DESCRIPTION_VIDEO)));
+                    bean.setPath(context.cursor.getString(context.cursor.getColumnIndex(DBHelper.MUSIC_PATH)));
+
+                    // add video to the adapter to update the UI
+                    publishProgress(bean);
+
+                    success = true;
+                    pos++;
+                }
+
+            } while (cursor.moveToNext());
+
+            cursor.close();
         }
 
         @Override
@@ -351,6 +395,11 @@ public class FavoriteVideosActivity extends AppCompatActivity implements View.On
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+
+            if (type == 2) {
+                if (!success)
+                    Toast.makeText(activity.get().getApplicationContext(), "No video was found!", Toast.LENGTH_SHORT).show();
+            }
 
             activity = null;
         }

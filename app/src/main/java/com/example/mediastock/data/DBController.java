@@ -126,7 +126,7 @@ public class DBController {
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(DBHelper.MUSIC_PATH, path);
-        contentValues.put(DBHelper.MUSIC_ID, new Integer(musicId));
+        contentValues.put(DBHelper.MUSIC_ID, musicId);
         contentValues.put(DBHelper.TITLE_MUSIC, title);
         contentValues.put(DBHelper.MUSIC_GENRE, genre);
 
@@ -145,7 +145,7 @@ public class DBController {
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(DBHelper.VIDEO_PATH, path);
-        contentValues.put(DBHelper.VIDEO_ID, new Integer(videoID));
+        contentValues.put(DBHelper.VIDEO_ID, videoID);
         contentValues.put(DBHelper.DESCRIPTION_VIDEO, description);
         contentValues.put(DBHelper.VIDEO_CATEGORY, category);
 
@@ -164,7 +164,7 @@ public class DBController {
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(DBHelper.IMG_PATH, imagePath);
-        contentValues.put(DBHelper.IMG_ID, new Integer(imgId));
+        contentValues.put(DBHelper.IMG_ID, imgId);
         contentValues.put(DBHelper.DESCRIPTION_IMG, description);
         contentValues.put(DBHelper.AUTHOR_IMG, author);
 
@@ -172,7 +172,7 @@ public class DBController {
     }
 
     /**
-     * Method to add to database the colors of the image with id imageID
+     * Method to add to database the color palette of the image with id imageID
      *
      * @param imageID the id of the image
      */
@@ -191,6 +191,24 @@ public class DBController {
         db.insert(DBHelper.TABLE_COLORS, null, contentValues);
     }
 
+    /**
+     * Method to add to database the color palette of the video with id videoID
+     *
+     * @param videoID the id of the image
+     */
+    public void insertColorPaletteOfVideo(int videoID, int vibrant, int lightVibrant, int darkVibrant, int muted, int lightMuted, int darkMuted) {
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put(DBHelper.VIDEO_ID, videoID);
+        contentValues.put(DBHelper.VIBRANT, vibrant);
+        contentValues.put(DBHelper.LIGHT_VIBRANT, lightVibrant);
+        contentValues.put(DBHelper.DARK_VIBRANT, darkVibrant);
+        contentValues.put(DBHelper.MUTED, muted);
+        contentValues.put(DBHelper.LIGHT_MUTED, lightMuted);
+        contentValues.put(DBHelper.DARK_MUTED, darkMuted);
+
+        db.insert(DBHelper.TABLE_VIDEO_COLORS, null, contentValues);
+    }
 
     /**
      * It deletes the image with id img_id
